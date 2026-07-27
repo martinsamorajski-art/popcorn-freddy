@@ -1,0 +1,49 @@
+/* ────────────────────────────────────────────────────────────────
+   Popcorn & Freddy — lokal gehostete Schriften (DSGVO-konform)
+   Keine Requests an fonts.googleapis.com / fonts.gstatic.com.
+   Alle Schriften als WOFF2 unter assets/fonts/ selbst ausliefern.
+   Dateien beziehen & benennen: siehe assets/fonts/DOWNLOAD.md
+   font-display: swap → Text sofort sichtbar, Tausch ohne Blockade.
+   ──────────────────────────────────────────────────────────────── */
+
+/* ===== Hauptset (alle Seiten außer Sticker-Version) ============== */
+
+/* Young Serif — Display */
+@font-face{font-family:'Young Serif';font-style:normal;font-weight:400;font-display:swap;src:url('fonts/YoungSerif-Regular.ttf') format('truetype')}
+
+/* Alegreya — Fließtext (Serif) */
+@font-face{font-family:'Alegreya';font-style:normal;font-weight:400;font-display:swap;src:url('fonts/Alegreya-Regular.ttf') format('truetype')}
+@font-face{font-family:'Alegreya';font-style:normal;font-weight:500;font-display:swap;src:url('fonts/Alegreya-Medium.ttf') format('truetype')}
+@font-face{font-family:'Alegreya';font-style:normal;font-weight:600;font-display:swap;src:url('fonts/Alegreya-SemiBold.ttf') format('truetype')}
+@font-face{font-family:'Alegreya';font-style:normal;font-weight:700;font-display:swap;src:url('fonts/Alegreya-Bold.ttf') format('truetype')}
+@font-face{font-family:'Alegreya';font-style:italic;font-weight:400;font-display:swap;src:url('fonts/Alegreya-Italic.ttf') format('truetype')}
+@font-face{font-family:'Alegreya';font-style:italic;font-weight:500;font-display:swap;src:url('fonts/Alegreya-MediumItalic.ttf') format('truetype')}
+@font-face{font-family:'Alegreya';font-style:italic;font-weight:600;font-display:swap;src:url('fonts/Alegreya-SemiBoldItalic.ttf') format('truetype')}
+
+/* Alegreya Sans — UI / Sans */
+@font-face{font-family:'Alegreya Sans';font-style:normal;font-weight:400;font-display:swap;src:url('fonts/AlegreyaSans-Regular.ttf') format('truetype')}
+@font-face{font-family:'Alegreya Sans';font-style:normal;font-weight:500;font-display:swap;src:url('fonts/AlegreyaSans-Medium.ttf') format('truetype')}
+@font-face{font-family:'Alegreya Sans';font-style:normal;font-weight:700;font-display:swap;src:url('fonts/AlegreyaSans-Bold.ttf') format('truetype')}
+@font-face{font-family:'Alegreya Sans';font-style:normal;font-weight:800;font-display:swap;src:url('fonts/AlegreyaSans-ExtraBold.ttf') format('truetype')}
+
+/* Caveat — Handschrift-Akzent */
+@font-face{font-family:'Caveat';font-style:normal;font-weight:400;font-display:swap;src:url('fonts/Caveat-Regular.ttf') format('truetype')}
+@font-face{font-family:'Caveat';font-style:normal;font-weight:600;font-display:swap;src:url('fonts/Caveat-SemiBold.ttf') format('truetype')}
+
+/* ===== Sticker-Version ("Popcorn in Box") ======================== */
+
+/* Caveat Brush */
+@font-face{font-family:'Caveat Brush';font-style:normal;font-weight:400;font-display:swap;src:url('fonts/CaveatBrush-Regular.ttf') format('truetype')}
+/* Patrick Hand */
+@font-face{font-family:'Patrick Hand';font-style:normal;font-weight:400;font-display:swap;src:url('fonts/PatrickHand-Regular.ttf') format('truetype')}
+/* Patrick Hand SC */
+@font-face{font-family:'Patrick Hand SC';font-style:normal;font-weight:400;font-display:swap;src:url('fonts/PatrickHandSC-Regular.ttf') format('truetype')}
+/* Nunito */
+@font-face{font-family:'Nunito';font-style:normal;font-weight:300;font-display:swap;src:url('fonts/Nunito-Light.ttf') format('truetype')}
+@font-face{font-family:'Nunito';font-style:normal;font-weight:400;font-display:swap;src:url('fonts/Nunito-Regular.ttf') format('truetype')}
+@font-face{font-family:'Nunito';font-style:normal;font-weight:500;font-display:swap;src:url('fonts/Nunito-Medium.ttf') format('truetype')}
+@font-face{font-family:'Nunito';font-style:normal;font-weight:600;font-display:swap;src:url('fonts/Nunito-SemiBold.ttf') format('truetype')}
+@font-face{font-family:'Nunito';font-style:normal;font-weight:700;font-display:swap;src:url('fonts/Nunito-Bold.ttf') format('truetype')}
+@font-face{font-family:'Nunito';font-style:normal;font-weight:800;font-display:swap;src:url('fonts/Nunito-ExtraBold.ttf') format('truetype')}
+/* Gloock */
+@font-face{font-family:'Gloock';font-style:normal;font-weight:400;font-display:swap;src:url('fonts/Gloock-Regular.ttf') format('truetype')}
