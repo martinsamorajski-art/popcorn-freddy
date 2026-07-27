@@ -512,7 +512,8 @@ function RcApp() {
                 {step === 1 && <RcStepShip rc={rc} form={form} setForm={setForm} onBack={() => goTo(0)} onNext={goToPayment} />}
                 {step === 2 && <RcStepPay rc={rc} lang={lang} cur={cur} pay={pay} setPay={setPay} sealing={sealing} onBack={() => goTo(1)} onOrder={placeOrder} totals={totals} />}
               </div>
-              <RcSummary rc={rc} t={t} lang={lang} cur={cur} cart={cart} addons={addons} totals={totals} gift={giftProps} disc={discProps} />
+              <RcSummary rc={rc} t={t} lang={lang} cur={cur} cart={cart} addons={addons} totals={totals} gift={null} disc={null} />
+              {/* Discount codes & gift cards are handled natively on Shopify's checkout. */}
             </div>
           </React.Fragment>
         )}
