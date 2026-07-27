@@ -228,6 +228,8 @@ const RC_COPY = {
   },
 };
 
+// Kept only as a currency-conversion reference for shipping/add-on copy.
+// Product prices ALWAYS come from Shopify.
 const RC_PRICE = 39.9;
 const RC_SHIP = { at: 7, de: 9, ch: 9 };
 function rcShipCost(country) {
@@ -443,12 +445,12 @@ function RcSummary({ rc, t, lang, cur, cart, addons, totals, gift, disc }) {
           <div style={{ marginTop: 8 }}>
             {cart.map((c) => (
               <div key={c.n} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0' }}>
-                <img src={c.img} alt="" style={{ width: 40, height: 50, objectFit: 'cover', borderRadius: 5, border: '1px solid color-mix(in srgb, var(--rd-ink) 12%, transparent)' }} />
+                {c.img ? <img src={c.img} alt="" style={{ width: 40, height: 50, objectFit: 'cover', borderRadius: 5, border: '1px solid color-mix(in srgb, var(--rd-ink) 12%, transparent)' }} /> : <div className="rd-skel" style={{ width: 40, height: 50, borderRadius: 5 }} />}
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontFamily: 'var(--f-sans)', fontWeight: 700, fontSize: 14, color: 'var(--rd-ink)' }}>{c[`name_${lang}`]}</div>
-                  <div className="r-it" style={{ fontSize: 13.5, color: 'var(--rd-ink-mute)' }}>{(c.qty || 1)} × {rcFmt(RC_PRICE, lang, cur)}</div>
+                  <div style={{ fontFamily: 'var(--f-sans)', fontWeight: 700, fontSize: 14, color: 'var(--rd-ink)' }}>{c.title || ''}</div>
+                  <div className="r-it" style={{ fontSize: 13.5, color: 'var(--rd-ink-mute)' }}>{(c.qty || 1)} × {c.price != null ? rcFmt(c.price, lang, c.currency || cur) : ''}</div>
                 </div>
-                <div style={{ fontFamily: 'var(--f-sans)', fontWeight: 700, fontSize: 14.5 }}>{rcFmt((c.qty || 1) * RC_PRICE, lang, cur)}</div>
+                <div style={{ fontFamily: 'var(--f-sans)', fontWeight: 700, fontSize: 14.5 }}>{c.price != null ? rcFmt((c.qty || 1) * c.price, lang, c.currency || cur) : ''}</div>
               </div>
             ))}
           </div>

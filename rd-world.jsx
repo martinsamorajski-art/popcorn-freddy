@@ -192,21 +192,12 @@ function RdWhy({ t }) {
   );
 }
 
-const RD_CHAPTERS = [
-  { n: 1, name_de: 'Der Flüsterwald', name_en: 'The Whispering Forest', toy_de: 'Auto-Bausatz', toy_en: 'Car kit', img: 'assets/chapter-1-cover.png', available: true, tag: 'tag1', handle: 'kapitel-1-fluesterwald', desc_de: 'Popcorn hört ein Flüstern zwischen den Bäumen — und findet die erste Spur der Schatzkarte.', desc_en: 'Popcorn hears a whisper between the trees — and finds the first clue on the treasure map.' },
-  { n: 2, name_de: 'Der Silbersee', name_en: 'Silver Lake', toy_de: 'Boot-Bausatz', toy_en: 'Boat kit', img: 'assets/chapter-2-cover.png', available: true, tag: 'tag2', handle: 'kapitel-2-silbersee', desc_de: 'Am anderen Ufer wartet die nächste Spur — doch ohne Boot kommt niemand hinüber.', desc_en: 'The next clue waits on the far shore — but no one gets across without a boat.' },
-  { n: 3, name_de: 'Der Harmonie-Berg', name_en: 'Harmony Mountain', toy_de: 'Bluetooth-Lautsprecher-Bausatz', toy_en: 'Bluetooth speaker kit', release_de: 'September 2026', release_en: 'September 2026', desc_de: 'Der Berg antwortet nur auf die richtige Melodie — Zeit für Musik.', desc_en: 'The mountain answers only to the right melody — time for music.' },
-  { n: 4, name_de: 'Der Felsenpass', name_en: 'Rocky Pass', toy_de: 'Hydrauliklader-Bausatz', toy_en: 'Hydraulic loader kit', release_de: 'Oktober 2026', release_en: 'October 2026', desc_de: 'Felsbrocken versperren den Weg — ohne kräftige Maschine geht es nicht weiter.', desc_en: 'Boulders block the path — nothing moves on without a mighty machine.' },
-  { n: 5, name_de: 'Das vergessene Forscherlager', name_en: 'Forgotten Explorer Camp', toy_de: 'Alarmbox-Bausatz', toy_en: 'Alarm box kit', release_de: 'November 2026', release_en: 'November 2026', desc_de: 'Ein verlassenes Lager voller Hinweise — aber jemand schleicht nachts umher.', desc_en: 'An abandoned camp full of clues — but someone prowls around at night.' },
-  { n: 6, name_de: 'Die Kristallhöhle', name_en: 'Crystal Cave', toy_de: 'Lichtgenerator-Bausatz', toy_en: 'Light generator kit', release_de: 'Dezember 2026', release_en: 'December 2026', desc_de: 'Tief unter der Erde funkelt es — nur mit eigenem Licht zeigt sich der Weg.', desc_en: 'Something sparkles deep underground — only your own light reveals the way.' },
-  { n: 7, name_de: 'Das verborgene Tal', name_en: 'Hidden Valley', toy_de: 'Wasserpumpen-Bausatz', toy_en: 'Water pump kit', release_de: 'Januar 2027', release_en: 'January 2027', desc_de: 'Das Tal ist vertrocknet — erst Wasser bringt die vorletzte Spur ans Licht.', desc_en: 'The valley has run dry — only water brings the second-to-last clue to light.' },
-  { n: 8, name_de: 'Der Schatzhügel', name_en: 'Treasure Hill', toy_de: 'Schatztruhen-Bausatz', toy_en: 'Treasure chest kit', release_de: 'Februar 2027', release_en: 'February 2027', desc_de: 'Alle Spuren führen hierher — das große Finale der Reise.', desc_en: 'Every clue leads here — the grand finale of the journey.' },
-];
-
+// Every chapter comes from Shopify: the "kapitel" collection (manual order),
+// or the "kapitel" tag as fallback. Adding a product there is all it takes —
+// no code change, no hardcoded image, price, title or stock anywhere.
 function RdChapters({ t, lang, onAdd, all }) {
-  const list = RD_CHAPTERS;
-  // One Shopify request for the whole section: image, price and stock per product.
-  const catalog = usePFCatalog(list.filter((c) => c.handle).map((c) => c.handle), lang);
+  const { list, loading } = usePFChapters(lang);
+  const buyable = (p) => p.available !== false && p.quantityAvailable !== 0;
   return (
     <section id="chapters" data-rd data-screen-label="Kapitel" style={{ padding: '96px 0 100px', background: 'var(--rd-paper-soft)' }}>
       <div aria-hidden="true" style={{ position: 'absolute', top: 44, right: 40, color: 'var(--rd-walnut)', zIndex: 1 }}><RdTrail width={200} /></div>
@@ -216,17 +207,25 @@ function RdChapters({ t, lang, onAdd, all }) {
           <RdHeading eyebrow={t.chapters.eyebrow} title={t.chapters.title} lede={t.chapters.sub} max={800} ledeMax={620} />
         </div>
 
-        {all ? (
+        {loading ? (
+          <div className={all ? 'rd-chap-grid' : 'rd-chap-grid'}>
+            {[0, 1, 2].map((i) => <RdChapterSkeleton key={i} />)}
+          </div>
+        ) : list.length === 0 ? (
+          <div className="r-rev" style={{ textAlign: 'center', padding: '40px 0', fontFamily: 'var(--f-sans)', fontSize: 16, color: 'var(--rd-ink-mute)' }}>
+            {lang === 'de' ? 'Die Kapitel werden gerade vorbereitet — schaut gleich noch einmal vorbei.' : 'The chapters are being prepared — please check back shortly.'}
+          </div>
+        ) : all ? (
           <div className="rd-chap-grid">
-            {list.map((c) => c.available
-              ? <RdMainChapter key={c.n} c={c} t={t} lang={lang} onAdd={onAdd} live={c.handle ? (catalog ? (catalog[c.handle] || null) : null) : null} showDesc />
-              : <RdUpcomingChapter key={c.n} c={c} t={t} lang={lang} showDesc />)}
+            {list.map((p) => buyable(p)
+              ? <RdMainChapter key={p.handle} p={p} t={t} lang={lang} onAdd={onAdd} showDesc />
+              : <RdUpcomingChapter key={p.handle} p={p} t={t} lang={lang} showDesc />)}
           </div>
         ) : (
           <RdPeekCarousel ariaLabel={t.chapters.title}>
-            {list.map((c) => c.available
-              ? <RdMainChapter key={c.n} c={c} t={t} lang={lang} onAdd={onAdd} live={c.handle ? (catalog ? (catalog[c.handle] || null) : null) : null} />
-              : <RdUpcomingChapter key={c.n} c={c} t={t} lang={lang} />)}
+            {list.map((p) => buyable(p)
+              ? <RdMainChapter key={p.handle} p={p} t={t} lang={lang} onAdd={onAdd} />
+              : <RdUpcomingChapter key={p.handle} p={p} t={t} lang={lang} />)}
             <RdBoxCard t={t} lang={lang} />
           </RdPeekCarousel>
         )}
@@ -245,6 +244,21 @@ function RdChapters({ t, lang, onAdd, all }) {
         </div>}
       </div>
     </section>
+  );
+}
+
+// Card-shaped placeholder while Shopify answers — same frame, no fake product.
+function RdChapterSkeleton() {
+  return (
+    <div className="rd-chap" aria-hidden="true">
+      <div className="rd-skel" style={{ width: '100%', aspectRatio: '4/5', borderRadius: 8 }} />
+      <div style={{ padding: '22px 10px 10px', display: 'grid', gap: 10 }}>
+        <div className="rd-skel" style={{ width: '42%', height: 12, borderRadius: 4 }} />
+        <div className="rd-skel" style={{ width: '72%', height: 22, borderRadius: 5 }} />
+        <div className="rd-skel" style={{ width: '56%', height: 12, borderRadius: 4 }} />
+        <div className="rd-skel" style={{ width: '100%', height: 46, borderRadius: 8, marginTop: 12 }} />
+      </div>
+    </div>
   );
 }
 
@@ -280,82 +294,40 @@ function RdChapNo({ n }) {
   return <div className="rd-chap-no">№ {String(n).padStart(2, '0')}</div>;
 }
 
-// Live catalog from Shopify — ONE request for every handle in the section.
-// Returns null until data arrives (and stays null in preview/offline mode),
-// so cards fall back to the static copy values and the design never breaks.
-function usePFCatalog(handles, lang) {
-  const key = (handles || []).join(',');
-  const [map, setMap] = React.useState(null);
-  React.useEffect(() => {
-    if (!key || !window.PFShop || !window.PFShop.getProducts) return;
-    let alive = true;
-    window.PFShop.getProducts(key.split(','), lang)
-      .then((m) => { if (alive && m) setMap(m); })
-      .catch(() => {});
-    return () => { alive = false; };
-  }, [key, lang]);
-  return map;
-}
-
-// Single-product variant of the same thing (used when a card renders alone).
-function useLiveProduct(handle, lang) {
-  const [data, setData] = React.useState(null);
-  React.useEffect(() => {
-    if (!handle || !window.PFShop) return;
-    let alive = true;
-    window.PFShop.getProduct(handle, lang)
-      .then((p) => { if (alive && p) setData(p); })
-      .catch(() => {});
-    return () => { alive = false; };
-  }, [handle, lang]);
-  return data;
-}
-
-// Main (purchasable) chapter card
-function RdMainChapter({ c, t, lang, onAdd, showDesc, live }) {
-  // One reusable product template: /produkt/<handle>. Falls back to a
-  // legacy per-chapter page only if a handle isn't set yet.
-  const link = c.handle ? ('/produkt/' + c.handle) : (c.href || '/produkt/kapitel-1-fluesterwald');
-  // Title, image, price, stock + availability come from Shopify when configured,
-  // else the static copy values. `live` is passed in by RdChapters (batched).
-  const own = useLiveProduct(live === undefined && c.handle ? c.handle : null, lang);
-  const p = live || own || null;
-  const title = (p && p.title) || c[`name_${lang}`];
-  const image = (p && p.images && p.images[0] && p.images[0].src) || c.img;
-  const price = (p && p.priceFormatted) || t.chapters.price;
-  const stock = p && p.quantityAvailable != null ? p.quantityAvailable : null;
-  const soldOut = p ? (p.available === false || stock === 0) : false;
+// Main (purchasable) chapter card — every value below comes from Shopify.
+function RdMainChapter({ p, t, lang, onAdd, showDesc }) {
+  const link = '/produkt/' + p.handle;
+  const image = p.images && p.images[0] ? p.images[0] : null;
+  const stock = p.quantityAvailable != null ? p.quantityAvailable : null;
+  const soldOut = p.available === false || stock === 0;
   const lowStock = !soldOut && stock != null && stock > 0 && stock <= 10;
   const availLabel = soldOut
     ? (lang === 'de' ? 'Ausverkauft' : 'Sold out')
     : lowStock
       ? (lang === 'de' ? `Nur noch ${stock} verfügbar` : `Only ${stock} left`)
       : t.chapters.available;
-  // Add the SAME product data the product page uses, so the basket line is the
-  // real Shopify line. Identity is the Shopify handle (see addToCart).
-  const add = () => onAdd({
-    ...c, name_de: title, name_en: title, img: image,
-    price: p ? p.price : undefined, currency: p ? p.currencyCode : undefined,
-    variantId: p ? p.variantId : undefined, max: stock,
-  });
+  // The basket line is a reference to this exact Shopify product.
+  const add = () => onAdd({ handle: p.handle, variantId: p.variantId, max: stock });
   return (
     <div className="rd-chap r-rev">
-      <div className="rd-stamp">{t.chapters[c.tag]}</div>
+      {p.badge && <div className="rd-stamp">{p.badge}</div>}
       <a href={link} style={{ display: 'block', borderRadius: 8, overflow: 'hidden', position: 'relative' }}>
-        <img src={image} alt={title} style={{ width: '100%', aspectRatio: '4/5', objectFit: 'cover' }} />
-        <RdChapNo n={c.n} />
+        {image
+          ? <img src={image.src} alt={image.alt || p.title} style={{ width: '100%', aspectRatio: '4/5', objectFit: 'cover' }} />
+          : <div className="rd-skel" style={{ width: '100%', aspectRatio: '4/5' }} />}
+        {p.chapterNo != null && <RdChapNo n={p.chapterNo} />}
       </a>
       <div className="rd-chap-body" style={{ padding: '22px 10px 10px' }}>
         <div className="rd-chap-avail"><span className="rd-chap-dot" aria-hidden="true" style={soldOut ? { background: 'var(--rd-ink-mute)' } : undefined}></span>{availLabel}</div>
-        <a href={link} style={{ textDecoration: 'none' }}><h3 className="r-display" style={{ fontSize: 27, color: 'var(--rd-ink)', marginTop: 8 }}>{title}</h3></a>
-        <div className="r-caps" style={{ marginTop: 9, color: 'var(--rd-ink-mute)', letterSpacing: '0.2em' }}>+ {c[`toy_${lang}`]} {t.chapters.extras}</div>
-        {showDesc && <p style={{ fontSize: 15, color: 'var(--rd-ink-soft)', marginTop: 12, lineHeight: 1.6, textWrap: 'pretty' }}>{c[`desc_${lang}`]}</p>}
+        <a href={link} style={{ textDecoration: 'none' }}><h3 className="r-display" style={{ fontSize: 27, color: 'var(--rd-ink)', marginTop: 8 }}>{p.title}</h3></a>
+        {p.toy && <div className="r-caps" style={{ marginTop: 9, color: 'var(--rd-ink-mute)', letterSpacing: '0.2em' }}>+ {p.toy} {t.chapters.extras}</div>}
+        {showDesc && p.teaser && <p style={{ fontSize: 15, color: 'var(--rd-ink-soft)', marginTop: 12, lineHeight: 1.6, textWrap: 'pretty' }}>{p.teaser}</p>}
 
         <div className="rd-chap-buy" style={{ paddingTop: 18, borderTop: '1px solid color-mix(in srgb, var(--rd-ink) 11%, transparent)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
-            <div className="r-display r-price" style={{ fontSize: 29, color: 'var(--rd-ink)' }}>{price}</div>
+            <div className="r-display r-price" style={{ fontSize: 29, color: 'var(--rd-ink)' }}>{p.priceFormatted}</div>
             <span style={{ display: 'inline-flex', gap: 6, flexWrap: 'wrap' }}>
-              {['PayPal', 'Klarna', lang === 'de' ? 'Kreditkarte' : 'Credit card'].map((p, i) => <span key={i} className="rd-pay-chip">{p}</span>)}
+              {['PayPal', 'Klarna', lang === 'de' ? 'Kreditkarte' : 'Credit card'].map((n, i) => <span key={i} className="rd-pay-chip">{n}</span>)}
             </span>
           </div>
           {soldOut
@@ -367,31 +339,31 @@ function RdMainChapter({ c, t, lang, onAdd, showDesc, live }) {
   );
 }
 
-// Upcoming chapter — cover (or placeholder) + title + kit + release month. No mystery framing.
-function RdUpcomingChapter({ c, t, lang, showDesc }) {
-  const name = c[`name_${lang}`];
-  const release = c[`release_${lang}`];
+// Not (yet) purchasable — an unavailable Shopify product. Release month comes
+// from the product's custom.release_label metafield.
+function RdUpcomingChapter({ p, t, lang, showDesc }) {
+  const image = p.images && p.images[0] ? p.images[0] : null;
   const soon = lang === 'de' ? 'Erscheint' : 'Arrives';
   const [open, setOpen] = useState(false);
   const [ok, setOk] = useState(false);
   return (
     <div className="rd-chap rd-chap-soon r-rev">
       <div style={{ borderRadius: 8, overflow: 'hidden', position: 'relative' }}>
-        {c.img ? (
-          <img src={c.img} alt={name} style={{ width: '100%', aspectRatio: '4/5', objectFit: 'cover' }} />
+        {image ? (
+          <img src={image.src} alt={image.alt || p.title} style={{ width: '100%', aspectRatio: '4/5', objectFit: 'cover' }} />
         ) : (
-          <div className="rd-chap-ph" role="img" aria-label={name}>
-            <span className="rd-chap-ph-no">№ {String(c.n).padStart(2, '0')}</span>
-            <span className="rd-chap-ph-cap">cover · {name}</span>
+          <div className="rd-chap-ph" role="img" aria-label={p.title}>
+            {p.chapterNo != null && <span className="rd-chap-ph-no">№ {String(p.chapterNo).padStart(2, '0')}</span>}
+            <span className="rd-chap-ph-cap">cover · {p.title}</span>
           </div>
         )}
-        <RdChapNo n={c.n} />
+        {p.chapterNo != null && <RdChapNo n={p.chapterNo} />}
       </div>
       <div className="rd-chap-body" style={{ padding: '22px 10px 10px' }}>
-        <div className="rd-chap-avail is-soon"><span className="rd-chap-dot rd-dot-soon" aria-hidden="true"></span>{soon} · {release}</div>
-        <h3 className="r-display" style={{ fontSize: 27, color: 'var(--rd-ink)', marginTop: 8 }}>{name}</h3>
-        <div className="r-caps" style={{ marginTop: 9, color: 'var(--rd-ink-mute)', letterSpacing: '0.2em' }}>+ {c[`toy_${lang}`]}</div>
-        {showDesc && <p style={{ fontSize: 15, color: 'var(--rd-ink-soft)', marginTop: 12, lineHeight: 1.6, textWrap: 'pretty' }}>{c[`desc_${lang}`]}</p>}
+        <div className="rd-chap-avail is-soon"><span className="rd-chap-dot rd-dot-soon" aria-hidden="true"></span>{p.releaseLabel ? `${soon} · ${p.releaseLabel}` : (lang === 'de' ? 'Bald verfügbar' : 'Coming soon')}</div>
+        <h3 className="r-display" style={{ fontSize: 27, color: 'var(--rd-ink)', marginTop: 8 }}>{p.title}</h3>
+        {p.toy && <div className="r-caps" style={{ marginTop: 9, color: 'var(--rd-ink-mute)', letterSpacing: '0.2em' }}>+ {p.toy}</div>}
+        {showDesc && p.teaser && <p style={{ fontSize: 15, color: 'var(--rd-ink-soft)', marginTop: 12, lineHeight: 1.6, textWrap: 'pretty' }}>{p.teaser}</p>}
         <div className="rd-chap-buy" style={{ paddingTop: 18, borderTop: '1px solid color-mix(in srgb, var(--rd-ink) 11%, transparent)' }}>
           {ok ? (
             <div className="r-it" style={{ fontSize: 15.5, color: 'var(--rd-forest)', padding: '12px 0', textAlign: 'center' }}>{t.chapters.notify_ok}</div>
@@ -409,4 +381,4 @@ function RdUpcomingChapter({ c, t, lang, showDesc }) {
   );
 }
 
-Object.assign(window, { usePFCatalog, useLiveProduct, RD_CHAPTERS, RdStory, RdHow, RdMap, RdInside, RdWhy, RdChapters, RdMainChapter, RdUpcomingChapter, RdBoxCard });
+Object.assign(window, { RdChapterSkeleton, RdStory, RdHow, RdMap, RdInside, RdWhy, RdChapters, RdMainChapter, RdUpcomingChapter, RdBoxCard });

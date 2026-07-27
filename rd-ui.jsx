@@ -5,11 +5,95 @@ const { useEffect, useRef, useState } = React;
 
 // Shared cart store (localStorage) — used by Redesign.html and Checkout.html
 const RD_CART_KEY = 'pf-cart-v1';
+// A cart line is a REFERENCE to a Shopify product: { n: handle, handle, qty,
+// variantId?, max?, attrs?, gift? }. Titles, images and prices are never stored
+// — they are resolved from the Shopify catalog at render time (usePFCartLines).
+// Older baskets that copied product data (or used numeric chapter ids) are
+// migrated on load: copied fields are dropped, unidentifiable lines removed.
 function rdCartLoad() {
-  try { const c = JSON.parse(localStorage.getItem(RD_CART_KEY)); return Array.isArray(c) ? c : []; } catch (e) { return []; }
+  try {
+    const c = JSON.parse(localStorage.getItem(RD_CART_KEY));
+    if (!Array.isArray(c)) return [];
+    const clean = c.map((it) => {
+      const handle = it.handle || (typeof it.n === 'string' ? it.n : null);
+      if (!handle) return null;
+      return {
+        n: handle, handle, qty: it.qty || 1,
+        ...(it.variantId ? { variantId: it.variantId } : {}),
+        ...(it.max != null ? { max: it.max } : {}),
+        ...(it.attrs ? { attrs: it.attrs } : {}),
+        ...(it.gift ? { gift: it.gift } : {}),
+      };
+    }).filter(Boolean);
+    if (JSON.stringify(clean) !== JSON.stringify(c)) rdCartSave(clean);
+    return clean;
+  } catch (e) { return []; }
 }
 function rdCartSave(c) {
   try { localStorage.setItem(RD_CART_KEY, JSON.stringify(c)); } catch (e) {}
+}
+
+// ── Shopify catalog hooks ───────────────────────────────────────
+// Shopify is the ONLY source of product data. Cards, the product page and
+// the cart all read the same PFShop store, so they can never disagree.
+
+// Every chapter product, in Shopify's order. [] until loaded.
+function usePFChapters(lang) {
+  const [state, setState] = useState({ list: [], loading: true, failed: false });
+  useEffect(() => {
+    if (!window.PFShop || !PFShop.getChapters) { setState({ list: [], loading: false, failed: true }); return; }
+    let alive = true;
+    PFShop.getChapters(lang)
+      .then((l) => { if (alive) setState({ list: l || [], loading: false, failed: !l }); })
+      .catch(() => { if (alive) setState({ list: [], loading: false, failed: true }); });
+    return () => { alive = false; };
+  }, [lang]);
+  return state;
+}
+
+// One product by handle, from the shared store (fetches it if unseen).
+function usePFProduct(handle, lang) {
+  const [p, setP] = useState(() => (window.PFShop && PFShop.peek ? PFShop.peek(handle) : null));
+  useEffect(() => {
+    if (!handle || !window.PFShop) return;
+    let alive = true;
+    const sync = () => { if (alive) setP(PFShop.peek(handle)); };
+    window.addEventListener('pf-catalog-changed', sync);
+    const known = PFShop.peek(handle);
+    if (known) setP(known);
+    else PFShop.ensure([handle], lang).then(sync).catch(() => {});
+    return () => { alive = false; window.removeEventListener('pf-catalog-changed', sync); };
+  }, [handle, lang]);
+  return p;
+}
+
+// Cart lines resolved against the live catalog: title, image, price, currency
+// and stock always come from Shopify, never from what was stored at add time.
+function usePFCartLines(cart, lang) {
+  const handles = cart.map((c) => c.handle || (typeof c.n === 'string' ? c.n : null)).filter(Boolean).join(',');
+  const [, bump] = useState(0);
+  useEffect(() => {
+    if (!window.PFShop || !handles) return;
+    const sync = () => bump((x) => x + 1);
+    window.addEventListener('pf-catalog-changed', sync);
+    PFShop.ensure(handles.split(','), lang).then(sync).catch(() => {});
+    return () => window.removeEventListener('pf-catalog-changed', sync);
+  }, [handles, lang]);
+  return cart.map((c) => {
+    const handle = c.handle || (typeof c.n === 'string' ? c.n : null);
+    const p = (window.PFShop && PFShop.peek) ? PFShop.peek(handle) : null;
+    return {
+      ...c,
+      title: p ? p.title : null,
+      chapterNo: p ? p.chapterNo : null,
+      img: p && p.images[0] ? p.images[0].src : null,
+      price: p ? p.price : null,
+      currency: p ? p.currencyCode : null,
+      priceFormatted: p ? p.priceFormatted : null,
+      max: p && p.quantityAvailable != null ? p.quantityAvailable : null,
+      ready: !!p,
+    };
+  });
 }
 
 // Shared language preference (localStorage) — keeps the chosen language when
@@ -538,6 +622,7 @@ function RdCountrySuggest({ lang, setLang }) {
 }
 
 function RdCart({ open, cart, onClose, lang, onQty, onRemove, justAdded }) {
+  const lines = usePFCartLines(cart, lang);
   useEffect(() => {
     if (!open) return;
     const onKey = (e) => { if (e.key === 'Escape') onClose(); };
@@ -546,9 +631,9 @@ function RdCart({ open, cart, onClose, lang, onQty, onRemove, justAdded }) {
   }, [open, onClose]);
   if (!open) return null;
   const count = cart.reduce((s, c) => s + (c.qty || 1), 0);
-  const cur = (cart.find((c) => c.currency) || {}).currency;
+  const cur = (lines.find((c) => c.currency) || {}).currency;
   const fmt = (n, cc) => ((cc || cur) && window.PFShop) ? window.PFShop.money(n, cc || cur, lang) : rdMoney(n, lang);
-  const total = cart.reduce((s, c) => s + (c.qty || 1) * (c.price != null ? c.price : 39.9), 0);
+  const total = lines.reduce((s, c) => s + (c.qty || 1) * (c.price || 0), 0);
   return (
     <React.Fragment>
       <div className="rd-cart-scrim" onClick={onClose} />
@@ -569,12 +654,14 @@ function RdCart({ open, cart, onClose, lang, onQty, onRemove, justAdded }) {
 
         <div className="rd-cart-items">
           {cart.length === 0 && <div className="r-it" style={{ fontSize: 17, color: 'var(--rd-ink-soft)', padding: '8px 2px' }}>{lang === 'de' ? 'Noch leer — Zeit für ein Abenteuer ✦' : 'Empty — time for an adventure ✦'}</div>}
-          {cart.map((c) => (
+          {lines.map((c) => (
             <div key={c.n} className={'rd-cart-line' + (justAdded === c.n ? ' is-added' : '')}>
-              <img src={c.img || 'assets/chapter-1-cover.png'} style={{ width: 52, height: 52, borderRadius: 8, objectFit: 'cover', flexShrink: 0 }} alt="" />
+              {c.img
+                ? <img src={c.img} style={{ width: 52, height: 52, borderRadius: 8, objectFit: 'cover', flexShrink: 0 }} alt="" />
+                : <div className="rd-skel" style={{ width: 52, height: 52, borderRadius: 8, flexShrink: 0 }} aria-hidden="true" />}
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 14.5, fontWeight: 600, color: 'var(--rd-ink)', fontFamily: 'var(--f-sans)' }}>{c[`name_${lang}`] || c.name_de || (lang === 'de' ? 'Kapitel 1' : 'Chapter 1')}</div>
-                <div className="r-it r-price" style={{ fontSize: 14, color: 'var(--rd-ink-soft)' }}>{fmt(c.price != null ? c.price : 39.9, c.currency)}</div>
+                <div style={{ fontSize: 14.5, fontWeight: 600, color: 'var(--rd-ink)', fontFamily: 'var(--f-sans)' }}>{c.title || <span className="rd-skel" style={{ display: 'inline-block', width: 120, height: 13, borderRadius: 4 }} />}</div>
+                <div className="r-it r-price" style={{ fontSize: 14, color: 'var(--rd-ink-soft)' }}>{c.priceFormatted || ''}</div>
                 {c.gift && <div className="r-it" style={{ fontSize: 13, color: 'var(--rd-gold)', display: 'flex', alignItems: 'center', gap: 5, marginTop: 1 }}><RdIcon name="gift" size={13} />{lang === 'de' ? 'Als Geschenk' : 'As a gift'}</div>}
                 <div className="rd-qty">
                   <button aria-label="minus" onClick={() => (c.qty || 1) > 1 ? onQty(c.n, -1) : onRemove(c.n)}>–</button>
@@ -629,6 +716,8 @@ function RdCart({ open, cart, onClose, lang, onQty, onRemove, justAdded }) {
         .rd-cart-trust { margin-top: 14px; display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; }
         .rd-cart-trust span { display: inline-flex; align-items: center; gap: 6px; font-family: var(--f-sans); font-size: 12.5px; color: var(--rd-ink-mute); }
         .rd-cart-trust svg { color: var(--rd-terra); }
+        .rd-skel { background: linear-gradient(90deg, color-mix(in srgb, var(--rd-ink) 8%, transparent) 25%, color-mix(in srgb, var(--rd-ink) 14%, transparent) 37%, color-mix(in srgb, var(--rd-ink) 8%, transparent) 63%); background-size: 400% 100%; animation: rdSkel 1.4s ease infinite; }
+        @keyframes rdSkel { 0% { background-position: 100% 50% } 100% { background-position: 0 50% } }
       `}</style>
     </React.Fragment>
   );
@@ -657,4 +746,4 @@ function RdCartButtons({ label, cartCount, onOpenCart }) {
   );
 }
 
-Object.assign(window, { RdIcon, RdOrnament, RdSquiggle, RdCompass, RdLeaves, RdFireflies, RdPines, RdHeading, RdLogo, rdCartLoad, rdCartSave, RD_CART_KEY, RD_CRAFT, RdCraftNote, RdTrustRow, RdCarousel, RdPeekCarousel, RdFlag, RdLocaleControl, RdTrail, RdPaws, rdMoney, rdCheckout, RdCountrySuggest, RdCart, RdCartButtons });
+Object.assign(window, { usePFChapters, usePFProduct, usePFCartLines, RdIcon, RdOrnament, RdSquiggle, RdCompass, RdLeaves, RdFireflies, RdPines, RdHeading, RdLogo, rdCartLoad, rdCartSave, RD_CART_KEY, RD_CRAFT, RdCraftNote, RdTrustRow, RdCarousel, RdPeekCarousel, RdFlag, RdLocaleControl, RdTrail, RdPaws, rdMoney, rdCheckout, RdCountrySuggest, RdCart, RdCartButtons });

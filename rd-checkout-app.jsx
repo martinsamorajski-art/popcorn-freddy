@@ -21,10 +21,10 @@ function RcStepCart({ rc, lang, cur, cart, setQty, removeItem, units, personal, 
         <div style={{ marginTop: 6 }}>
           {cart.map((c) => (
             <div className="rc-item" key={c.n}>
-              <img src={c.img} alt={c[`name_${lang}`]} />
+              {c.img ? <img src={c.img} alt={c.title || ''} /> : <div className="rd-skel" style={{ borderRadius: 8 }} />}
               <div style={{ minWidth: 0 }}>
-                <div className="r-caps" style={{ color: 'var(--rd-ink-mute)', letterSpacing: '0.2em' }}>{rc.cart.chapter} {String(c.n).padStart(2, '0')}</div>
-                <div className="r-display" style={{ fontSize: 21, color: 'var(--rd-ink)', marginTop: 4 }}>{c[`name_${lang}`]}</div>
+                {c.chapterNo != null && <div className="r-caps" style={{ color: 'var(--rd-ink-mute)', letterSpacing: '0.2em' }}>{rc.cart.chapter} {String(c.chapterNo).padStart(2, '0')}</div>}
+                <div className="r-display" style={{ fontSize: 21, color: 'var(--rd-ink)', marginTop: 4 }}>{c.title || ''}</div>
                 <div className="r-it" style={{ fontSize: 14.5, color: 'var(--rd-ink-mute)', marginTop: 3 }}>{rc.cart.each}</div>
               </div>
               <div className="rc-item-right" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 10 }}>
@@ -34,7 +34,7 @@ function RcStepCart({ rc, lang, cur, cart, setQty, removeItem, units, personal, 
                   <button aria-label="plus" onClick={() => setQty(c.n, 1)}>+</button>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                  <span style={{ fontFamily: 'var(--f-sans)', fontWeight: 800, fontSize: 16 }}>{rcFmt((c.qty || 1) * RC_PRICE, lang, cur)}</span>
+                  <span style={{ fontFamily: 'var(--f-sans)', fontWeight: 800, fontSize: 16 }}>{c.price != null ? rcFmt((c.qty || 1) * c.price, lang, c.currency || cur) : ''}</span>
                   <button className="rc-remove" onClick={() => removeItem(c.n)}>{rc.cart.remove}</button>
                 </div>
               </div>
@@ -343,20 +343,29 @@ function RcApp() {
 
   const setQty = (n, d) => setCart((c) => c.map((x) => x.n === n ? { ...x, qty: Math.max(1, (x.qty || 1) + d) } : x));
   const removeItem = (n) => setCart((c) => c.filter((x) => x.n !== n));
+  // Every displayed value comes from the shared Shopify catalog.
+  const lines = usePFCartLines(cart, lang);
   const toggleAddon = (id) => setAddons((a) => ({ ...a, [id]: !a[id] }));
-  const addFirst = () => setCart([{ n: 1, name_de: 'Kapitel 1 — Der Flüsterwald', name_en: 'Chapter 1 — The Whispering Woods', img: 'assets/chapter-1-cover.png', qty: 1 }]);
+  // The first purchasable chapter in Shopify — never a hardcoded product.
+  const addFirst = () => {
+    if (!window.PFShop || !PFShop.getChapters) return;
+    PFShop.getChapters(lang).then((list) => {
+      const p = (list || []).find((x) => x.available !== false && x.quantityAvailable !== 0);
+      if (p) setCart([{ n: p.handle, handle: p.handle, variantId: p.variantId, qty: 1, ...(p.quantityAvailable != null ? { max: p.quantityAvailable } : {}) }]);
+    }).catch(() => {});
+  };
 
   // One personalisation unit per box (cart item × quantity)
   const units = useMemo(() => {
     const out = [];
-    cart.forEach((c) => { const q = Math.max(1, c.qty || 1); for (let i = 0; i < q; i++) out.push({ key: c.n + ':' + i, chapter: c.n, cover: c.img, title: c[`name_${lang}`] }); });
+    lines.forEach((c) => { const q = Math.max(1, c.qty || 1); for (let i = 0; i < q; i++) out.push({ key: c.n + ':' + i, chapter: c.chapterNo != null ? c.chapterNo : c.n, cover: c.img, title: c.title }); });
     return out;
-  }, [cart, lang]);
+  }, [lines, lang]);
   const setPersonalField = (key, field, value) => setPersonal((p) => ({ ...p, [key]: { name: '', lang: 'de', ...(p[key] || {}), [field]: value } }));
   const primaryName = (() => { const k = units[0] && units[0].key; const p = k && personal[k]; return ((p && p.name) || '').trim(); })();
 
   const totals = useMemo(() => {
-    const sub = cart.reduce((s, c) => s + (c.qty || 1) * RC_PRICE, 0);
+    const sub = lines.reduce((s, c) => s + (c.qty || 1) * (c.price || 0), 0);
     const add = rc.cart.addons.reduce((s, a) => s + (addons[a.id] ? a.price : 0), 0);
     const base = sub + add;
     let disc = 0;
@@ -379,7 +388,7 @@ function RcApp() {
     const code = discCode.trim();
     if (!code) return;
     setDiscStatus('checking'); setDiscError('');
-    const subEUR = cart.reduce((s, c) => s + (c.qty || 1) * RC_PRICE, 0) + rc.cart.addons.reduce((s, a) => s + (addons[a.id] ? a.price : 0), 0);
+    const subEUR = lines.reduce((s, c) => s + (c.qty || 1) * (c.price || 0), 0) + rc.cart.addons.reduce((s, a) => s + (addons[a.id] ? a.price : 0), 0);
     try {
       const res = await fetch(GIFT_API + '/discount-check?code=' + encodeURIComponent(code) + '&subtotal=' + subEUR);
       const data = await res.json();
@@ -508,11 +517,11 @@ function RcApp() {
             <RcSteps rc={rc} step={step} />
             <div className="rc-grid">
               <div className="rc-main">
-                {step === 0 && <RcStepCart rc={rc} lang={lang} cur={cur} cart={cart} setQty={setQty} removeItem={removeItem} units={units} personal={personal} setPersonalField={setPersonalField} addons={addons} toggleAddon={toggleAddon} onNext={() => goTo(1)} />}
+                {step === 0 && <RcStepCart rc={rc} lang={lang} cur={cur} cart={lines} setQty={setQty} removeItem={removeItem} units={units} personal={personal} setPersonalField={setPersonalField} addons={addons} toggleAddon={toggleAddon} onNext={() => goTo(1)} />}
                 {step === 1 && <RcStepShip rc={rc} form={form} setForm={setForm} onBack={() => goTo(0)} onNext={goToPayment} />}
                 {step === 2 && <RcStepPay rc={rc} lang={lang} cur={cur} pay={pay} setPay={setPay} sealing={sealing} onBack={() => goTo(1)} onOrder={placeOrder} totals={totals} />}
               </div>
-              <RcSummary rc={rc} t={t} lang={lang} cur={cur} cart={cart} addons={addons} totals={totals} gift={null} disc={null} />
+              <RcSummary rc={rc} t={t} lang={lang} cur={cur} cart={lines} addons={addons} totals={totals} gift={null} disc={null} />
               {/* Discount codes & gift cards are handled natively on Shopify's checkout. */}
             </div>
           </React.Fragment>

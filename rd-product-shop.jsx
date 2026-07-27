@@ -21,73 +21,8 @@ function pfProductHandle() {
   if (h) return h.trim();
   var m = location.pathname.match(/\/produkt\/([^/?#]+)/i);
   if (m) return decodeURIComponent(m[1]);
-  return 'kapitel-1-fluesterwald'; // sensible default for direct opens
+  return null;   // no handle → the first chapter in the Shopify collection
 }
-
-// ── SAMPLE product — shown ONLY until Shopify is connected, so the
-//    page (and this preview) renders the full design. Once the store
-//    is live, real Shopify data replaces every field below. ─────────
-const PF_SAMPLE = {
-  handle: 'kapitel-1-fluesterwald',
-  title: 'Der Flüsterwald',
-  caps: 'Kapitel 01 · Wo alles beginnt',
-  available: true,
-  variantId: null,
-  price: 39.9,
-  currencyCode: 'EUR',
-  priceFormatted: '39,90 €',
-  quantityAvailable: 120,
-  images: [
-    { src: 'assets/chapter-1-cover.png', alt: 'Kapitel 1 — Der Flüsterwald, Buchcover', fit: 'cover' },
-    { src: 'assets/box-contents.png', alt: 'Der komplette Box-Inhalt von oben', fit: 'contain' },
-    { src: 'assets/scene-table.png', alt: 'Kind baut das Holz-Auto', fit: 'contain' },
-    { src: 'assets/holz-car-v2.png', alt: 'Das fertig gebaute Holz-Auto', fit: 'contain' },
-    { src: 'assets/book-page-1.png', alt: 'Eine illustrierte Seite aus dem Buch', fit: 'cover' },
-  ],
-  descriptionHtml: 'An einem sonnigen Tag entdecken Popcorn und Freddy in einem hohlen Baumstamm eine alte Karte — darauf nur ein rotes X. Sofort wollen sie den Schatz finden, doch die Hindernisse auf dem Weg schaffen sie nicht allein …',
-  emotion: 'Spannung & Neugier',
-  meta_rows: [
-    { icon: 'user', t: 'Ab 4 Jahren' },
-    { icon: 'book', t: '10 illustrierte Seiten' },
-    { icon: 'build', t: 'Holz-Auto zum Bauen & Bemalen' },
-    { icon: 'truck', t: 'In 2–3 Werktagen da' },
-  ],
-  scarcity: 'Wir fertigen von Hand — nur ~250 Boxen pro Monat.',
-  gift_note: 'Zur ersten Box: die gravierte Kunstleder-Mappe — geschenkt.',
-  guarantee: 'Beschädigt angekommen? Sofort kostenloser Ersatz — ganz unkompliziert.',
-  personalization_label: 'Name des Kindes',
-  rating: 4.8,
-  rating_count: 142,
-  inside_items: [
-    { icon: 'book', t: 'Das Buchkapitel', d: '10 illustrierte Seiten, in denen der Name eures Kindes gedruckt steht — zum Vorlesen ab 4, zum Selbstlesen ab 6.' },
-    { icon: 'build', t: 'Der Holz-Auto-Bausatz', d: '24 Teile aus FSC-Birkenholz, splitterfrei geschliffen. Genau das Auto, mit dem Popcorn & Freddy in den Wald aufbrechen.' },
-    { icon: 'palette', t: 'Pinsel & 6 Farben', d: 'Speichelfeste Farben auf Wasserbasis — euer Kind bemalt das Auto so, wie es in seiner Geschichte aussehen soll.' },
-    { icon: 'compass', t: 'Die Schatzkarte, Etappe 1', d: 'Das erste Stück der großen Karte. Kapitel für Kapitel wächst sie weiter — bis zum Schatz.' },
-    { icon: 'archive', t: 'Bauanleitung & Sammel-Sticker', d: 'Eine einfache, bebilderte Anleitung — und der erste Sticker fürs Schatzbuch.' },
-    { icon: 'gift', t: 'Die Kunstleder-Mappe — geschenkt', d: 'Einmalig zur ersten Box: die gravierte Sammel-Mappe mit dem Namen eures Kindes.' },
-  ],
-  story_title: 'Ein Flüstern zwischen den Bäumen.',
-  story_body: 'An einem sonnigen Tag streifen Popcorn, der bedächtige Bär mit der runden Brille, und Freddy, der flinke Fuchs, neugierig durch den Wald — bis sie in einem hohlen Baumstamm eine alte Karte entdecken. Kein Name, keine Erklärung: nur ein rotes X, das eine Stelle markiert. Sofort packt sie die Abenteuerlust — sie wollen den Schatz finden. Doch der Weg steckt voller Hindernisse, die sie allein nicht überwinden. Genau dafür brauchen sie euer Kind.',
-  story_hand: 'Psst … der Wald flüstert nur, wenn man ganz leise ist.',
-  details: [
-    { k: 'Empfohlenes Alter', v: 'Ab 4 Jahren (Selbstlesen ab ca. 6)' },
-    { k: 'Vorlesezeit', v: 'Ca. 15–20 Minuten' },
-    { k: 'Bau- & Malzeit', v: 'Ca. 45–60 Minuten gemeinsame Zeit' },
-    { k: 'Sprache des Buches', v: 'Deutsch oder Englisch — wählbar an der Kasse' },
-    { k: 'Personalisierung', v: 'Name im Buch gedruckt & im Ordner graviert' },
-    { k: 'Material', v: 'FSC-Birkenholz, Farben nach DIN EN 71-3' },
-    { k: 'Maße der Box', v: '32 × 24 × 8 cm, ca. 1,1 kg' },
-    { k: 'Lieferung', v: '2–3 Werktage · Versandkosten an der Kasse' },
-  ],
-  reviews: [
-    { q: 'Mein Sohn liest sonst nie — jetzt fragt er jeden Abend nach Popcorn. Und ich darf endlich wieder mit Holz und Farbe werken.', n: 'Lena K.', m: 'Mama von Theo (5)' },
-    { q: 'Die Qualität hat mich ehrlich überrascht. Der Ordner fühlt sich wertig an, das Holz sauber geschliffen — nichts wirkt wie Massenware.', n: 'Daniel R.', m: 'Papa von Mira (6)' },
-    { q: 'Als ihr eigener Name in der Geschichte auftauchte, hat sie gequietscht. Sie glaubt fest, die Karte wurde nur für sie gezeichnet.', n: 'Sarah B.', m: 'Mama von Emilia (4)' },
-    { q: 'Der Zusammenbau war auch für kleine Hände machbar — die Anleitung ist wirklich gut bebildert. Das Auto steht jetzt bemalt am Bett.', n: 'Markus T.', m: 'Papa von Jonas (5)' },
-    { q: 'Endlich ein Abend ohne Bildschirm, den sich alle wünschen. Wir lesen, bauen, malen — und reden dabei mehr als sonst die ganze Woche.', n: 'Julia M.', m: 'Mama von Ben & Paul' },
-    { q: 'Wir haben es zum Geburtstag verschenkt und es war DAS Geschenk. Die Vorfreude auf Kapitel zwei ist jetzt schon riesig.', n: 'Anna S.', m: 'Mama von Frieda (7)' },
-  ],
-};
 
 // Static UI microcopy that isn't product data (labels, not content)
 const PF_UI = {
@@ -138,8 +73,9 @@ function PSTitle({ title }) {
 // ─── GALLERY ─────────────────────────────────────────────────
 function PSGallery({ images }) {
   const [i, setI] = useState(0);
-  const list = images && images.length ? images : PF_SAMPLE.images;
+  const list = images && images.length ? images : [];
   const main = list[Math.min(i, list.length - 1)];
+  if (!main) return <div className="shop-gal r-rev"><div className="shop-gal-main"><div className="rd-skel" style={{ width: '100%', height: '100%' }} /></div></div>;
   return (
     <div className="shop-gal r-rev">
       <div className="shop-gal-main">
@@ -451,7 +387,7 @@ function PSBody({ p, lang }) {
     const cart = rdCartLoad();
     const i = cart.findIndex((it) => it.n === p.handle);
     if (i >= 0) cart[i] = { ...cart[i], qty: (cart[i].qty || 1) + 1 };
-    else cart.push({ n: p.handle, name_de: p.title, name_en: p.title, img: (p.images[0] || {}).src, qty: 1, variantId: p.variantId, price: p.price, currency: p.currencyCode, attrs: attrs });
+    else cart.push({ n: p.handle, handle: p.handle, variantId: p.variantId, qty: 1, ...(p.quantityAvailable != null ? { max: p.quantityAvailable } : {}), attrs: attrs });
     rdCartSave(cart);
     window.dispatchEvent(new Event('rd-cart-changed'));
     setInCart(true);
@@ -478,6 +414,36 @@ function PSBody({ p, lang }) {
   );
 }
 
+// ─── LOADING / NOT FOUND ─────────────────────────────────────
+function PSSkeleton() {
+  return (
+    <section data-rd style={{ padding: '120px 0 140px' }}>
+      <div className="rwrap" style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: 60 }}>
+        <div className="rd-skel" style={{ width: '100%', aspectRatio: '4/5', borderRadius: 12 }} />
+        <div style={{ display: 'grid', gap: 18, alignContent: 'start', paddingTop: 20 }}>
+          <div className="rd-skel" style={{ width: '38%', height: 12, borderRadius: 4 }} />
+          <div className="rd-skel" style={{ width: '85%', height: 52, borderRadius: 8 }} />
+          <div className="rd-skel" style={{ width: '100%', height: 74, borderRadius: 8 }} />
+          <div className="rd-skel" style={{ width: '32%', height: 40, borderRadius: 8 }} />
+          <div className="rd-skel" style={{ width: '100%', height: 56, borderRadius: 10 }} />
+        </div>
+      </div>
+      <style>{`@media (max-width: 900px) { .rwrap { grid-template-columns: minmax(0,1fr) !important } }`}</style>
+    </section>
+  );
+}
+function PSNotFound({ lang }) {
+  const ui = PF_UI[lang] || PF_UI.de;
+  return (
+    <section data-rd style={{ padding: '160px 0 180px', textAlign: 'center' }}>
+      <div className="rwrap-tight">
+        <h1 className="r-display" style={{ fontSize: 'clamp(30px, 4vw, 46px)', color: 'var(--rd-ink)' }}>{ui.unavailable}</h1>
+        <div style={{ marginTop: 28 }}><a href="Alle Kapitel.html" className="rbtn rbtn-primary rbtn-xl">{ui.back_link}</a></div>
+      </div>
+    </section>
+  );
+}
+
 // ─── APP ─────────────────────────────────────────────────────
 function ProductApp() {
   const [tw, setTw] = useTweaks({ palette: 'wald', anim: 5, lang: 'de' });
@@ -494,25 +460,21 @@ function ProductApp() {
     document.documentElement.style.setProperty('--anim-f', String(Math.max(intensity, 1) / 5));
   }, [tw.palette, intensity]);
 
-  // Load the product from Shopify; fall back to the sample so the design
-  // always renders (preview + before the store is connected). A hard
-  // timeout guarantees the page never sits blank if the request stalls.
+  // Shopify is the only source. No handle in the URL → the first chapter of
+  // the collection, so /produkt opens something real without hardcoding one.
   useEffect(() => {
-    let alive = true, settled = false;
-    const done = (p, isSample) => {
-      if (!alive || settled) return; settled = true;
-      const prod = p || PF_SAMPLE;
-      setProduct(prod); setLoaded(true);
-      document.title = prod.title + ' — Popcorn & Freddy';
+    let alive = true;
+    const done = (p) => {
+      if (!alive) return;
+      setProduct(p || null); setLoaded(true);
+      if (p) document.title = p.title + ' — Popcorn & Freddy';
     };
-    const timer = setTimeout(function () { if (!settled) { console.warn('[Shop] product load timed out — showing fallback'); done(null, true); } }, 5000);
-    if (window.PFShop) {
-      PFShop.getProduct(handle, lang).then(function (p) {
-        if (!p) console.warn('[Shop] product not found for handle:', handle);
-        done(p, !p);
-      }).catch(function (e) { console.warn('[Shop] product load failed:', e && e.message); done(null, true); });
-    } else { done(null, true); }
-    return () => { alive = false; clearTimeout(timer); };
+    if (!window.PFShop) { done(null); return; }
+    const req = handle
+      ? PFShop.getProduct(handle, lang)
+      : PFShop.getChapters(lang).then((l) => (l && l[0]) || null);
+    req.then(done).catch(function (e) { console.warn('[Shop] product load failed:', e && e.message); done(null); });
+    return () => { alive = false; };
   }, [handle, lang]);
 
   const t = (window.COPY && (window.COPY[lang] || window.COPY.de)) || {};
@@ -532,7 +494,9 @@ function ProductApp() {
       <RdPageTopBar t={t} lang={lang} setLang={setLang} />
       {typeof RdCountrySuggest === 'function' && <RdCountrySuggest lang={lang} setLang={setLang} />}
       <main data-screen-label="Produkt">
-        {product ? <PSBody key={lang + ':' + product.handle} p={product} lang={lang} /> : null}
+        {product ? <PSBody key={lang + ':' + product.handle} p={product} lang={lang} />
+          : loaded ? <PSNotFound lang={lang} />
+          : <PSSkeleton />}
       </main>
       <RdPageFooter t={t} lang={lang} setLang={setLang} />
       <TweaksPanel title="Tweaks">
@@ -600,4 +564,4 @@ const PS_SHOP_CSS = `
 
 ReactDOM.createRoot(document.getElementById('root')).render(<ProductApp />);
 
-Object.assign(window, { pfProductHandle, PF_SAMPLE, PSBody, ProductApp });
+Object.assign(window, { pfProductHandle, PSBody, ProductApp });

@@ -115,6 +115,7 @@
   // Metafields (namespace "custom") carry the extra product content that
   // the existing design shows. See SHOPIFY-SETUP.md for the exact keys.
   var METAFIELD_IDS = [
+    'chapter_no', 'teaser', 'toy', 'release_label', 'badge',
     'caps', 'emotion', 'meta_rows', 'inside_items', 'details',
     'story_title', 'story_body', 'story_hand',
     'reviews', 'rating', 'rating_count',
@@ -151,6 +152,22 @@
     return 'query Products ' + ctx() + ' {\n' + body + '\n}';
   }
 
+  // Collection that holds the chapter products, in the manual sort order set
+  // in Shopify. Add a product to this collection → it appears on the site.
+  var CHAPTERS_COLLECTION = 'kapitel';
+  var CHAPTERS_TAG = 'kapitel';
+
+  function chaptersQuery() {
+    return 'query Chapters ' + ctx() + ' {\n' +
+      '  collection(handle: "' + CHAPTERS_COLLECTION + '") {\n' +
+      '    products(first: 50, sortKey: MANUAL) { nodes {\n' + productFields() + '\n} }\n' +
+      '  }\n}';
+  }
+  function chaptersByTagQuery() {
+    return 'query ChaptersByTag ' + ctx() + ' {\n' +
+      '  products(first: 50, query: "tag:' + CHAPTERS_TAG + '", sortKey: TITLE) { nodes {\n' + productFields() + '\n} }\n}';
+  }
+
   function parseMaybeJSON(v) {
     if (v == null) return null;
     try { return JSON.parse(v); } catch (e) { return v; }
@@ -169,7 +186,7 @@
     });
     if (!images.length && p.featuredImage) images = [{ src: p.featuredImage.url, alt: p.featuredImage.altText || p.title, fit: 'cover' }];
 
-    return {
+    var out = {
       id: p.id,
       handle: p.handle,
       title: p.title,
@@ -182,6 +199,12 @@
       currencyCode: priceObj.currencyCode,
       priceFormatted: money(priceObj.amount, priceObj.currencyCode, lang),
       images: images,
+      // listing content (index cards) — all from Shopify metafields
+      chapterNo: mf.chapter_no != null ? Number(mf.chapter_no) : null,
+      teaser: mf.teaser,
+      toy: mf.toy,
+      releaseLabel: mf.release_label,
+      badge: mf.badge,
       // extra content from metafields (may be null → components fall back)
       caps: mf.caps,
       emotion: mf.emotion,
@@ -199,6 +222,38 @@
       gift_note: mf.gift_note,
       personalization_label: mf.personalization_label,
     };
+    storePut(out);
+    return out;
+  }
+
+  // ── Shared catalog store ──────────────────────────────────────
+  // ONE in-memory copy of every product the page has seen, keyed by handle.
+  // Index cards, the product template and the cart all read from here, so
+  // they can never show different images, prices or stock for one product.
+  // Invalidated automatically when the market or language changes.
+  var _store = {};
+  var _storeKey = '';
+  function storeKey() { return currentMarket().country + '|' + langCode(); }
+  function storeCheck() {
+    var k = storeKey();
+    if (k !== _storeKey) { _store = {}; _catalogCache = {}; _chaptersCache = {}; _storeKey = k; }
+  }
+  function storePut(p) {
+    if (!p || !p.handle) return;
+    storeCheck();
+    _store[p.handle] = p;
+  }
+  function emitCatalog() {
+    try { window.dispatchEvent(new Event('pf-catalog-changed')); } catch (e) {}
+  }
+  // Synchronous read — null when the product hasn't loaded yet.
+  function peek(handle) { storeCheck(); return (handle && _store[handle]) || null; }
+  // Make sure these handles are in the store; resolves when they are.
+  function ensure(handles, lang) {
+    storeCheck();
+    var missing = (handles || []).filter(function (h) { return h && !_store[h]; });
+    if (!missing.length) return Promise.resolve(_store);
+    return getProducts(missing, lang).then(function () { emitCatalog(); return _store; });
   }
 
   function getProduct(handle, lang) {
@@ -226,6 +281,36 @@
       return out;
     }).catch(function () { delete _catalogCache[key]; return {}; });
     _catalogCache[key] = p;
+    return p;
+  }
+
+  // The chapter catalog: every chapter product, straight from Shopify.
+  // Tries the "kapitel" collection first, falls back to the "kapitel" tag.
+  var _chaptersCache = {};
+  function getChapters(lang) {
+    storeCheck();
+    var key = storeKey() + '|' + (lang || '');
+    if (_chaptersCache[key]) return _chaptersCache[key];
+    var p = gql(chaptersQuery()).then(function (d) {
+      if (!d || d._notConfigured) return null;
+      var nodes = d.collection && d.collection.products && d.collection.products.nodes;
+      return (nodes && nodes.length) ? nodes : null;
+    }).catch(function () { return null; }).then(function (nodes) {
+      if (nodes) return nodes;
+      // No such collection (or empty) → tag fallback.
+      return gql(chaptersByTagQuery()).then(function (d) {
+        if (!d || d._notConfigured) return [];
+        return (d.products && d.products.nodes) || [];
+      }).catch(function () { return []; });
+    }).then(function (nodes) {
+      var list = nodes.map(function (n) { return normalizeProduct(n, lang); }).filter(Boolean);
+      // chapter_no orders the list when set; otherwise Shopify's own order wins.
+      var numbered = list.filter(function (p) { return p.chapterNo != null; });
+      if (numbered.length === list.length) list.sort(function (a, b) { return a.chapterNo - b.chapterNo; });
+      emitCatalog();
+      return list;
+    }).catch(function () { delete _chaptersCache[key]; return []; });
+    _chaptersCache[key] = p;
     return p;
   }
 
@@ -382,9 +467,6 @@
     });
   }
 
-  // Map legacy numeric cart items (chapter number) to their Shopify handle.
-  // Extend as products are added; string handles need no entry.
-  var HANDLE_BY_N = { 1: 'kapitel-1-fluesterwald', 2: 'kapitel-2-silbersee' };
   var _variantCache = {};
   function resolveVariant(handle) {
     if (!handle) return Promise.resolve(null);
@@ -415,7 +497,7 @@
         });
       }
       return Promise.all(items.map(function (it) {
-        var handle = it.handle || (typeof it.n === 'string' ? it.n : HANDLE_BY_N[it.n]);
+        var handle = it.handle || (typeof it.n === 'string' ? it.n : null);
         var vp = it.variantId ? Promise.resolve(it.variantId) : resolveVariant(handle);
         return vp.then(function (vid) {
           if (!vid) return null;
@@ -459,6 +541,9 @@
     // catalog
     getProduct: getProduct,
     getProducts: getProducts,
+    getChapters: getChapters,
+    peek: peek,
+    ensure: ensure,
     // cart
     getCart: getCart,
     addLine: addLine,

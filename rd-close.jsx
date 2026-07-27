@@ -381,52 +381,49 @@ const RD_TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
 }/*EDITMODE-END*/;
 
 // ─── ADD TO CART ─────────────────────────────────────────────
-// One basket writer for every "add" button on the site. A line is always the
-// REAL Shopify product: identity = Shopify handle, and price / currency /
-// variant / image / stock come from Shopify. Buttons that don't have the live
-// product in hand (hero, sticky bar, top bar) get it patched in as soon as the
-// Storefront answers, so the basket never shows invented data.
+// One basket writer for every "add" button on the site. A basket line is only a
+// REFERENCE to a Shopify product — { handle, variantId, qty }. Title, image,
+// price and stock are read from the shared Shopify catalog at render time, so
+// the basket can never disagree with the card or the product page.
 function rdUseAddToCart(setCart, setCartOpen, setJustAdded, lang) {
   return (chap, opts) => {
-    const base = chap || (window.RD_CHAPTERS && window.RD_CHAPTERS[0]) || { n: 1, handle: 'kapitel-1-fluesterwald', name_de: 'Kapitel 1', name_en: 'Chapter 1', img: 'assets/chapter-1-cover.png' };
-    const key = base.handle || base.n;
+    const handle = typeof chap === 'string' ? chap : (chap && chap.handle);
+    if (!handle) return;                       // no product → nothing to add
     const gift = opts && opts.gift ? opts.gift : null;
-    const patch = (fields) => setCart((c) => c.map((x) => x.n === key ? { ...x, ...fields } : x));
+    const known = (window.PFShop && PFShop.peek) ? PFShop.peek(handle) : null;
+    const variantId = (chap && chap.variantId) || (known && known.variantId) || null;
+    const max = (chap && chap.max != null) ? chap.max : (known ? known.quantityAvailable : null);
     setCart((c) => {
-      const i = c.findIndex((x) => x.n === key);
+      const i = c.findIndex((x) => x.n === handle);
       if (i >= 0) {
         const next = [...c];
-        const cap = next[i].max || base.max || 99;
+        const cap = next[i].max != null ? next[i].max : (max != null ? max : 99);
         next[i] = { ...next[i], qty: Math.min(cap, (next[i].qty || 1) + 1), ...(gift ? { gift } : {}) };
         return next;
       }
-      return [...c, {
-        n: key, handle: base.handle,
-        name_de: base.name_de, name_en: base.name_en,
-        img: base.img || 'assets/chapter-1-cover.png', qty: 1,
-        ...(base.variantId ? { variantId: base.variantId } : {}),
-        ...(base.price != null ? { price: base.price } : {}),
-        ...(base.currency ? { currency: base.currency } : {}),
-        ...(base.max != null ? { max: base.max } : {}),
-        ...(gift ? { gift } : {}),
-      }];
+      return [...c, { n: handle, handle, qty: 1, ...(variantId ? { variantId } : {}), ...(max != null ? { max } : {}), ...(gift ? { gift } : {}) }];
     });
-    // Fill in live Shopify data when the button didn't have it yet.
-    if (!base.variantId && base.handle && window.PFShop && window.PFShop.getProduct) {
-      window.PFShop.getProduct(base.handle, lang).then((p) => {
+    // Make sure the catalog holds this product (fills in the real variant id).
+    if (window.PFShop && PFShop.ensure) {
+      PFShop.ensure([handle], lang).then(() => {
+        const p = PFShop.peek(handle);
         if (!p) return;
-        patch({
-          name_de: p.title, name_en: p.title,
-          img: (p.images && p.images[0] && p.images[0].src) || base.img,
-          price: p.price, currency: p.currencyCode, variantId: p.variantId,
-          ...(p.quantityAvailable != null ? { max: p.quantityAvailable } : {}),
-        });
+        setCart((c) => c.map((x) => x.n === handle
+          ? { ...x, variantId: p.variantId, ...(p.quantityAvailable != null ? { max: p.quantityAvailable } : {}) }
+          : x));
       }).catch(() => {});
     }
     setCartOpen(true);
-    setJustAdded(key);
+    setJustAdded(handle);
     setTimeout(() => setJustAdded(null), 900);
   };
+}
+
+// The chapter a generic CTA (hero, top bar, sticky bar) should add: the first
+// purchasable chapter in the Shopify collection. No hardcoded default.
+function rdUseFeaturedChapter(lang) {
+  const { list } = usePFChapters(lang);
+  return list.find((p) => p.available !== false && p.quantityAvailable !== 0) || null;
 }
 
 function RdApp() {
@@ -458,13 +455,14 @@ function RdApp() {
   }, [lang, tw.heroDir]);
 
   const addToCart = rdUseAddToCart(setCart, setCartOpen, setJustAdded, lang);
+  const featured = rdUseFeaturedChapter(lang);
   const changeQty = (n, d) => setCart((c) => c.map((x) => x.n === n ? { ...x, qty: Math.min(x.max || 99, Math.max(1, (x.qty || 1) + d)) } : x));
   const removeItem = (n) => setCart((c) => c.filter((x) => x.n !== n));
 
   return (
     <React.Fragment>
-      <RdTopBar t={t} lang={lang} setLang={setLang} cartCount={cart.reduce((s, c) => s + (c.qty || 1), 0)} onOpenCart={() => setCartOpen((v) => !v)} onStartAdventure={() => addToCart()} />
-      <RdHero t={t} lang={lang} direction={tw.heroDir} intensity={intensity} onAdd={() => addToCart()} />
+      <RdTopBar t={t} lang={lang} setLang={setLang} cartCount={cart.reduce((s, c) => s + (c.qty || 1), 0)} onOpenCart={() => setCartOpen((v) => !v)} onStartAdventure={() => addToCart(featured)} />
+      <RdHero t={t} lang={lang} direction={tw.heroDir} intensity={intensity} onAdd={() => addToCart(featured)} />
       <RdInside t={t} lang={lang} />
       <RdWhy t={t} />
       <RdStory t={t} intensity={intensity} />
@@ -478,7 +476,7 @@ function RdApp() {
       <RdFooter t={t} lang={lang} setLang={setLang} />
 
       <RdCart open={cartOpen} cart={cart} onClose={() => setCartOpen(false)} lang={lang} onQty={changeQty} onRemove={removeItem} justAdded={justAdded} />
-      <RdStickyBar t={t} onAdd={() => addToCart((window.RD_CHAPTERS && window.RD_CHAPTERS[0]))} />
+      <RdStickyBar t={t} onAdd={() => addToCart(featured)} />
 
       <TweaksPanel title="Tweaks">
         <TweakSection label="Hero" />
@@ -510,11 +508,12 @@ function RdChaptersPage() {
     return () => { cancelAnimationFrame(id); io.disconnect(); };
   }, [lang]);
   const addToCart = rdUseAddToCart(setCart, setCartOpen, setJustAdded, lang);
+  const featured = rdUseFeaturedChapter(lang);
   const changeQty = (n, d) => setCart((c) => c.map((x) => x.n === n ? { ...x, qty: Math.min(x.max || 99, Math.max(1, (x.qty || 1) + d)) } : x));
   const removeItem = (n) => setCart((c) => c.filter((x) => x.n !== n));
   return (
     <React.Fragment>
-      <RdTopBar t={t} lang={lang} setLang={setLang} cartCount={cart.reduce((s, c) => s + (c.qty || 1), 0)} onOpenCart={() => setCartOpen((v) => !v)} onStartAdventure={() => addToCart()} />
+      <RdTopBar t={t} lang={lang} setLang={setLang} cartCount={cart.reduce((s, c) => s + (c.qty || 1), 0)} onOpenCart={() => setCartOpen((v) => !v)} onStartAdventure={() => addToCart(featured)} />
       <RdChapters t={t} lang={lang} onAdd={addToCart} all />
       <RdFooter t={t} lang={lang} setLang={setLang} />
       <RdCart open={cartOpen} cart={cart} onClose={() => setCartOpen(false)} lang={lang} onQty={changeQty} onRemove={removeItem} justAdded={justAdded} />
