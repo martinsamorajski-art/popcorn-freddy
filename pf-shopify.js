@@ -1,3 +1,9 @@
+/* PF_BUILD: stamped so you can tell at a glance which files a server is
+   actually serving. Open the browser console on the live site: if it does not
+   say 20260728a, the new files are NOT deployed. */
+window.PF_BUILD = '20260728a';
+console.log('%c[Popcorn & Freddy] build ' + window.PF_BUILD, 'color:#b0623c;font-weight:bold');
+
 /* ────────────────────────────────────────────────────────────────
    Popcorn & Freddy — Shopify headless data layer  (window.PFShop)
    ────────────────────────────────────────────────────────────────

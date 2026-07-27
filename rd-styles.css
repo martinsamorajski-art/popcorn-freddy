@@ -679,6 +679,11 @@
     .rd-exit-form .rbtn { padding: 13px 20px; white-space: nowrap; }
     .rd-exit-dismiss { margin-top: 14px; font-family: var(--f-sans); font-size: 13px; color: var(--rd-ink-mute); background: none; border: none; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
     .rd-exit-dismiss:hover { color: var(--rd-ink-soft); }
+    /* Loading placeholder — the only pre-Shopify state on chapter cards. */
+    .rd-skel { position: relative; overflow: hidden; display: block; background: color-mix(in srgb, var(--rd-ink) 8%, var(--rd-cream)); border-radius: 6px; }
+    .rd-skel::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--rd-cream) 70%, transparent), transparent); animation: rd-skel-sweep 1.5s ease-in-out infinite; }
+    @keyframes rd-skel-sweep { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+    @media (prefers-reduced-motion: reduce) { .rd-skel::after { animation: none; } }
     @keyframes rd-exit-fade { from { opacity: 0; } to { opacity: 1; } }
     @keyframes rd-exit-pop { from { opacity: 0; transform: translateY(14px) scale(0.97); } to { opacity: 1; transform: none; } }
     @media (max-width: 460px) { .rd-exit-form { flex-direction: column; } .rd-exit-form .rbtn { width: 100%; } }
