@@ -435,6 +435,33 @@ function RcApp() {
 
   const scrollTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });  const goTo = (s) => { setStep(s); scrollTop(); };
 
+  // Option B: from the delivery step, hand off to Shopify's hosted checkout
+  // PRE-FILLED with the name/email/address collected here. Payment happens on
+  // Shopify (secure/PCI). If the store isn't live (preview), fall back to the
+  // built-in mock payment step so the design still works.
+  const COUNTRY_CC = { 'Deutschland': 'DE', 'Germany': 'DE', 'Österreich': 'AT', 'Osterreich': 'AT', 'Austria': 'AT', 'Schweiz': 'CH', 'Switzerland': 'CH' };
+  const goToPayment = () => {
+    var nm = (form.name || '').trim();
+    var buyer = {
+      email: (form.email || '').trim(),
+      address: {
+        address1: (form.street || '').trim(),
+        city: (form.city || '').trim(),
+        zip: (form.zip || '').trim(),
+        countryCode: COUNTRY_CC[(form.country || '').trim()] || 'DE',
+        firstName: nm.split(/\s+/)[0] || undefined,
+        lastName: nm.split(/\s+/).slice(1).join(' ') || undefined,
+      },
+    };
+    if (window.PFShop && PFShop.detect) {
+      setSealing(true);
+      PFShop.detect().then(function (ok) {
+        if (ok) { PFShop.checkout(buyer); }        // redirects to Shopify
+        else { setSealing(false); goTo(2); }       // preview: mock step
+      }).catch(function () { setSealing(false); goTo(2); });
+    } else { goTo(2); }
+  };
+
   const placeOrder = () => {
     setSealing(true);
     const no = 'PF-' + new Date().getFullYear() + '-' + String(Math.floor(1000 + Math.random() * 9000));
@@ -480,7 +507,7 @@ function RcApp() {
             <div className="rc-grid">
               <div className="rc-main">
                 {step === 0 && <RcStepCart rc={rc} lang={lang} cur={cur} cart={cart} setQty={setQty} removeItem={removeItem} units={units} personal={personal} setPersonalField={setPersonalField} addons={addons} toggleAddon={toggleAddon} onNext={() => goTo(1)} />}
-                {step === 1 && <RcStepShip rc={rc} form={form} setForm={setForm} onBack={() => goTo(0)} onNext={() => goTo(2)} />}
+                {step === 1 && <RcStepShip rc={rc} form={form} setForm={setForm} onBack={() => goTo(0)} onNext={goToPayment} />}
                 {step === 2 && <RcStepPay rc={rc} lang={lang} cur={cur} pay={pay} setPay={setPay} sealing={sealing} onBack={() => goTo(1)} onOrder={placeOrder} totals={totals} />}
               </div>
               <RcSummary rc={rc} t={t} lang={lang} cur={cur} cart={cart} addons={addons} totals={totals} gift={giftProps} disc={discProps} />

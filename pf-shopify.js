@@ -245,12 +245,22 @@
     };
   }
 
-  function cartCreate(lines) {
+  // Build buyerIdentity so Shopify's hosted checkout opens PRE-FILLED with the
+  // name / email / delivery address collected in the site's own cart (Option B).
+  function buildBuyerIdentity(buyer) {
+    var bi = { countryCode: (buyer && buyer.address && buyer.address.countryCode) || currentMarket().country };
+    if (buyer) {
+      if (buyer.email) bi.email = buyer.email;
+      if (buyer.address) bi.deliveryAddressPreferences = [{ deliveryAddress: buyer.address }];
+    }
+    return bi;
+  }
+  function cartCreate(lines, buyer) {
     var q = 'mutation Create($input: CartInput!) ' + ctx() + ' {\n' +
       '  cartCreate(input: $input) { cart { ' + CART_FIELDS + ' } userErrors { message } }\n}';
     var input = {
       lines: lines || [],
-      buyerIdentity: { countryCode: currentMarket().country },
+      buyerIdentity: buildBuyerIdentity(buyer),
     };
     return gql(q, { input: input }).then(function (d) {
       if (!d || d._notConfigured) return null;
@@ -349,7 +359,7 @@
   // Hand off to Shopify's hosted checkout. Rebuilds the Shopify cart from
   // the existing on-site cart (the design's source of truth) so checkout
   // works no matter which page or button added the item.
-  function checkout() {
+  function checkout(buyer) {
     return detect().then(function (ok) {
       if (!ok) { window.location.href = 'Checkout.html'; return false; }
       var items = localCartItems();
@@ -371,7 +381,7 @@
         if (!lines.length) { window.location.href = 'Checkout.html'; return false; }
         // Fresh cart that mirrors the current basket exactly.
         writeCartRef({});
-        return cartCreate(lines).then(function (cart) {
+        return cartCreate(lines, buyer).then(function (cart) {
           if (cart && cart.checkoutUrl) { window.location.href = cart.checkoutUrl; return true; }
           window.location.href = 'Checkout.html';
           return false;
