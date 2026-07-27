@@ -283,7 +283,7 @@ function RdMainChapter({ c, t, lang, onAdd, showDesc }) {
   const add = () => onAdd(c);
   // One reusable product template: /produkt/<handle>. Falls back to a
   // legacy per-chapter page only if a handle isn't set yet.
-  const link = c.handle ? ('/produkt/' + c.handle) : (c.href || 'Der Fluesterwald v3.html');
+  const link = c.handle ? ('/produkt/' + c.handle) : (c.href || '/produkt/kapitel-1-fluesterwald');
   return (
     <div className="rd-chap r-rev">
       <div className="rd-stamp">{t.chapters[c.tag]}</div>

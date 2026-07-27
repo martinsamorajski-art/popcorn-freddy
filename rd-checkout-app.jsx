@@ -456,8 +456,10 @@ function RcApp() {
     if (window.PFShop && PFShop.detect) {
       setSealing(true);
       PFShop.detect().then(function (ok) {
-        if (ok) { PFShop.checkout(buyer); }        // redirects to Shopify
-        else { setSealing(false); goTo(2); }       // preview: mock step
+        if (!ok) { setSealing(false); goTo(2); return; }   // preview / not live: mock step
+        return Promise.resolve(PFShop.checkout(buyer)).then(function (started) {
+          if (!started) { setSealing(false); goTo(2); }     // couldn't hand off: mock step
+        });
       }).catch(function () { setSealing(false); goTo(2); });
     } else { goTo(2); }
   };

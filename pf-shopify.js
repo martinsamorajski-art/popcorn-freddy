@@ -249,11 +249,25 @@
   // name / email / delivery address collected in the site's own cart (Option B).
   function buildBuyerIdentity(buyer) {
     var bi = { countryCode: (buyer && buyer.address && buyer.address.countryCode) || currentMarket().country };
-    if (buyer) {
-      if (buyer.email) bi.email = buyer.email;
-      if (buyer.address) bi.deliveryAddressPreferences = [{ deliveryAddress: buyer.address }];
-    }
+    if (buyer && buyer.email) bi.email = buyer.email;   // email is a valid buyerIdentity field; address is prefilled via the checkout URL instead
     return bi;
+  }
+  // Pre-fill Shopify's hosted checkout with the shipping details collected in
+  // our own cart, via standard checkout query params. Any value Shopify doesn't
+  // accept is simply ignored — it can never block the redirect.
+  function checkoutUrlWithPrefill(url, buyer) {
+    if (!url || !buyer) return url;
+    try {
+      var u = new URL(url), a = buyer.address || {};
+      if (buyer.email) u.searchParams.set('checkout[email]', buyer.email);
+      if (a.firstName) u.searchParams.set('checkout[shipping_address][first_name]', a.firstName);
+      if (a.lastName) u.searchParams.set('checkout[shipping_address][last_name]', a.lastName);
+      if (a.address1) u.searchParams.set('checkout[shipping_address][address1]', a.address1);
+      if (a.city) u.searchParams.set('checkout[shipping_address][city]', a.city);
+      if (a.zip) u.searchParams.set('checkout[shipping_address][zip]', a.zip);
+      if (a.countryCode) u.searchParams.set('checkout[shipping_address][country]', a.countryCode);
+      return u.toString();
+    } catch (e) { return url; }
   }
   function cartCreate(lines, buyer) {
     var q = 'mutation Create($input: CartInput!) ' + ctx() + ' {\n' +
@@ -365,7 +379,7 @@
       var items = localCartItems();
       if (!items.length) {
         return getCart().then(function (c) {
-          if (c && c.checkoutUrl) { window.location.href = c.checkoutUrl; return true; }
+          if (c && c.checkoutUrl) { window.location.href = checkoutUrlWithPrefill(c.checkoutUrl, buyer); return true; }
           return false;
         });
       }
@@ -382,7 +396,7 @@
         // Fresh cart that mirrors the current basket exactly.
         writeCartRef({});
         return cartCreate(lines, buyer).then(function (cart) {
-          if (cart && cart.checkoutUrl) { window.location.href = cart.checkoutUrl; return true; }
+          if (cart && cart.checkoutUrl) { window.location.href = checkoutUrlWithPrefill(cart.checkoutUrl, buyer); return true; }
           window.location.href = 'Checkout.html';
           return false;
         });

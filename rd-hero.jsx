@@ -118,7 +118,7 @@ function RdHero({ t, lang, direction = 'a', intensity = 5, onAdd }) {
   );
   const ctas = (center) => (
     <div className="rh-ctas r-rev r-rev-3" style={{ display: 'flex', flexWrap: 'wrap', gap: 14, marginTop: 20, justifyContent: center ? 'center' : 'flex-start', alignItems: 'center' }}>
-      <a className="rbtn rbtn-primary rbtn-xl" href="Der Fluesterwald v3.html">
+      <a className="rbtn rbtn-primary rbtn-xl" href="/produkt/kapitel-1-fluesterwald">
         {h.cta_primary}
         <RdIcon name="arrow" size={17} />
       </a>

@@ -24,9 +24,9 @@ const COPY = {
     trust: { ship: "Lieferung in 2–3 Werktagen", returns: "Versand & Rücksendung", pay: ["PayPal", "Klarna", "SEPA"] },
     exit: { title: "Warte — 10\u202f% auf deine erste Box!", body: "Trag dich in die Reisepost ein und wir schicken dir 10\u202f% Rabatt auf euer erstes Kapitel.", placeholder: "deine@email.de", cta: "Rabatt sichern", success: "Danke! Dein Rabattcode ist unterwegs. 🐻", dismiss: "Nein, danke" },
     bands: [
-      { eyebrow: "Los geht's", title: "Bereit, das erste Kapitel zu öffnen?", cta: "Kapitel 1 entdecken", href: "Der Fluesterwald v3.html", note: "Nur rund 250 Boxen im Monat · Versand in 2–3 Werktagen" },
+      { eyebrow: "Los geht's", title: "Bereit, das erste Kapitel zu öffnen?", cta: "Kapitel 1 entdecken", href: "/produkt/kapitel-1-fluesterwald", note: "Nur rund 250 Boxen im Monat · Versand in 2–3 Werktagen" },
       { eyebrow: "Personalisiert", title: "Der Name deines Kindes wartet schon auf Seite 1.", cta: "Abenteuer starten", href: "#chapters", note: "Name im Buch · gravierte Schatzmappe" },
-      { eyebrow: "8 Kapitel · 1 verborgener Schatz", title: "Startet euren ersten Abend.", cta: "Kapitel 1 entdecken", href: "Der Fluesterwald v3.html", note: "Plastikfreie Verpackung · FSC-Holz" },
+      { eyebrow: "8 Kapitel · 1 verborgener Schatz", title: "Startet euren ersten Abend.", cta: "Kapitel 1 entdecken", href: "/produkt/kapitel-1-fluesterwald", note: "Plastikfreie Verpackung · FSC-Holz" },
     ],
 
     hero: {
@@ -301,9 +301,9 @@ const COPY = {
     trust: { ship: "Delivery in 2–3 business days", returns: "Shipping & returns", pay: ["PayPal", "Klarna", "SEPA"] },
     exit: { title: "Wait — 10% off your first box!", body: "Join the travel post and we'll send you 10% off your first chapter.", placeholder: "your@email.com", cta: "Claim discount", success: "Thank you! Your discount code is on its way. 🐻", dismiss: "No thanks" },
     bands: [
-      { eyebrow: "Let's begin", title: "Ready to open the first chapter?", cta: "Discover chapter 1", href: "Der Fluesterwald v3.html", note: "Only ~250 boxes a month · delivery in 2–3 business days" },
+      { eyebrow: "Let's begin", title: "Ready to open the first chapter?", cta: "Discover chapter 1", href: "/produkt/kapitel-1-fluesterwald", note: "Only ~250 boxes a month · delivery in 2–3 business days" },
       { eyebrow: "Personalised", title: "Your child's name is already waiting on page 1.", cta: "Start the adventure", href: "#chapters", note: "Name in the book · engraved treasure folder" },
-      { eyebrow: "8 chapters · 1 hidden treasure", title: "Start your first evening.", cta: "Discover chapter 1", href: "Der Fluesterwald v3.html", note: "Plastic-free packaging · FSC wood" },
+      { eyebrow: "8 chapters · 1 hidden treasure", title: "Start your first evening.", cta: "Discover chapter 1", href: "/produkt/kapitel-1-fluesterwald", note: "Plastic-free packaging · FSC wood" },
     ],
 
     hero: {
