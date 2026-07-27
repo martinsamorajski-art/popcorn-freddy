@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="de" data-palette="wald" data-anim="on">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Kasse — Popcorn &amp; Freddy</title>
+  <meta name="description" content="Sichere Bestellung — Popcorn &amp; Freddy, eine Schatzsuche zum Bauen, Vorlesen und Erinnern." />
+
+  <link rel="stylesheet" href="rd-styles.css">
+  <link rel="stylesheet" href="rd-checkout.css">
+  <template id="__bundler_thumbnail" data-bg-color="#1c3d2e">
+    <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+      <rect width="1200" height="800" fill="#1c3d2e"/>
+      <circle cx="600" cy="400" r="230" fill="none" stroke="#e9c46a" stroke-width="6" opacity="0.9"/>
+      <text x="600" y="430" font-family="Georgia, 'Times New Roman', serif" font-size="180" fill="#e9c46a" text-anchor="middle" letter-spacing="4">PF</text>
+    </svg>
+  </template>
+</head>
+<body>
+  <div id="rd-loader" aria-hidden="true">
+    <div class="rd-loader-mark" style="display:inline-flex;align-items:baseline;gap:11px;line-height:1;"><span>Popcorn</span><span style="font-family:var(--f-serif);font-style:italic;font-weight:500;font-size:1.05em;color:var(--rd-gold-soft);transform:translateY(1px);">&amp;</span><span>Freddy</span></div>
+    <div class="rd-loader-track"><div class="rd-loader-bar"></div></div>
+  </div>
+  <div id="root"></div>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+  <!-- Shopify headless data layer (talks to Shopify only via /api/shop) -->
+  <script src="pf-shopify.js"></script>
+  <script type="text/babel" data-presets="react" src="tweaks-panel.jsx"></script>
+  <script type="text/babel" data-presets="react" src="copy.jsx"></script>
+  <script type="text/babel" data-presets="react" src="rd-ui.jsx"></script>
+  <script type="text/babel" data-presets="react" src="rd-hero.jsx"></script>
+  <script type="text/babel" data-presets="react" src="rd-checkout.jsx"></script>
+  <script type="text/babel" data-presets="react" src="rd-checkout-app.jsx"></script>
+  <script>
+    (function () {
+      var loader = document.getElementById('rd-loader');
+      if (!loader) return;
+      var shown = Date.now();
+      var minVisible = 500;
+      function hide() {
+        var wait = Math.max(0, minVisible - (Date.now() - shown));
+        setTimeout(function () {
+          loader.classList.add('rd-loader-hide');
+          setTimeout(function () { loader.remove(); }, 700);
+        }, wait);
+      }
+      var root = document.getElementById('root');
+      var mo = new MutationObserver(function () {
+        if (root.childElementCount > 0) { mo.disconnect(); hide(); }
+      });
+      mo.observe(root, { childList: true });
+      setTimeout(hide, 6000); // safety fallback
+    })();
+  </script>
+  <script src="snipcart-loader.js"></script>
+  <script src="rd-consent.js"></script>
+</body>
+</html>

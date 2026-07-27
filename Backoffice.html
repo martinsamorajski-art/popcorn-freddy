@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Backoffice — Popcorn &amp; Freddy</title>
+<link rel="stylesheet" href="assets/fonts.css">
+  <style>
+    :root {
+      --paper: #F7F0DF; --cream: #FBF6E9; --paper-deep: #E8DCBE;
+      --ink: #2C2519; --ink-soft: #5A5140; --ink-mute: #8B8069;
+      --forest: #3F4E36; --forest-deep: #2B3626; --on-primary: #F6F1E0;
+      --walnut: #5F4A32; --terra: #B0623C; --gold: #A8823F; --gold-soft: #C9A96C; --moss: #7A8A5F;
+      --f-sans: 'Alegreya Sans', system-ui, sans-serif;
+      --f-serif: 'Alegreya', Georgia, serif;
+      --f-display: 'Young Serif', Georgia, serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; font-family: var(--f-sans);
+      color: var(--ink); background: var(--paper);
+      background-image: radial-gradient(circle at 20% 0%, rgba(168,130,63,0.07), transparent 55%);
+      -webkit-font-smoothing: antialiased;
+    }
+    .wrap { max-width: 860px; margin: 0 auto; padding: 42px 24px 90px; }
+    .brand { display: flex; align-items: baseline; gap: 9px; font-family: var(--f-display); font-size: 22px; }
+    .brand .amp { font-family: var(--f-serif); font-style: italic; color: var(--gold); }
+    .eyebrow { font-family: var(--f-sans); font-weight: 800; font-size: 12px; letter-spacing: 0.32em; text-transform: uppercase; color: var(--gold); margin-top: 30px; }
+    h1 { font-family: var(--f-display); font-weight: 400; font-size: clamp(28px, 5vw, 40px); line-height: 1.06; margin: 8px 0 0; }
+
+    .token-bar { display: flex; align-items: center; gap: 12px; margin-top: 22px; background: var(--cream); border: 1px solid rgba(44,37,25,0.13); border-radius: 12px; padding: 14px 16px; }
+    .token-bar label { font-family: var(--f-sans); font-weight: 700; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-soft); white-space: nowrap; }
+    .token-bar input { flex: 1; }
+
+    .tabs { display: flex; gap: 6px; margin-top: 26px; border-bottom: 1px solid rgba(44,37,25,0.15); }
+    .tab { font-family: var(--f-sans); font-weight: 700; font-size: 15px; color: var(--ink-mute); background: none; border: none; border-bottom: 3px solid transparent; padding: 12px 16px; cursor: pointer; margin-bottom: -1px; }
+    .tab:hover { color: var(--ink-soft); }
+    .tab.active { color: var(--ink); border-bottom-color: var(--gold); }
+
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    .card { background: var(--cream); border: 1px solid rgba(44,37,25,0.13); border-radius: 14px; padding: 24px; margin-top: 22px; box-shadow: 0 24px 50px -42px rgba(44,37,25,0.6); }
+    .card h2 { font-family: var(--f-display); font-weight: 400; font-size: 20px; margin: 0 0 3px; }
+    .card p.sub { font-family: var(--f-serif); font-size: 15px; color: var(--ink-mute); margin: 0 0 6px; }
+    label.fl { display: block; font-family: var(--f-sans); font-weight: 700; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-soft); margin: 16px 0 7px; }
+    input, select {
+      width: 100%; font-family: var(--f-sans); font-size: 16px; color: var(--ink);
+      background: var(--paper); border: 1px solid rgba(44,37,25,0.22); border-radius: 9px;
+      padding: 11px 13px; transition: border-color .2s, box-shadow .2s;
+    }
+    input:focus, select:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 3px rgba(168,130,63,0.16); }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+    @media (max-width: 560px) { .row, .row3 { grid-template-columns: 1fr; } }
+    .hint { font-family: var(--f-serif); font-style: italic; font-size: 14px; color: var(--ink-mute); margin-top: 6px; }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer;
+      font-family: var(--f-sans); font-weight: 800; font-size: 15px; letter-spacing: 0.02em;
+      background: var(--forest); color: var(--on-primary); border: none; border-radius: 10px;
+      padding: 13px 24px; margin-top: 20px; transition: background .2s, transform .1s;
+    }
+    .btn:hover { background: var(--forest-deep); }
+    .btn:active { transform: translateY(1px); }
+    .btn:disabled { opacity: .55; cursor: default; }
+    .btn-ghost { background: transparent; color: var(--ink-soft); border: 1px solid rgba(44,37,25,0.28); }
+    .btn-ghost:hover { background: rgba(44,37,25,0.05); }
+    .btn-sm { padding: 8px 14px; font-size: 13px; margin: 0; }
+
+    .status { margin-top: 14px; font-family: var(--f-serif); font-size: 15px; padding: 11px 15px; border-radius: 9px; display: none; }
+    .status.err { display: block; background: rgba(176,98,60,0.12); color: #8a3f1f; border: 1px solid rgba(176,98,60,0.35); }
+    .status.ok { display: block; background: rgba(122,138,95,0.15); color: #46542f; border: 1px solid rgba(122,138,95,0.4); }
+
+    .code-list { display: grid; gap: 10px; margin-top: 14px; }
+    .code {
+      display: flex; align-items: center; justify-content: space-between; gap: 14px;
+      background: var(--paper); border: 1px dashed rgba(168,130,63,0.6); border-radius: 10px; padding: 13px 16px;
+    }
+    .code .val { font-family: var(--f-sans); font-weight: 800; font-size: 19px; letter-spacing: 0.12em; }
+    .code .amt { font-family: var(--f-display); font-size: 17px; color: var(--gold); }
+    .copy { cursor: pointer; font-family: var(--f-sans); font-weight: 700; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--forest); background: none; border: none; padding: 6px 8px; border-radius: 6px; }
+    .copy:hover { background: rgba(63,78,54,0.1); }
+
+    table { width: 100%; border-collapse: collapse; margin-top: 16px; font-family: var(--f-sans); font-size: 14.5px; }
+    th { text-align: left; font-weight: 800; font-size: 11.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-mute); padding: 8px 10px; border-bottom: 1px solid rgba(44,37,25,0.15); }
+    td { padding: 11px 10px; border-bottom: 1px solid rgba(44,37,25,0.09); vertical-align: middle; }
+    td .mono { font-weight: 800; letter-spacing: 0.08em; }
+    .pill { display: inline-block; font-size: 11.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 3px 9px; border-radius: 999px; }
+    .pill.on { background: rgba(122,138,95,0.2); color: #46542f; }
+    .pill.off { background: rgba(44,37,25,0.1); color: var(--ink-mute); }
+    .pill.low { background: rgba(176,98,60,0.16); color: #8a3f1f; }
+    .del { cursor: pointer; color: var(--terra); background: none; border: none; font-family: var(--f-sans); font-weight: 700; font-size: 13px; }
+    .del:hover { text-decoration: underline; }
+    .empty { font-family: var(--f-serif); font-style: italic; color: var(--ink-mute); padding: 18px 4px; }
+    .toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    footer { margin-top: 40px; font-family: var(--f-serif); font-style: italic; font-size: 14px; color: var(--ink-mute); line-height: 1.6; }
+    footer code { font-family: ui-monospace, monospace; font-style: normal; background: rgba(44,37,25,0.08); padding: 1px 6px; border-radius: 5px; font-size: 13px; }
+    a { color: var(--gold); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="brand"><span>Popcorn</span><span class="amp">&amp;</span><span>Freddy</span></div>
+    <div class="eyebrow">Backoffice</div>
+    <h1>Geschenkkarten, Rabatte &amp; Inventar</h1>
+
+    <div class="token-bar">
+      <label for="token">Admin-Token</label>
+      <input id="token" type="password" placeholder="dein GIFT_ADMIN_TOKEN" autocomplete="off" />
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="gift">Geschenkkarten</button>
+      <button class="tab" data-tab="disc">Rabattcodes</button>
+      <button class="tab" data-tab="inv">Inventar</button>
+    </div>
+
+    <!-- ───────────── GIFT CARDS ───────────── -->
+    <div class="panel active" id="panel-gift">
+      <div class="card">
+        <h2>Neue Geschenkkarten ausstellen</h2>
+        <p class="sub">Erst ausstellen, wenn die Zahlung bestätigt ist.</p>
+        <div class="row">
+          <div><label class="fl" for="g-amount">Wert je Code (€)</label><input id="g-amount" type="number" min="1" step="0.01" value="39.90" /></div>
+          <div><label class="fl" for="g-count">Anzahl</label><input id="g-count" type="number" min="1" max="100" step="1" value="1" /></div>
+        </div>
+        <label class="fl" for="g-note">Notiz (optional)</label>
+        <input id="g-note" type="text" maxlength="200" placeholder="z. B. Bestellung #1042 · Familie Winter" />
+        <button class="btn" id="g-gen">Codes erzeugen</button>
+        <div class="status" id="g-status"></div>
+        <div class="code-list" id="g-codes"></div>
+      </div>
+      <div class="card">
+        <h2>Guthaben prüfen</h2>
+        <label class="fl" for="g-lookup">Code</label>
+        <input id="g-lookup" type="text" placeholder="PF-XXXX-XXXX" autocomplete="off" style="text-transform:uppercase;" />
+        <button class="btn btn-ghost" id="g-check">Prüfen</button>
+        <div class="status" id="g-check-status"></div>
+      </div>
+    </div>
+
+    <!-- ───────────── DISCOUNTS ───────────── -->
+    <div class="panel" id="panel-disc">
+      <div class="card">
+        <h2>Rabattcode anlegen</h2>
+        <p class="sub">Prozentual oder fester Betrag. Bestehenden Code erneut speichern = aktualisieren.</p>
+        <div class="row">
+          <div><label class="fl" for="d-code">Code</label><input id="d-code" type="text" placeholder="WILLKOMMEN10" style="text-transform:uppercase;letter-spacing:0.06em;" /></div>
+          <div>
+            <label class="fl" for="d-type">Art</label>
+            <select id="d-type"><option value="percent">Prozent (%)</option><option value="fixed">Fester Betrag (€)</option></select>
+          </div>
+        </div>
+        <div class="row3">
+          <div><label class="fl" for="d-value">Wert</label><input id="d-value" type="number" min="0" step="0.01" value="10" /></div>
+          <div><label class="fl" for="d-min">Mindestbestellwert (€)</label><input id="d-min" type="number" min="0" step="0.01" value="0" /></div>
+          <div><label class="fl" for="d-max">Max. Einlösungen</label><input id="d-max" type="number" min="0" step="1" value="0" placeholder="0 = unbegrenzt" /></div>
+        </div>
+        <div class="row">
+          <div><label class="fl" for="d-exp">Läuft ab am (optional)</label><input id="d-exp" type="date" /></div>
+          <div><label class="fl" for="d-note">Notiz (optional)</label><input id="d-note" type="text" maxlength="200" placeholder="z. B. Newsletter-Aktion" /></div>
+        </div>
+        <button class="btn" id="d-save">Speichern</button>
+        <div class="status" id="d-status"></div>
+      </div>
+      <div class="card">
+        <div class="toolbar"><h2>Aktive Codes</h2><button class="btn btn-ghost btn-sm" id="d-refresh">Aktualisieren</button></div>
+        <div id="d-table"></div>
+      </div>
+    </div>
+
+    <!-- ───────────── INVENTORY ───────────── -->
+    <div class="panel" id="panel-inv">
+      <div class="card">
+        <h2>Artikel anlegen / aktualisieren</h2>
+        <p class="sub">SKU ist der Schlüssel. Gleiche SKU erneut speichern = aktualisieren.</p>
+        <div class="row">
+          <div><label class="fl" for="i-sku">SKU</label><input id="i-sku" type="text" placeholder="PF-CH01" style="text-transform:uppercase;" /></div>
+          <div><label class="fl" for="i-name">Name</label><input id="i-name" type="text" placeholder="Der Flüsterwald — Kapitel 1" /></div>
+        </div>
+        <div class="row3">
+          <div><label class="fl" for="i-price">Preis (€)</label><input id="i-price" type="number" min="0" step="0.01" value="39.90" /></div>
+          <div><label class="fl" for="i-stock">Bestand</label><input id="i-stock" type="number" min="0" step="1" value="0" /></div>
+          <div><label class="fl" for="i-low">Warnschwelle</label><input id="i-low" type="number" min="0" step="1" value="5" /></div>
+        </div>
+        <label class="fl" for="i-note">Notiz (optional)</label>
+        <input id="i-note" type="text" maxlength="200" placeholder="z. B. nächste Lieferung KW 32" />
+        <button class="btn" id="i-save">Speichern</button>
+        <div class="status" id="i-status"></div>
+      </div>
+      <div class="card">
+        <div class="toolbar"><h2>Bestand</h2><button class="btn btn-ghost btn-sm" id="i-refresh">Aktualisieren</button></div>
+        <div id="i-table"></div>
+      </div>
+    </div>
+
+    <footer>
+      API unter <code>/.netlify/functions/*</code>. Setze <code>GIFT_ADMIN_TOKEN</code> in Netlify und deploye per Git oder Netlify-CLI (nicht per Drag&amp;Drop). Details: <code>GESCHENKKARTEN-SETUP.md</code>.
+    </footer>
+  </div>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const F = '/.netlify/functions';
+    const tokenEl = $('token');
+    tokenEl.value = sessionStorage.getItem('pf-gift-token') || '';
+    tokenEl.addEventListener('input', () => sessionStorage.setItem('pf-gift-token', tokenEl.value));
+    const authHdr = () => ({ 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + tokenEl.value.trim() });
+    const eur = (v) => Number(v).toFixed(2).replace('.', ',') + ' €';
+    const setStatus = (el, msg, kind) => { el.textContent = msg; el.className = 'status ' + kind; };
+    const needToken = (el) => { if (!tokenEl.value.trim()) { setStatus(el, 'Bitte zuerst das Admin-Token eingeben.', 'err'); return true; } return false; };
+
+    // Tabs
+    document.querySelectorAll('.tab').forEach((t) => t.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach((x) => x.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach((x) => x.classList.remove('active'));
+      t.classList.add('active');
+      $('panel-' + t.dataset.tab).classList.add('active');
+      if (t.dataset.tab === 'disc') loadDiscounts();
+      if (t.dataset.tab === 'inv') loadInventory();
+    }));
+
+    // ── GIFT CARDS ──
+    $('g-gen').addEventListener('click', async () => {
+      const st = $('g-status'); if (needToken(st)) return;
+      const amount = parseFloat($('g-amount').value), count = parseInt($('g-count').value, 10) || 1, note = $('g-note').value.trim();
+      if (!(amount > 0)) return setStatus(st, 'Bitte einen gültigen Wert eingeben.', 'err');
+      $('g-gen').disabled = true; setStatus(st, 'Erzeuge Codes …', 'ok');
+      try {
+        const res = await fetch(F + '/gift-generate', { method: 'POST', headers: authHdr(), body: JSON.stringify({ amount, count, note }) });
+        const d = await res.json();
+        if (!res.ok || !d.ok) { const m = { unauthorized: 'Falsches Admin-Token.', server_not_configured: 'GIFT_ADMIN_TOKEN nicht gesetzt.', invalid_amount: 'Ungültiger Wert.' }; throw new Error(m[d.error] || ('Fehler: ' + (d.error || res.status))); }
+        setStatus(st, d.count + ' Code(s) erstellt · je ' + eur(d.amount) + '.', 'ok');
+        const list = $('g-codes'); list.innerHTML = '';
+        d.codes.forEach((c) => {
+          const row = document.createElement('div'); row.className = 'code';
+          row.innerHTML = '<span class="val"></span><span style="display:flex;align-items:center;gap:14px;"><span class="amt"></span><button class="copy">Kopieren</button></span>';
+          row.querySelector('.val').textContent = c; row.querySelector('.amt').textContent = eur(d.amount);
+          row.querySelector('.copy').addEventListener('click', (e) => { navigator.clipboard && navigator.clipboard.writeText(c); e.target.textContent = 'Kopiert ✓'; setTimeout(() => e.target.textContent = 'Kopieren', 1400); });
+          list.appendChild(row);
+        });
+      } catch (e) { setStatus(st, e.message, 'err'); } finally { $('g-gen').disabled = false; }
+    });
+    $('g-check').addEventListener('click', async () => {
+      const st = $('g-check-status'); const code = $('g-lookup').value.trim();
+      if (!code) return setStatus(st, 'Bitte einen Code eingeben.', 'err');
+      setStatus(st, 'Prüfe …', 'ok');
+      try {
+        const res = await fetch(F + '/gift-check?code=' + encodeURIComponent(code));
+        const d = await res.json();
+        if (d.valid) setStatus(st, 'Gültig · Restguthaben ' + eur(d.balance) + ' von ' + eur(d.initial) + '.', 'ok');
+        else { const m = { not_found: 'Code nicht gefunden.', depleted: 'Code ist aufgebraucht.', invalid_format: 'Ungültiges Format.' }; setStatus(st, m[d.reason] || 'Ungültiger Code.', 'err'); }
+      } catch (e) { setStatus(st, 'Netzwerkfehler — läuft die Seite auf Netlify?', 'err'); }
+    });
+
+    // ── DISCOUNTS ──
+    $('d-save').addEventListener('click', async () => {
+      const st = $('d-status'); if (needToken(st)) return;
+      const body = { code: $('d-code').value.trim(), type: $('d-type').value, value: parseFloat($('d-value').value),
+        minSubtotal: parseFloat($('d-min').value) || 0, maxUses: parseInt($('d-max').value, 10) || 0,
+        expiresAt: $('d-exp').value ? new Date($('d-exp').value + 'T23:59:59').toISOString() : '', note: $('d-note').value.trim() };
+      if (body.code.length < 3) return setStatus(st, 'Code zu kurz.', 'err');
+      if (!(body.value > 0)) return setStatus(st, 'Ungültiger Wert.', 'err');
+      $('d-save').disabled = true; setStatus(st, 'Speichere …', 'ok');
+      try {
+        const res = await fetch(F + '/discount-admin', { method: 'POST', headers: authHdr(), body: JSON.stringify(body) });
+        const d = await res.json();
+        if (!res.ok || !d.ok) { const m = { unauthorized: 'Falsches Admin-Token.', invalid_code: 'Ungültiger Code.', invalid_value: 'Ungültiger Wert.' }; throw new Error(m[d.error] || ('Fehler: ' + (d.error || res.status))); }
+        setStatus(st, 'Code „' + d.item.code + '" gespeichert.', 'ok');
+        $('d-code').value = ''; $('d-note').value = '';
+        loadDiscounts();
+      } catch (e) { setStatus(st, e.message, 'err'); } finally { $('d-save').disabled = false; }
+    });
+    $('d-refresh').addEventListener('click', loadDiscounts);
+    async function loadDiscounts() {
+      const wrap = $('d-table'); if (!tokenEl.value.trim()) { wrap.innerHTML = '<div class="empty">Admin-Token eingeben, um Codes zu laden.</div>'; return; }
+      wrap.innerHTML = '<div class="empty">Lade …</div>';
+      try {
+        const res = await fetch(F + '/discount-admin', { headers: authHdr() });
+        const d = await res.json();
+        if (!res.ok || !d.ok) { wrap.innerHTML = '<div class="empty">' + (d.error === 'unauthorized' ? 'Falsches Admin-Token.' : 'Fehler beim Laden.') + '</div>'; return; }
+        if (!d.items.length) { wrap.innerHTML = '<div class="empty">Noch keine Rabattcodes.</div>'; return; }
+        let h = '<table><thead><tr><th>Code</th><th>Rabatt</th><th>Min.</th><th>Nutzung</th><th>Status</th><th></th></tr></thead><tbody>';
+        d.items.forEach((it) => {
+          const val = it.type === 'percent' ? (it.value + ' %') : eur(it.value);
+          const uses = it.uses + (it.maxUses ? ' / ' + it.maxUses : '');
+          const exp = it.expiresAt && new Date(it.expiresAt) < new Date();
+          const active = it.status === 'active' && !exp;
+          const stTxt = exp ? 'Abgelaufen' : (it.status === 'active' ? 'Aktiv' : (it.status === 'used_up' ? 'Aufgebraucht' : 'Deaktiviert'));
+          h += '<tr><td><span class="mono">' + it.code + '</span></td><td>' + val + '</td><td>' + (it.minSubtotal ? eur(it.minSubtotal) : '—') + '</td><td>' + uses + '</td><td><span class="pill ' + (active ? 'on' : 'off') + '">' + stTxt + '</span></td><td style="text-align:right;"><button class="del" data-code="' + it.code + '">Löschen</button></td></tr>';
+        });
+        h += '</tbody></table>'; wrap.innerHTML = h;
+        wrap.querySelectorAll('.del').forEach((b) => b.addEventListener('click', async () => {
+          if (!confirm('Code „' + b.dataset.code + '" löschen?')) return;
+          await fetch(F + '/discount-admin', { method: 'DELETE', headers: authHdr(), body: JSON.stringify({ code: b.dataset.code }) });
+          loadDiscounts();
+        }));
+      } catch (e) { wrap.innerHTML = '<div class="empty">Netzwerkfehler — läuft die Seite auf Netlify?</div>'; }
+    }
+
+    // ── INVENTORY ──
+    $('i-save').addEventListener('click', async () => {
+      const st = $('i-status'); if (needToken(st)) return;
+      const body = { sku: $('i-sku').value.trim(), name: $('i-name').value.trim(), priceEUR: parseFloat($('i-price').value) || 0,
+        stock: parseInt($('i-stock').value, 10) || 0, lowStock: parseInt($('i-low').value, 10) || 0, note: $('i-note').value.trim() };
+      if (body.sku.length < 2) return setStatus(st, 'SKU zu kurz.', 'err');
+      $('i-save').disabled = true; setStatus(st, 'Speichere …', 'ok');
+      try {
+        const res = await fetch(F + '/inventory', { method: 'POST', headers: authHdr(), body: JSON.stringify(body) });
+        const d = await res.json();
+        if (!res.ok || !d.ok) { const m = { unauthorized: 'Falsches Admin-Token.', invalid_sku: 'Ungültige SKU.' }; throw new Error(m[d.error] || ('Fehler: ' + (d.error || res.status))); }
+        setStatus(st, 'Artikel „' + d.item.sku + '" gespeichert.', 'ok');
+        $('i-sku').value = ''; $('i-name').value = ''; $('i-note').value = '';
+        loadInventory();
+      } catch (e) { setStatus(st, e.message, 'err'); } finally { $('i-save').disabled = false; }
+    });
+    $('i-refresh').addEventListener('click', loadInventory);
+    async function loadInventory() {
+      const wrap = $('i-table');
+      wrap.innerHTML = '<div class="empty">Lade …</div>';
+      try {
+        const res = await fetch(F + '/inventory');
+        const d = await res.json();
+        if (!res.ok || !d.ok) { wrap.innerHTML = '<div class="empty">Fehler beim Laden.</div>'; return; }
+        if (!d.items.length) { wrap.innerHTML = '<div class="empty">Noch keine Artikel.</div>'; return; }
+        let h = '<table><thead><tr><th>SKU</th><th>Name</th><th>Preis</th><th>Bestand</th><th>Status</th><th></th></tr></thead><tbody>';
+        d.items.forEach((it) => {
+          const low = it.stock <= (it.lowStock || 0);
+          const stockPill = it.stock === 0 ? '<span class="pill low">Ausverkauft</span>' : (low ? '<span class="pill low">' + it.stock + ' · niedrig</span>' : '<span class="pill on">' + it.stock + '</span>');
+          const statusPill = it.status === 'active' ? '<span class="pill on">Sichtbar</span>' : '<span class="pill off">Versteckt</span>';
+          h += '<tr><td><span class="mono">' + it.sku + '</span></td><td>' + (it.name || '—') + '</td><td>' + eur(it.priceEUR) + '</td><td>' + stockPill + '</td><td>' + statusPill + '</td><td style="text-align:right;"><button class="edit btn-ghost btn btn-sm" data-sku="' + it.sku + '">Bearbeiten</button> <button class="del" data-sku="' + it.sku + '">Löschen</button></td></tr>';
+        });
+        h += '</tbody></table>'; wrap.innerHTML = h;
+        wrap.querySelectorAll('.del').forEach((b) => b.addEventListener('click', async () => {
+          if (!confirm('Artikel „' + b.dataset.sku + '" löschen?')) return;
+          await fetch(F + '/inventory', { method: 'DELETE', headers: authHdr(), body: JSON.stringify({ sku: b.dataset.sku }) });
+          loadInventory();
+        }));
+        wrap.querySelectorAll('.edit').forEach((b) => b.addEventListener('click', () => {
+          const it = d.items.find((x) => x.sku === b.dataset.sku); if (!it) return;
+          $('i-sku').value = it.sku; $('i-name').value = it.name; $('i-price').value = it.priceEUR;
+          $('i-stock').value = it.stock; $('i-low').value = it.lowStock; $('i-note').value = it.note || '';
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }));
+      } catch (e) { wrap.innerHTML = '<div class="empty">Netzwerkfehler — läuft die Seite auf Netlify?</div>'; }
+    }
+  </script>
+</body>
+</html>

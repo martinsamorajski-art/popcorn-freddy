@@ -1,0 +1,50 @@
+[build]
+  publish = "."
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+# Headless Shopify — one reusable product template served under a clean URL.
+# /produkt/kapitel-1-fluesterwald  →  Produkt.html  (handle read from the path)
+[[redirects]]
+  from = "/produkt/*"
+  to = "/Produkt.html"
+  status = 200
+
+# Friendly short URLs for the gift-card API (optional — the default
+# /.netlify/functions/* paths also work).
+[[redirects]]
+  from = "/api/gift/generate"
+  to = "/.netlify/functions/gift-generate"
+  status = 200
+
+[[redirects]]
+  from = "/api/gift/check"
+  to = "/.netlify/functions/gift-check"
+  status = 200
+
+[[redirects]]
+  from = "/api/gift/redeem"
+  to = "/.netlify/functions/gift-redeem"
+  status = 200
+
+[[redirects]]
+  from = "/api/discount/admin"
+  to = "/.netlify/functions/discount-admin"
+  status = 200
+
+[[redirects]]
+  from = "/api/discount/check"
+  to = "/.netlify/functions/discount-check"
+  status = 200
+
+[[redirects]]
+  from = "/api/discount/redeem"
+  to = "/.netlify/functions/discount-redeem"
+  status = 200
+
+[[redirects]]
+  from = "/api/inventory"
+  to = "/.netlify/functions/inventory"
+  status = 200
