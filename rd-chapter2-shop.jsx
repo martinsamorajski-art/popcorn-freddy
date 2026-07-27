@@ -470,10 +470,10 @@ function Ch2ShopBody({ lang }) {
   const m = CH2_MORE[lang] || CH2_MORE.de;
   const x = CH2_TRUST[lang] || CH2_TRUST.de;
   const s = SHOP[lang] || SHOP.de;
-  const [inCart, setInCart] = useState(() => rdCartLoad().some((it) => it.n === 2));
+  const [inCart, setInCart] = useState(() => rdCartLoad().some((it) => it.n === 'kapitel-2-silbersee'));
   const intensity = 5;
   useEffect(() => {
-    const sync = () => setInCart(rdCartLoad().some((it) => it.n === 2));
+    const sync = () => setInCart(rdCartLoad().some((it) => it.n === 'kapitel-2-silbersee'));
     window.addEventListener('rd-cart-changed', sync);
     return () => window.removeEventListener('rd-cart-changed', sync);
   }, []);
@@ -481,9 +481,9 @@ function Ch2ShopBody({ lang }) {
   const onAdd = () => {
     if (window.Snipcart) { window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
     const cart = rdCartLoad();
-    const i = cart.findIndex((it) => it.n === 2);
+    const i = cart.findIndex((it) => it.n === 'kapitel-2-silbersee');
     if (i >= 0) cart[i] = { ...cart[i], qty: (cart[i].qty || 1) + 1 };
-    else cart.push({ n: 2, name_de: 'Kapitel 2 — Der Silbersee', name_en: 'Chapter 2 — Silver Lake', img: 'assets/chapter-2-cover.png', qty: 1 });
+    else cart.push({ n: 'kapitel-2-silbersee', handle: 'kapitel-2-silbersee', name_de: 'Kapitel 2 — Der Silbersee', name_en: 'Chapter 2 — Silver Lake', img: 'assets/chapter-2-cover.png', qty: 1 });
     rdCartSave(cart);
     window.dispatchEvent(new Event('rd-cart-changed'));
     setInCart(true);

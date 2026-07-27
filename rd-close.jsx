@@ -409,15 +409,18 @@ function RdApp() {
   }, [lang, tw.heroDir]);
 
   const addToCart = (chap, opts) => {
-    const item = chap || { n: 1, name_de: 'Kapitel 1', name_en: 'Chapter 1', img: 'assets/chapter-1-cover.png' };
+    // Identity = Shopify handle so a chapter added from the homepage card/bar and
+    // the same chapter added from its product page MERGE into ONE basket line.
+    const base = chap || (window.RD_CHAPTERS && window.RD_CHAPTERS[0]) || { n: 1, handle: 'kapitel-1-fluesterwald', name_de: 'Kapitel 1', name_en: 'Chapter 1', img: 'assets/chapter-1-cover.png' };
+    const key = base.handle || base.n;
     const gift = opts && opts.gift ? opts.gift : null;
     setCart((c) => {
-      const i = c.findIndex((x) => x.n === item.n);
+      const i = c.findIndex((x) => x.n === key);
       if (i >= 0) { const next = [...c]; next[i] = { ...next[i], qty: (next[i].qty || 1) + 1, ...(gift ? { gift } : {}) }; return next; }
-      return [...c, { n: item.n, name_de: item.name_de, name_en: item.name_en, img: item.img || 'assets/chapter-1-cover.png', qty: 1, ...(gift ? { gift } : {}) }];
+      return [...c, { n: key, handle: base.handle, name_de: base.name_de, name_en: base.name_en, img: base.img || 'assets/chapter-1-cover.png', qty: 1, ...(gift ? { gift } : {}) }];
     });
     setCartOpen(true);
-    setJustAdded(item.n);
+    setJustAdded(key);
     setTimeout(() => setJustAdded(null), 900);
   };
   const changeQty = (n, d) => setCart((c) => c.map((x) => x.n === n ? { ...x, qty: Math.max(1, (x.qty || 1) + d) } : x));
@@ -472,15 +475,18 @@ function RdChaptersPage() {
     return () => { cancelAnimationFrame(id); io.disconnect(); };
   }, [lang]);
   const addToCart = (chap, opts) => {
-    const item = chap || { n: 1, name_de: 'Kapitel 1', name_en: 'Chapter 1', img: 'assets/chapter-1-cover.png' };
+    // Identity = Shopify handle so a chapter added from the homepage card/bar and
+    // the same chapter added from its product page MERGE into ONE basket line.
+    const base = chap || (window.RD_CHAPTERS && window.RD_CHAPTERS[0]) || { n: 1, handle: 'kapitel-1-fluesterwald', name_de: 'Kapitel 1', name_en: 'Chapter 1', img: 'assets/chapter-1-cover.png' };
+    const key = base.handle || base.n;
     const gift = opts && opts.gift ? opts.gift : null;
     setCart((c) => {
-      const i = c.findIndex((x) => x.n === item.n);
+      const i = c.findIndex((x) => x.n === key);
       if (i >= 0) { const next = [...c]; next[i] = { ...next[i], qty: (next[i].qty || 1) + 1, ...(gift ? { gift } : {}) }; return next; }
-      return [...c, { n: item.n, name_de: item.name_de, name_en: item.name_en, img: item.img || 'assets/chapter-1-cover.png', qty: 1, ...(gift ? { gift } : {}) }];
+      return [...c, { n: key, handle: base.handle, name_de: base.name_de, name_en: base.name_en, img: base.img || 'assets/chapter-1-cover.png', qty: 1, ...(gift ? { gift } : {}) }];
     });
     setCartOpen(true);
-    setJustAdded(item.n);
+    setJustAdded(key);
     setTimeout(() => setJustAdded(null), 900);
   };
   const changeQty = (n, d) => setCart((c) => c.map((x) => x.n === n ? { ...x, qty: Math.max(1, (x.qty || 1) + d) } : x));

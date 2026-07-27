@@ -481,10 +481,10 @@ function Ch1ShopBody({ lang }) {
   const m = CH1_MORE[lang] || CH1_MORE.de;
   const x = CH1_TRUST[lang] || CH1_TRUST.de;
   const s = SHOP[lang] || SHOP.de;
-  const [inCart, setInCart] = useState(() => rdCartLoad().some((it) => it.n === 1));
+  const [inCart, setInCart] = useState(() => rdCartLoad().some((it) => it.n === 'kapitel-1-fluesterwald'));
   const intensity = 5;
   useEffect(() => {
-    const sync = () => setInCart(rdCartLoad().some((it) => it.n === 1));
+    const sync = () => setInCart(rdCartLoad().some((it) => it.n === 'kapitel-1-fluesterwald'));
     window.addEventListener('rd-cart-changed', sync);
     return () => window.removeEventListener('rd-cart-changed', sync);
   }, []);
@@ -494,9 +494,9 @@ function Ch1ShopBody({ lang }) {
     // Sticky-/Abschluss-Buttons ohne Namensfeld scrollen hoch zur Kaufbox.
     if (window.Snipcart) { window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
     const cart = rdCartLoad();
-    const i = cart.findIndex((it) => it.n === 1);
+    const i = cart.findIndex((it) => it.n === 'kapitel-1-fluesterwald');
     if (i >= 0) cart[i] = { ...cart[i], qty: (cart[i].qty || 1) + 1 };
-    else cart.push({ n: 1, name_de: 'Kapitel 1 — Der Flüsterwald', name_en: 'Chapter 1 — The Whispering Woods', img: 'assets/chapter-1-cover.png', qty: 1 });
+    else cart.push({ n: 'kapitel-1-fluesterwald', handle: 'kapitel-1-fluesterwald', name_de: 'Kapitel 1 — Der Flüsterwald', name_en: 'Chapter 1 — The Whispering Woods', img: 'assets/chapter-1-cover.png', qty: 1 });
     rdCartSave(cart);
     window.dispatchEvent(new Event('rd-cart-changed'));
     setInCart(true);
