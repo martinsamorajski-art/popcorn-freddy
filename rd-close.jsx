@@ -380,6 +380,55 @@ const RD_TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "lang": "de"
 }/*EDITMODE-END*/;
 
+// ─── ADD TO CART ─────────────────────────────────────────────
+// One basket writer for every "add" button on the site. A line is always the
+// REAL Shopify product: identity = Shopify handle, and price / currency /
+// variant / image / stock come from Shopify. Buttons that don't have the live
+// product in hand (hero, sticky bar, top bar) get it patched in as soon as the
+// Storefront answers, so the basket never shows invented data.
+function rdUseAddToCart(setCart, setCartOpen, setJustAdded, lang) {
+  return (chap, opts) => {
+    const base = chap || (window.RD_CHAPTERS && window.RD_CHAPTERS[0]) || { n: 1, handle: 'kapitel-1-fluesterwald', name_de: 'Kapitel 1', name_en: 'Chapter 1', img: 'assets/chapter-1-cover.png' };
+    const key = base.handle || base.n;
+    const gift = opts && opts.gift ? opts.gift : null;
+    const patch = (fields) => setCart((c) => c.map((x) => x.n === key ? { ...x, ...fields } : x));
+    setCart((c) => {
+      const i = c.findIndex((x) => x.n === key);
+      if (i >= 0) {
+        const next = [...c];
+        const cap = next[i].max || base.max || 99;
+        next[i] = { ...next[i], qty: Math.min(cap, (next[i].qty || 1) + 1), ...(gift ? { gift } : {}) };
+        return next;
+      }
+      return [...c, {
+        n: key, handle: base.handle,
+        name_de: base.name_de, name_en: base.name_en,
+        img: base.img || 'assets/chapter-1-cover.png', qty: 1,
+        ...(base.variantId ? { variantId: base.variantId } : {}),
+        ...(base.price != null ? { price: base.price } : {}),
+        ...(base.currency ? { currency: base.currency } : {}),
+        ...(base.max != null ? { max: base.max } : {}),
+        ...(gift ? { gift } : {}),
+      }];
+    });
+    // Fill in live Shopify data when the button didn't have it yet.
+    if (!base.variantId && base.handle && window.PFShop && window.PFShop.getProduct) {
+      window.PFShop.getProduct(base.handle, lang).then((p) => {
+        if (!p) return;
+        patch({
+          name_de: p.title, name_en: p.title,
+          img: (p.images && p.images[0] && p.images[0].src) || base.img,
+          price: p.price, currency: p.currencyCode, variantId: p.variantId,
+          ...(p.quantityAvailable != null ? { max: p.quantityAvailable } : {}),
+        });
+      }).catch(() => {});
+    }
+    setCartOpen(true);
+    setJustAdded(key);
+    setTimeout(() => setJustAdded(null), 900);
+  };
+}
+
 function RdApp() {
   const [tw, setTw] = useTweaks(RD_TWEAK_DEFAULTS);
   const [lang, setLang] = useState(() => rdLangLoad(tw.lang || 'de'));
@@ -408,22 +457,8 @@ function RdApp() {
     return () => { cancelAnimationFrame(id); io.disconnect(); };
   }, [lang, tw.heroDir]);
 
-  const addToCart = (chap, opts) => {
-    // Identity = Shopify handle so a chapter added from the homepage card/bar and
-    // the same chapter added from its product page MERGE into ONE basket line.
-    const base = chap || (window.RD_CHAPTERS && window.RD_CHAPTERS[0]) || { n: 1, handle: 'kapitel-1-fluesterwald', name_de: 'Kapitel 1', name_en: 'Chapter 1', img: 'assets/chapter-1-cover.png' };
-    const key = base.handle || base.n;
-    const gift = opts && opts.gift ? opts.gift : null;
-    setCart((c) => {
-      const i = c.findIndex((x) => x.n === key);
-      if (i >= 0) { const next = [...c]; next[i] = { ...next[i], qty: (next[i].qty || 1) + 1, ...(gift ? { gift } : {}) }; return next; }
-      return [...c, { n: key, handle: base.handle, name_de: base.name_de, name_en: base.name_en, img: base.img || 'assets/chapter-1-cover.png', qty: 1, ...(gift ? { gift } : {}) }];
-    });
-    setCartOpen(true);
-    setJustAdded(key);
-    setTimeout(() => setJustAdded(null), 900);
-  };
-  const changeQty = (n, d) => setCart((c) => c.map((x) => x.n === n ? { ...x, qty: Math.max(1, (x.qty || 1) + d) } : x));
+  const addToCart = rdUseAddToCart(setCart, setCartOpen, setJustAdded, lang);
+  const changeQty = (n, d) => setCart((c) => c.map((x) => x.n === n ? { ...x, qty: Math.min(x.max || 99, Math.max(1, (x.qty || 1) + d)) } : x));
   const removeItem = (n) => setCart((c) => c.filter((x) => x.n !== n));
 
   return (
@@ -474,22 +509,8 @@ function RdChaptersPage() {
     const id = requestAnimationFrame(() => document.querySelectorAll('.r-rev:not(.in)').forEach((el) => io.observe(el)));
     return () => { cancelAnimationFrame(id); io.disconnect(); };
   }, [lang]);
-  const addToCart = (chap, opts) => {
-    // Identity = Shopify handle so a chapter added from the homepage card/bar and
-    // the same chapter added from its product page MERGE into ONE basket line.
-    const base = chap || (window.RD_CHAPTERS && window.RD_CHAPTERS[0]) || { n: 1, handle: 'kapitel-1-fluesterwald', name_de: 'Kapitel 1', name_en: 'Chapter 1', img: 'assets/chapter-1-cover.png' };
-    const key = base.handle || base.n;
-    const gift = opts && opts.gift ? opts.gift : null;
-    setCart((c) => {
-      const i = c.findIndex((x) => x.n === key);
-      if (i >= 0) { const next = [...c]; next[i] = { ...next[i], qty: (next[i].qty || 1) + 1, ...(gift ? { gift } : {}) }; return next; }
-      return [...c, { n: key, handle: base.handle, name_de: base.name_de, name_en: base.name_en, img: base.img || 'assets/chapter-1-cover.png', qty: 1, ...(gift ? { gift } : {}) }];
-    });
-    setCartOpen(true);
-    setJustAdded(key);
-    setTimeout(() => setJustAdded(null), 900);
-  };
-  const changeQty = (n, d) => setCart((c) => c.map((x) => x.n === n ? { ...x, qty: Math.max(1, (x.qty || 1) + d) } : x));
+  const addToCart = rdUseAddToCart(setCart, setCartOpen, setJustAdded, lang);
+  const changeQty = (n, d) => setCart((c) => c.map((x) => x.n === n ? { ...x, qty: Math.min(x.max || 99, Math.max(1, (x.qty || 1) + d)) } : x));
   const removeItem = (n) => setCart((c) => c.filter((x) => x.n !== n));
   return (
     <React.Fragment>

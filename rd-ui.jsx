@@ -547,7 +547,7 @@ function RdCart({ open, cart, onClose, lang, onQty, onRemove, justAdded }) {
   if (!open) return null;
   const count = cart.reduce((s, c) => s + (c.qty || 1), 0);
   const cur = (cart.find((c) => c.currency) || {}).currency;
-  const fmt = (n) => (cur && window.PFShop) ? window.PFShop.money(n, cur, lang) : rdMoney(n, lang);
+  const fmt = (n, cc) => ((cc || cur) && window.PFShop) ? window.PFShop.money(n, cc || cur, lang) : rdMoney(n, lang);
   const total = cart.reduce((s, c) => s + (c.qty || 1) * (c.price != null ? c.price : 39.9), 0);
   return (
     <React.Fragment>
@@ -574,12 +574,12 @@ function RdCart({ open, cart, onClose, lang, onQty, onRemove, justAdded }) {
               <img src={c.img || 'assets/chapter-1-cover.png'} style={{ width: 52, height: 52, borderRadius: 8, objectFit: 'cover', flexShrink: 0 }} alt="" />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 14.5, fontWeight: 600, color: 'var(--rd-ink)', fontFamily: 'var(--f-sans)' }}>{c[`name_${lang}`] || c.name_de || (lang === 'de' ? 'Kapitel 1' : 'Chapter 1')}</div>
-                <div className="r-it r-price" style={{ fontSize: 14, color: 'var(--rd-ink-soft)' }}>{fmt(c.price != null ? c.price : 39.9)}</div>
+                <div className="r-it r-price" style={{ fontSize: 14, color: 'var(--rd-ink-soft)' }}>{fmt(c.price != null ? c.price : 39.9, c.currency)}</div>
                 {c.gift && <div className="r-it" style={{ fontSize: 13, color: 'var(--rd-gold)', display: 'flex', alignItems: 'center', gap: 5, marginTop: 1 }}><RdIcon name="gift" size={13} />{lang === 'de' ? 'Als Geschenk' : 'As a gift'}</div>}
                 <div className="rd-qty">
                   <button aria-label="minus" onClick={() => (c.qty || 1) > 1 ? onQty(c.n, -1) : onRemove(c.n)}>–</button>
                   <span>{c.qty || 1}</span>
-                  <button aria-label="plus" onClick={() => onQty(c.n, 1)}>+</button>
+                  <button aria-label="plus" disabled={c.max != null && (c.qty || 1) >= c.max} style={c.max != null && (c.qty || 1) >= c.max ? { opacity: 0.4, cursor: 'not-allowed' } : undefined} onClick={() => onQty(c.n, 1)}>+</button>
                   <button className="rd-remove" onClick={() => onRemove(c.n)}>{lang === 'de' ? 'Entfernen' : 'Remove'}</button>
                 </div>
               </div>

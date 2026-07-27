@@ -193,8 +193,8 @@ function RdWhy({ t }) {
 }
 
 const RD_CHAPTERS = [
-  { n: 1, name_de: 'Der Flüsterwald', name_en: 'The Whispering Forest', toy_de: 'Auto-Bausatz', toy_en: 'Car kit', img: 'assets/chapter-1-cover.png', available: true, tag: 'tag1', handle: 'kapitel-1-fluesterwald', href: 'Der Fluesterwald v3.html', desc_de: 'Popcorn hört ein Flüstern zwischen den Bäumen — und findet die erste Spur der Schatzkarte.', desc_en: 'Popcorn hears a whisper between the trees — and finds the first clue on the treasure map.' },
-  { n: 2, name_de: 'Der Silbersee', name_en: 'Silver Lake', toy_de: 'Boot-Bausatz', toy_en: 'Boat kit', img: 'assets/chapter-2-cover.png', available: true, tag: 'tag2', handle: 'kapitel-2-silbersee', href: 'Der Silbersee - Kapitel 2.html', desc_de: 'Am anderen Ufer wartet die nächste Spur — doch ohne Boot kommt niemand hinüber.', desc_en: 'The next clue waits on the far shore — but no one gets across without a boat.' },
+  { n: 1, name_de: 'Der Flüsterwald', name_en: 'The Whispering Forest', toy_de: 'Auto-Bausatz', toy_en: 'Car kit', img: 'assets/chapter-1-cover.png', available: true, tag: 'tag1', handle: 'kapitel-1-fluesterwald', desc_de: 'Popcorn hört ein Flüstern zwischen den Bäumen — und findet die erste Spur der Schatzkarte.', desc_en: 'Popcorn hears a whisper between the trees — and finds the first clue on the treasure map.' },
+  { n: 2, name_de: 'Der Silbersee', name_en: 'Silver Lake', toy_de: 'Boot-Bausatz', toy_en: 'Boat kit', img: 'assets/chapter-2-cover.png', available: true, tag: 'tag2', handle: 'kapitel-2-silbersee', desc_de: 'Am anderen Ufer wartet die nächste Spur — doch ohne Boot kommt niemand hinüber.', desc_en: 'The next clue waits on the far shore — but no one gets across without a boat.' },
   { n: 3, name_de: 'Der Harmonie-Berg', name_en: 'Harmony Mountain', toy_de: 'Bluetooth-Lautsprecher-Bausatz', toy_en: 'Bluetooth speaker kit', release_de: 'September 2026', release_en: 'September 2026', desc_de: 'Der Berg antwortet nur auf die richtige Melodie — Zeit für Musik.', desc_en: 'The mountain answers only to the right melody — time for music.' },
   { n: 4, name_de: 'Der Felsenpass', name_en: 'Rocky Pass', toy_de: 'Hydrauliklader-Bausatz', toy_en: 'Hydraulic loader kit', release_de: 'Oktober 2026', release_en: 'October 2026', desc_de: 'Felsbrocken versperren den Weg — ohne kräftige Maschine geht es nicht weiter.', desc_en: 'Boulders block the path — nothing moves on without a mighty machine.' },
   { n: 5, name_de: 'Das vergessene Forscherlager', name_en: 'Forgotten Explorer Camp', toy_de: 'Alarmbox-Bausatz', toy_en: 'Alarm box kit', release_de: 'November 2026', release_en: 'November 2026', desc_de: 'Ein verlassenes Lager voller Hinweise — aber jemand schleicht nachts umher.', desc_en: 'An abandoned camp full of clues — but someone prowls around at night.' },
@@ -205,6 +205,8 @@ const RD_CHAPTERS = [
 
 function RdChapters({ t, lang, onAdd, all }) {
   const list = RD_CHAPTERS;
+  // One Shopify request for the whole section: image, price and stock per product.
+  const catalog = usePFCatalog(list.filter((c) => c.handle).map((c) => c.handle), lang);
   return (
     <section id="chapters" data-rd data-screen-label="Kapitel" style={{ padding: '96px 0 100px', background: 'var(--rd-paper-soft)' }}>
       <div aria-hidden="true" style={{ position: 'absolute', top: 44, right: 40, color: 'var(--rd-walnut)', zIndex: 1 }}><RdTrail width={200} /></div>
@@ -217,13 +219,13 @@ function RdChapters({ t, lang, onAdd, all }) {
         {all ? (
           <div className="rd-chap-grid">
             {list.map((c) => c.available
-              ? <RdMainChapter key={c.n} c={c} t={t} lang={lang} onAdd={onAdd} showDesc />
+              ? <RdMainChapter key={c.n} c={c} t={t} lang={lang} onAdd={onAdd} live={c.handle ? (catalog ? (catalog[c.handle] || null) : null) : null} showDesc />
               : <RdUpcomingChapter key={c.n} c={c} t={t} lang={lang} showDesc />)}
           </div>
         ) : (
           <RdPeekCarousel ariaLabel={t.chapters.title}>
             {list.map((c) => c.available
-              ? <RdMainChapter key={c.n} c={c} t={t} lang={lang} onAdd={onAdd} />
+              ? <RdMainChapter key={c.n} c={c} t={t} lang={lang} onAdd={onAdd} live={c.handle ? (catalog ? (catalog[c.handle] || null) : null) : null} />
               : <RdUpcomingChapter key={c.n} c={c} t={t} lang={lang} />)}
             <RdBoxCard t={t} lang={lang} />
           </RdPeekCarousel>
@@ -278,15 +280,31 @@ function RdChapNo({ n }) {
   return <div className="rd-chap-no">№ {String(n).padStart(2, '0')}</div>;
 }
 
-// Live price + stock from Shopify. Returns null until data arrives; stays null
-// in preview/offline mode so the card falls back to the static copy values.
+// Live catalog from Shopify — ONE request for every handle in the section.
+// Returns null until data arrives (and stays null in preview/offline mode),
+// so cards fall back to the static copy values and the design never breaks.
+function usePFCatalog(handles, lang) {
+  const key = (handles || []).join(',');
+  const [map, setMap] = React.useState(null);
+  React.useEffect(() => {
+    if (!key || !window.PFShop || !window.PFShop.getProducts) return;
+    let alive = true;
+    window.PFShop.getProducts(key.split(','), lang)
+      .then((m) => { if (alive && m) setMap(m); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, [key, lang]);
+  return map;
+}
+
+// Single-product variant of the same thing (used when a card renders alone).
 function useLiveProduct(handle, lang) {
   const [data, setData] = React.useState(null);
   React.useEffect(() => {
     if (!handle || !window.PFShop) return;
     let alive = true;
     window.PFShop.getProduct(handle, lang)
-      .then((p) => { if (alive && p) setData({ price: p.priceFormatted, available: p.available }); })
+      .then((p) => { if (alive && p) setData(p); })
       .catch(() => {});
     return () => { alive = false; };
   }, [handle, lang]);
@@ -294,26 +312,42 @@ function useLiveProduct(handle, lang) {
 }
 
 // Main (purchasable) chapter card
-function RdMainChapter({ c, t, lang, onAdd, showDesc }) {
-  const add = () => onAdd(c);
+function RdMainChapter({ c, t, lang, onAdd, showDesc, live }) {
   // One reusable product template: /produkt/<handle>. Falls back to a
   // legacy per-chapter page only if a handle isn't set yet.
   const link = c.handle ? ('/produkt/' + c.handle) : (c.href || '/produkt/kapitel-1-fluesterwald');
-  // Price + availability come from Shopify when configured, else static copy.
-  const live = useLiveProduct(c.handle, lang);
-  const price = (live && live.price) || t.chapters.price;
-  const soldOut = live ? live.available === false : false;
-  const availLabel = soldOut ? (lang === 'de' ? 'Ausverkauft' : 'Sold out') : t.chapters.available;
+  // Title, image, price, stock + availability come from Shopify when configured,
+  // else the static copy values. `live` is passed in by RdChapters (batched).
+  const own = useLiveProduct(live === undefined && c.handle ? c.handle : null, lang);
+  const p = live || own || null;
+  const title = (p && p.title) || c[`name_${lang}`];
+  const image = (p && p.images && p.images[0] && p.images[0].src) || c.img;
+  const price = (p && p.priceFormatted) || t.chapters.price;
+  const stock = p && p.quantityAvailable != null ? p.quantityAvailable : null;
+  const soldOut = p ? (p.available === false || stock === 0) : false;
+  const lowStock = !soldOut && stock != null && stock > 0 && stock <= 10;
+  const availLabel = soldOut
+    ? (lang === 'de' ? 'Ausverkauft' : 'Sold out')
+    : lowStock
+      ? (lang === 'de' ? `Nur noch ${stock} verfügbar` : `Only ${stock} left`)
+      : t.chapters.available;
+  // Add the SAME product data the product page uses, so the basket line is the
+  // real Shopify line. Identity is the Shopify handle (see addToCart).
+  const add = () => onAdd({
+    ...c, name_de: title, name_en: title, img: image,
+    price: p ? p.price : undefined, currency: p ? p.currencyCode : undefined,
+    variantId: p ? p.variantId : undefined, max: stock,
+  });
   return (
     <div className="rd-chap r-rev">
       <div className="rd-stamp">{t.chapters[c.tag]}</div>
       <a href={link} style={{ display: 'block', borderRadius: 8, overflow: 'hidden', position: 'relative' }}>
-        <img src={c.img} alt={c[`name_${lang}`]} style={{ width: '100%', aspectRatio: '4/5', objectFit: 'cover' }} />
+        <img src={image} alt={title} style={{ width: '100%', aspectRatio: '4/5', objectFit: 'cover' }} />
         <RdChapNo n={c.n} />
       </a>
       <div className="rd-chap-body" style={{ padding: '22px 10px 10px' }}>
         <div className="rd-chap-avail"><span className="rd-chap-dot" aria-hidden="true" style={soldOut ? { background: 'var(--rd-ink-mute)' } : undefined}></span>{availLabel}</div>
-        <a href={link} style={{ textDecoration: 'none' }}><h3 className="r-display" style={{ fontSize: 27, color: 'var(--rd-ink)', marginTop: 8 }}>{c[`name_${lang}`]}</h3></a>
+        <a href={link} style={{ textDecoration: 'none' }}><h3 className="r-display" style={{ fontSize: 27, color: 'var(--rd-ink)', marginTop: 8 }}>{title}</h3></a>
         <div className="r-caps" style={{ marginTop: 9, color: 'var(--rd-ink-mute)', letterSpacing: '0.2em' }}>+ {c[`toy_${lang}`]} {t.chapters.extras}</div>
         {showDesc && <p style={{ fontSize: 15, color: 'var(--rd-ink-soft)', marginTop: 12, lineHeight: 1.6, textWrap: 'pretty' }}>{c[`desc_${lang}`]}</p>}
 
@@ -375,4 +409,4 @@ function RdUpcomingChapter({ c, t, lang, showDesc }) {
   );
 }
 
-Object.assign(window, { RD_CHAPTERS, RdStory, RdHow, RdMap, RdInside, RdWhy, RdChapters, RdMainChapter, RdUpcomingChapter, RdBoxCard });
+Object.assign(window, { usePFCatalog, useLiveProduct, RD_CHAPTERS, RdStory, RdHow, RdMap, RdInside, RdWhy, RdChapters, RdMainChapter, RdUpcomingChapter, RdBoxCard });

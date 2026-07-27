@@ -121,24 +121,34 @@
     'scarcity', 'guarantee', 'gift_note', 'personalization_label',
   ];
 
-  function productQuery() {
+  function productFields() {
     var mfSelectors = METAFIELD_IDS.map(function (k) {
       return k + ': metafield(namespace: "custom", key: "' + k + '") { value }';
     }).join('\n');
+    return 'id\n handle\n title\n descriptionHtml\n availableForSale\n' +
+      'featuredImage { url altText }\n' +
+      'images(first: 12) { nodes { url altText } }\n' +
+      'priceRange { minVariantPrice { amount currencyCode } }\n' +
+      'variants(first: 25) {\n' +
+      '  nodes { id title availableForSale quantityAvailable\n' +
+      '    price { amount currencyCode }\n' +
+      '    selectedOptions { name value } }\n' +
+      '}\n' + mfSelectors;
+  }
+
+  function productQuery() {
     return 'query Product($handle: String!) ' + ctx() + ' {\n' +
-      '  product(handle: $handle) {\n' +
-      '    id\n handle\n title\n descriptionHtml\n availableForSale\n' +
-      '    featuredImage { url altText }\n' +
-      '    images(first: 12) { nodes { url altText } }\n' +
-      '    priceRange { minVariantPrice { amount currencyCode } }\n' +
-      '    variants(first: 25) {\n' +
-      '      nodes { id title availableForSale quantityAvailable\n' +
-      '        price { amount currencyCode }\n' +
-      '        selectedOptions { name value } }\n' +
-      '    }\n' +
-      mfSelectors + '\n' +
-      '  }\n' +
-      '}';
+      '  product(handle: $handle) {\n' + productFields() + '\n  }\n}';
+  }
+
+  // One request for MANY handles (aliased fields) — used by listing sections
+  // so a grid of cards costs a single round-trip.
+  function productsQuery(handles) {
+    var f = productFields();
+    var body = handles.map(function (h, i) {
+      return 'p' + i + ': product(handle: "' + String(h).replace(/"/g, '\\"') + '") {\n' + f + '\n}';
+    }).join('\n');
+    return 'query Products ' + ctx() + ' {\n' + body + '\n}';
   }
 
   function parseMaybeJSON(v) {
@@ -196,6 +206,27 @@
       if (!d || d._notConfigured) return null;
       return normalizeProduct(d.product, lang);
     });
+  }
+
+  // Batched catalog fetch: handles → { handle: normalizedProduct|null }.
+  // Cached per market+language so re-renders don't re-request.
+  var _catalogCache = {};
+  function getProducts(handles, lang) {
+    var list = (handles || []).filter(Boolean);
+    if (!list.length) return Promise.resolve({});
+    var key = currentMarket().country + '|' + langCode() + '|' + (lang || '') + '|' + list.join(',');
+    if (_catalogCache[key]) return _catalogCache[key];
+    var p = gql(productsQuery(list)).then(function (d) {
+      if (!d || d._notConfigured) return {};
+      var out = {};
+      list.forEach(function (h, i) {
+        var raw = d['p' + i];
+        out[h] = raw ? normalizeProduct(raw, lang) : null;
+      });
+      return out;
+    }).catch(function () { delete _catalogCache[key]; return {}; });
+    _catalogCache[key] = p;
+    return p;
   }
 
   // ── Cart (Shopify Cart API) ───────────────────────────────────
@@ -427,6 +458,7 @@
     money: money,
     // catalog
     getProduct: getProduct,
+    getProducts: getProducts,
     // cart
     getCart: getCart,
     addLine: addLine,
