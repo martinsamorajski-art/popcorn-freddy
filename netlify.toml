@@ -12,6 +12,16 @@
   to = "/Produkt.html"
   status = 200
 
+# Retired legacy per-chapter pages → new product template (keeps old links alive)
+[[redirects]]
+  from = "/Der%20Fluesterwald%20v3.html"
+  to = "/produkt/kapitel-1-fluesterwald"
+  status = 301
+[[redirects]]
+  from = "/Der%20Silbersee%20-%20Kapitel%202.html"
+  to = "/produkt/kapitel-2-silbersee"
+  status = 301
+
 # Friendly short URLs for the gift-card API (optional — the default
 # /.netlify/functions/* paths also work).
 [[redirects]]
@@ -48,3 +58,33 @@
   from = "/api/inventory"
   to = "/.netlify/functions/inventory"
   status = 200
+
+# ── Caching ──────────────────────────────────────────────────
+# HTML is never cached: it names the ?v= of every script, so a stale document
+# drags an entire stale bundle along with it.
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# Scripts and styles revalidate too — they are versioned, but a re-upload under
+# the same ?v= must never be masked by a cached copy.
+[[headers]]
+  for = "/*.jsx"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/*.js"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/*.css"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
