@@ -495,18 +495,24 @@ function ProductApp() {
   }, [tw.palette, intensity]);
 
   // Load the product from Shopify; fall back to the sample so the design
-  // always renders (preview + before the store is connected).
+  // always renders (preview + before the store is connected). A hard
+  // timeout guarantees the page never sits blank if the request stalls.
   useEffect(() => {
-    let alive = true;
-    const useSample = () => { if (alive) { setProduct(PF_SAMPLE); setLoaded(true); document.title = PF_SAMPLE.title + ' — Popcorn & Freddy'; } };
+    let alive = true, settled = false;
+    const done = (p, isSample) => {
+      if (!alive || settled) return; settled = true;
+      const prod = p || PF_SAMPLE;
+      setProduct(prod); setLoaded(true);
+      document.title = prod.title + ' — Popcorn & Freddy';
+    };
+    const timer = setTimeout(function () { if (!settled) { console.warn('[Shop] product load timed out — showing fallback'); done(null, true); } }, 5000);
     if (window.PFShop) {
       PFShop.getProduct(handle, lang).then(function (p) {
-        if (!alive) return;
-        if (p) { setProduct(p); setLoaded(true); document.title = p.title + ' — Popcorn & Freddy'; }
-        else useSample();
-      }).catch(function () { useSample(); });
-    } else { useSample(); }
-    return () => { alive = false; };
+        if (!p) console.warn('[Shop] product not found for handle:', handle);
+        done(p, !p);
+      }).catch(function (e) { console.warn('[Shop] product load failed:', e && e.message); done(null, true); });
+    } else { done(null, true); }
+    return () => { alive = false; clearTimeout(timer); };
   }, [handle, lang]);
 
   const t = (window.COPY && (window.COPY[lang] || window.COPY.de)) || {};
