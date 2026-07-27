@@ -226,7 +226,7 @@ function RdChapters({ t, lang, onAdd, all }) {
             {list.map((p) => buyable(p)
               ? <RdMainChapter key={p.handle} p={p} t={t} lang={lang} onAdd={onAdd} />
               : <RdUpcomingChapter key={p.handle} p={p} t={t} lang={lang} />)}
-            <RdBoxCard t={t} lang={lang} />
+            <RdBoxCard t={t} lang={lang} cover={list[0] && list[0].images && list[0].images[0] ? list[0].images[0].src : null} />
           </RdPeekCarousel>
         )}
 
@@ -263,14 +263,14 @@ function RdChapterSkeleton() {
 }
 
 // "Box" card — looks like the physical box with its cover page as lid; links to all chapters.
-function RdBoxCard({ t, lang }) {
+function RdBoxCard({ t, lang, cover }) {
   const c = t.chapters;
   return (
     <a className="rd-chap rd-chap-box r-rev" href="Alle Kapitel.html">
       <div className="rd-box-scene" aria-hidden="true">
         <div className="rd-box-base"></div>
         <div className="rd-box-lid">
-          <img src="assets/chapter-1-cover.png" alt="" />
+          {cover ? <img src={cover} alt="" /> : <span className="rd-skel" style={{ position: 'absolute', inset: 0 }} />}
           <div className="rd-box-lid-label">
             <span className="r-caps" style={{ color: 'var(--rd-walnut)', letterSpacing: '0.18em' }}>Popcorn &amp; Freddy</span>
             <span className="r-display" style={{ fontSize: 16, color: 'var(--rd-ink)' }}>№ 01–08</span>

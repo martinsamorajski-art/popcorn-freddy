@@ -276,7 +276,7 @@ function RdCtaBand({ t, band, dark = false, primary = false }) {
 }
 
 // ─── STICKY MOBILE CTA BAR ───────────────────────────────────
-function RdStickyBar({ t, onAdd }) {
+function RdStickyBar({ t, onAdd, product }) {
   const [show, setShow] = useState(false);
   useEffect(() => {
     let ticking = false;
@@ -298,15 +298,19 @@ function RdStickyBar({ t, onAdd }) {
   return (
     <div className={'rd-sticky' + (show ? ' show' : '')} aria-hidden={show ? undefined : 'true'}>
       <div className="rwrap rd-sticky-row">
+        {/* The bar advertises the featured Shopify product — cover, title and
+            price all come from it, so it can never disagree with the card or cart. */}
         <div className="rd-sticky-info">
-          <img src="assets/chapter-1-cover.png" alt="" className="rd-sticky-thumb" />
+          {product && product.images && product.images[0]
+            ? <img src={product.images[0].src} alt="" className="rd-sticky-thumb" />
+            : <span className="rd-sticky-thumb rd-skel" />}
           <div style={{ minWidth: 0 }}>
-            <div className="rd-sticky-name">{t.stickyName}</div>
-            <div className="rd-sticky-price"><span>{t.stickyPrice}</span><span className="rd-sticky-note">{t.stickyNote}</span></div>
+            <div className="rd-sticky-name">{product ? product.title : ''}</div>
+            <div className="rd-sticky-price"><span>{product ? product.priceFormatted : ''}</span><span className="rd-sticky-note">{t.stickyNote}</span></div>
           </div>
         </div>
         <div className="rd-sticky-actions">
-          <button className="rbtn rbtn-primary rd-sticky-btn" onClick={onAdd}>{t.stickyCta} <RdIcon name="arrow" size={16} /></button>
+          <button className="rbtn rbtn-primary rd-sticky-btn" disabled={!product} onClick={onAdd}>{t.stickyCta} <RdIcon name="arrow" size={16} /></button>
           <a className="rbtn rd-sticky-all" href="Alle Kapitel.html">{t.stickyAll}</a>
         </div>
       </div>
@@ -476,7 +480,7 @@ function RdApp() {
       <RdFooter t={t} lang={lang} setLang={setLang} />
 
       <RdCart open={cartOpen} cart={cart} onClose={() => setCartOpen(false)} lang={lang} onQty={changeQty} onRemove={removeItem} justAdded={justAdded} />
-      <RdStickyBar t={t} onAdd={() => addToCart(featured)} />
+      {featured && <RdStickyBar t={t} product={featured} onAdd={() => addToCart(featured)} />}
 
       <TweaksPanel title="Tweaks">
         <TweakSection label="Hero" />
