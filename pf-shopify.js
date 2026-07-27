@@ -1,8 +1,16 @@
 /* PF_BUILD: stamped so you can tell at a glance which files a server is
    actually serving. Open the browser console on the live site: if it does not
    say 20260728a, the new files are NOT deployed. */
-window.PF_BUILD = '20260728b';
+window.PF_BUILD = '20260728c';
 console.log('%c[Popcorn & Freddy] build ' + window.PF_BUILD, 'color:#b0623c;font-weight:bold');
+document.addEventListener('DOMContentLoaded', function () {
+  var b = document.createElement('div');
+  b.className = 'pf-build-badge';
+  b.textContent = 'build ' + window.PF_BUILD;
+  b.title = 'Temporary deploy indicator';
+  b.style.cssText = 'position:fixed;left:10px;bottom:10px;z-index:99999;background:#2C2519;color:#FBF6E9;font:600 11px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.08em;padding:7px 10px;border-radius:5px;opacity:.85;pointer-events:none';
+  document.body.appendChild(b);
+});
 
 /* ────────────────────────────────────────────────────────────────
    Popcorn & Freddy — Shopify headless data layer  (window.PFShop)
