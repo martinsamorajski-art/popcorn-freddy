@@ -278,12 +278,32 @@ function RdChapNo({ n }) {
   return <div className="rd-chap-no">№ {String(n).padStart(2, '0')}</div>;
 }
 
+// Live price + stock from Shopify. Returns null until data arrives; stays null
+// in preview/offline mode so the card falls back to the static copy values.
+function useLiveProduct(handle, lang) {
+  const [data, setData] = React.useState(null);
+  React.useEffect(() => {
+    if (!handle || !window.PFShop) return;
+    let alive = true;
+    window.PFShop.getProduct(handle, lang)
+      .then((p) => { if (alive && p) setData({ price: p.priceFormatted, available: p.available }); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, [handle, lang]);
+  return data;
+}
+
 // Main (purchasable) chapter card
 function RdMainChapter({ c, t, lang, onAdd, showDesc }) {
   const add = () => onAdd(c);
   // One reusable product template: /produkt/<handle>. Falls back to a
   // legacy per-chapter page only if a handle isn't set yet.
   const link = c.handle ? ('/produkt/' + c.handle) : (c.href || '/produkt/kapitel-1-fluesterwald');
+  // Price + availability come from Shopify when configured, else static copy.
+  const live = useLiveProduct(c.handle, lang);
+  const price = (live && live.price) || t.chapters.price;
+  const soldOut = live ? live.available === false : false;
+  const availLabel = soldOut ? (lang === 'de' ? 'Ausverkauft' : 'Sold out') : t.chapters.available;
   return (
     <div className="rd-chap r-rev">
       <div className="rd-stamp">{t.chapters[c.tag]}</div>
@@ -291,20 +311,22 @@ function RdMainChapter({ c, t, lang, onAdd, showDesc }) {
         <img src={c.img} alt={c[`name_${lang}`]} style={{ width: '100%', aspectRatio: '4/5', objectFit: 'cover' }} />
         <RdChapNo n={c.n} />
       </a>
-      <div style={{ padding: '22px 10px 10px' }}>
-        <div className="rd-chap-avail"><span className="rd-chap-dot" aria-hidden="true"></span>{t.chapters.available}</div>
+      <div className="rd-chap-body" style={{ padding: '22px 10px 10px' }}>
+        <div className="rd-chap-avail"><span className="rd-chap-dot" aria-hidden="true" style={soldOut ? { background: 'var(--rd-ink-mute)' } : undefined}></span>{availLabel}</div>
         <a href={link} style={{ textDecoration: 'none' }}><h3 className="r-display" style={{ fontSize: 27, color: 'var(--rd-ink)', marginTop: 8 }}>{c[`name_${lang}`]}</h3></a>
         <div className="r-caps" style={{ marginTop: 9, color: 'var(--rd-ink-mute)', letterSpacing: '0.2em' }}>+ {c[`toy_${lang}`]} {t.chapters.extras}</div>
         {showDesc && <p style={{ fontSize: 15, color: 'var(--rd-ink-soft)', marginTop: 12, lineHeight: 1.6, textWrap: 'pretty' }}>{c[`desc_${lang}`]}</p>}
 
-        <div style={{ marginTop: 20, paddingTop: 18, borderTop: '1px solid color-mix(in srgb, var(--rd-ink) 11%, transparent)' }}>
+        <div className="rd-chap-buy" style={{ paddingTop: 18, borderTop: '1px solid color-mix(in srgb, var(--rd-ink) 11%, transparent)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
-            <div className="r-display r-price" style={{ fontSize: 29, color: 'var(--rd-ink)' }}>{t.chapters.price}</div>
+            <div className="r-display r-price" style={{ fontSize: 29, color: 'var(--rd-ink)' }}>{price}</div>
             <span style={{ display: 'inline-flex', gap: 6, flexWrap: 'wrap' }}>
               {['PayPal', 'Klarna', lang === 'de' ? 'Kreditkarte' : 'Credit card'].map((p, i) => <span key={i} className="rd-pay-chip">{p}</span>)}
             </span>
           </div>
-          <button className="rbtn rbtn-primary" style={{ marginTop: 14, padding: '14px 20px', fontSize: 13.5, width: '100%', justifyContent: 'center' }} onClick={add}>+ {t.chapters.cta}</button>
+          {soldOut
+            ? <button className="rbtn" disabled style={{ marginTop: 14, padding: '14px 20px', fontSize: 13.5, width: '100%', justifyContent: 'center', opacity: 0.55, cursor: 'not-allowed' }}>{lang === 'de' ? 'Ausverkauft' : 'Sold out'}</button>
+            : <button className="rbtn rbtn-primary" style={{ marginTop: 14, padding: '14px 20px', fontSize: 13.5, width: '100%', justifyContent: 'center' }} onClick={add}>+ {t.chapters.cta}</button>}
         </div>
       </div>
     </div>
@@ -331,12 +353,12 @@ function RdUpcomingChapter({ c, t, lang, showDesc }) {
         )}
         <RdChapNo n={c.n} />
       </div>
-      <div style={{ padding: '22px 10px 10px' }}>
+      <div className="rd-chap-body" style={{ padding: '22px 10px 10px' }}>
         <div className="rd-chap-avail is-soon"><span className="rd-chap-dot rd-dot-soon" aria-hidden="true"></span>{soon} · {release}</div>
         <h3 className="r-display" style={{ fontSize: 27, color: 'var(--rd-ink)', marginTop: 8 }}>{name}</h3>
         <div className="r-caps" style={{ marginTop: 9, color: 'var(--rd-ink-mute)', letterSpacing: '0.2em' }}>+ {c[`toy_${lang}`]}</div>
         {showDesc && <p style={{ fontSize: 15, color: 'var(--rd-ink-soft)', marginTop: 12, lineHeight: 1.6, textWrap: 'pretty' }}>{c[`desc_${lang}`]}</p>}
-        <div style={{ marginTop: 20, paddingTop: 18, borderTop: '1px solid color-mix(in srgb, var(--rd-ink) 11%, transparent)' }}>
+        <div className="rd-chap-buy" style={{ paddingTop: 18, borderTop: '1px solid color-mix(in srgb, var(--rd-ink) 11%, transparent)' }}>
           {ok ? (
             <div className="r-it" style={{ fontSize: 15.5, color: 'var(--rd-forest)', padding: '12px 0', textAlign: 'center' }}>{t.chapters.notify_ok}</div>
           ) : open ? (
@@ -353,4 +375,4 @@ function RdUpcomingChapter({ c, t, lang, showDesc }) {
   );
 }
 
-Object.assign(window, { RdStory, RdHow, RdMap, RdInside, RdWhy, RdChapters, RdMainChapter, RdUpcomingChapter, RdBoxCard });
+Object.assign(window, { RD_CHAPTERS, RdStory, RdHow, RdMap, RdInside, RdWhy, RdChapters, RdMainChapter, RdUpcomingChapter, RdBoxCard });

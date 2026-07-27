@@ -440,7 +440,7 @@ function RdApp() {
       <RdFooter t={t} lang={lang} setLang={setLang} />
 
       <RdCart open={cartOpen} cart={cart} onClose={() => setCartOpen(false)} lang={lang} onQty={changeQty} onRemove={removeItem} justAdded={justAdded} />
-      <RdStickyBar t={t} onAdd={() => addToCart()} />
+      <RdStickyBar t={t} onAdd={() => addToCart((window.RD_CHAPTERS && window.RD_CHAPTERS[0]))} />
 
       <TweaksPanel title="Tweaks">
         <TweakSection label="Hero" />

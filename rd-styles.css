@@ -448,7 +448,7 @@
     .rd-peek-item > * { width: 100%; }
     .rd-crumb { display: block; width: fit-content; margin-bottom: 20px; font-size: 13px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--rd-walnut); text-decoration: none; border-bottom: 1px solid color-mix(in srgb, var(--rd-walnut) 40%, transparent); padding-bottom: 3px; }
     .rd-crumb:hover { color: var(--rd-ink); border-bottom-color: var(--rd-ink); }
-    .rd-chap-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 26px; align-items: start; }
+    .rd-chap-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 26px; align-items: stretch; }
     @media (max-width: 1120px) { .rd-chap-grid { grid-template-columns: repeat(2, 1fr); max-width: 640px; margin: 0 auto; } }
     @media (max-width: 560px) { .rd-chap-grid { grid-template-columns: minmax(0, 1fr); max-width: 340px; } }
     .rd-chap-box { display: block; text-decoration: none; position: relative; }
@@ -604,6 +604,10 @@
     .rd-chap:hover { box-shadow: 0 2px 4px color-mix(in srgb, var(--rd-ink) 7%, transparent), 0 18px 34px -16px color-mix(in srgb, var(--rd-ink) 24%, transparent), 0 52px 90px -40px color-mix(in srgb, var(--rd-ink) 32%, transparent); }
     .rd-stamp { left: 14px; right: auto; max-width: calc(100% - 28px); white-space: normal; text-align: center; line-height: 1.35; }
     .rd-peek-track { padding-top: 24px; }
+    /* equal-height chapter cards: flex column, buy block pinned to the bottom edge */
+    .rd-chap:not(.rd-chap-box) { display: flex; flex-direction: column; height: 100%; }
+    .rd-chap-body { display: flex; flex-direction: column; flex: 1 1 auto; }
+    .rd-chap-buy { margin-top: auto; }
 
     .rd-locale-btn { display: inline-flex; align-items: center; gap: 9px; padding: 9px 14px; border-radius: 9px; border: 1px solid color-mix(in srgb, var(--rd-ink) 20%, transparent); background: transparent; color: var(--rd-ink); font-family: var(--f-sans); font-size: 13.5px; font-weight: 600; cursor: pointer; }
     .rd-locale-btn:hover { border-color: var(--rd-ink); }
