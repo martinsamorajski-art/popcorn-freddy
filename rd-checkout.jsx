@@ -228,15 +228,19 @@ const RC_COPY = {
   },
 };
 
-// Kept only as a currency-conversion reference for shipping/add-on copy.
+// Kept only as a currency-conversion reference for add-on copy.
 // Product prices ALWAYS come from Shopify.
 const RC_PRICE = 39.9;
-const RC_SHIP = { at: 7, de: 9, ch: 9 };
-function rcShipCost(country) {
-  const c = (country || '').toLowerCase();
-  if (c.indexOf('öster') >= 0 || c.indexOf('oster') >= 0 || c.indexOf('austria') >= 0) return RC_SHIP.at;
-  if (c.indexOf('schweiz') >= 0 || c.indexOf('switz') >= 0) return RC_SHIP.ch;
-  return RC_SHIP.de;
+// Shipping is NOT defined here any more — Shopify's delivery options are the
+// only source (PFShop.setDeliveryAddress → cart.deliveryGroups). This maps the
+// country label shown in the form to the ISO code Shopify needs.
+function rcCountryCode(label) {
+  const c = (label || '').toLowerCase();
+  if (c.indexOf('öster') >= 0 || c.indexOf('oster') >= 0 || c.indexOf('austria') >= 0) return 'AT';
+  if (c.indexOf('schweiz') >= 0 || c.indexOf('switz') >= 0) return 'CH';
+  if (c.indexOf('deutsch') >= 0 || c.indexOf('germany') >= 0) return 'DE';
+  if (c.indexOf('usa') >= 0 || c.indexOf('united states') >= 0) return 'US';
+  try { return window.PFLocale ? PFLocale.current().country : 'AT'; } catch (e) { return 'AT'; }
 }
 
 // ── Currency ──────────────────────────────────────────────
@@ -521,4 +525,4 @@ function RcSummary({ rc, t, lang, cur, cart, addons, totals, gift, disc }) {
   );
 }
 
-Object.assign(window, { RC_COPY, RC_PRICE, RC_CUR, rcFmt, rcDetectCur, RcIcon, RcSeal, RcTopBar, RcCurrency, RcSteps, RcEngrave, RcSummary, RcGift, RcDiscount });
+Object.assign(window, { RC_COPY, RC_PRICE, RC_CUR, rcFmt, rcDetectCur, rcCountryCode, RcIcon, RcSeal, RcTopBar, RcCurrency, RcSteps, RcEngrave, RcSummary, RcGift, RcDiscount });

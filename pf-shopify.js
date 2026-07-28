@@ -329,6 +329,10 @@ document.addEventListener('DOMContentLoaded', function () {
   var CART_FIELDS =
     'id checkoutUrl totalQuantity\n' +
     'cost { subtotalAmount { amount currencyCode } totalAmount { amount currencyCode } }\n' +
+    // Shipping rates come from Shopify (the shop's own delivery profiles) — the
+    // site never invents a delivery price. Populated once the cart carries a
+    // delivery address (see setDeliveryAddress).
+    'deliveryGroups(first: 5) { nodes { deliveryOptions { handle title estimatedCost { amount currencyCode } } } }\n' +
     'lines(first: 50) { nodes { id quantity\n' +
     '  merchandise { ... on ProductVariant { id title image { url altText } product { title handle featuredImage { url altText } } price { amount currencyCode } } }\n' +
     '  attributes { key value }\n' +
@@ -361,6 +365,25 @@ document.addEventListener('DOMContentLoaded', function () {
         attributes: (l.attributes || []).reduce(function (o, a) { o[a.key] = a.value; return o; }, {}),
       };
     });
+    // Cheapest delivery option Shopify offers for this cart+address, or null
+    // while no address is known yet. NEVER a locally computed rate.
+    var shipOptions = [];
+    try {
+      var groups = (cart.deliveryGroups && cart.deliveryGroups.nodes) || [];
+      groups.forEach(function (g) {
+        (g.deliveryOptions || []).forEach(function (o) {
+          if (o && o.estimatedCost) {
+            shipOptions.push({
+              handle: o.handle,
+              title: o.title,
+              amount: Number(o.estimatedCost.amount),
+              currencyCode: o.estimatedCost.currencyCode,
+            });
+          }
+        });
+      });
+    } catch (e) {}
+    shipOptions.sort(function (a, b) { return a.amount - b.amount; });
     return {
       id: cart.id,
       checkoutUrl: cart.checkoutUrl,
@@ -369,6 +392,8 @@ document.addEventListener('DOMContentLoaded', function () {
       subtotal: cart.cost && cart.cost.subtotalAmount && Number(cart.cost.subtotalAmount.amount),
       total: cart.cost && cart.cost.totalAmount && Number(cart.cost.totalAmount.amount),
       lines: lines,
+      shippingOptions: shipOptions,
+      shipping: shipOptions.length ? shipOptions[0] : null,
     };
   }
 
@@ -464,6 +489,30 @@ document.addEventListener('DOMContentLoaded', function () {
       emitChange();
       return normalizeCart(d && d.cartLinesRemove && d.cartLinesRemove.cart);
     });
+  }
+
+  // Ask Shopify to rate this cart for a delivery address. Shopify returns its
+  // own delivery options (deliveryGroups) — that is the ONLY source of shipping
+  // cost. Returns the normalized cart, whose .shipping is the cheapest option
+  // (or null when Shopify cannot yet rate the address).
+  function setDeliveryAddress(addr) {
+    var ref = readCartRef();
+    if (!ref.id || !addr) return Promise.resolve(null);
+    var country = (addr.countryCode || currentMarket().country || '').toUpperCase();
+    var address = { countryCode: country };
+    if (addr.zip) address.zip = String(addr.zip).trim();
+    if (addr.city) address.city = String(addr.city).trim();
+    if (addr.address1) address.address1 = String(addr.address1).trim();
+    var bi = {
+      countryCode: country,
+      deliveryAddressPreference: [{ deliveryAddress: address }],
+    };
+    var q = 'mutation Deliver($cartId: ID!, $buyerIdentity: CartBuyerIdentityInput!) ' + ctx() + ' {\n' +
+      '  cartBuyerIdentityUpdate(cartId: $cartId, buyerIdentity: $buyerIdentity) { cart { ' + CART_FIELDS + ' } userErrors { message } }\n}';
+    return gql(q, { cartId: ref.id, buyerIdentity: bi }).then(function (d) {
+      emitChange();
+      return normalizeCart(d && d.cartBuyerIdentityUpdate && d.cartBuyerIdentityUpdate.cart);
+    }).catch(function () { return null; });
   }
 
   // Re-point an existing cart at a new market (currency) after a switch.
@@ -594,6 +643,7 @@ document.addEventListener('DOMContentLoaded', function () {
     updateLine: updateLine,
     removeLine: removeLine,
     setBuyerCountry: setBuyerCountry,
+    setDeliveryAddress: setDeliveryAddress,
     checkout: checkout,
     // geo
     suggestCountry: suggestCountry,

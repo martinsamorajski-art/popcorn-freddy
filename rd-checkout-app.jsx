@@ -367,6 +367,22 @@ function RcApp() {
   const setPersonalField = (key, field, value) => setPersonal((p) => ({ ...p, [key]: { name: '', lang: 'de', ...(p[key] || {}), [field]: value } }));
   const primaryName = (() => { const k = units[0] && units[0].key; const p = k && personal[k]; return ((p && p.name) || '').trim(); })();
 
+  // ─ shipping: rated by Shopify, never by this page ─
+  // Whenever the delivery address is complete we hand it to Shopify and read the
+  // delivery option it returns. No address (or no rate) → shipping stays unknown.
+  const [shipInfo, setShipInfo] = useState(null);
+  useEffect(() => {
+    const addrDone = !!((form.country || '').trim() && (form.zip || '').trim() && (form.city || '').trim());
+    if (!addrDone || !cart.length || !(window.PFShop && PFShop.enabled && PFShop.setDeliveryAddress)) { setShipInfo(null); return; }
+    let alive = true;
+    PFShop.setDeliveryAddress({
+      countryCode: rcCountryCode(form.country),
+      zip: form.zip, city: form.city, address1: form.street,
+    }).then((c) => { if (alive) setShipInfo(c && c.shipping ? c.shipping : null); })
+      .catch(() => { if (alive) setShipInfo(null); });
+    return () => { alive = false; };
+  }, [form.country, form.zip, form.city, form.street, cart.length]);
+
   const totals = useMemo(() => {
     const sub = lines.reduce((s, c) => s + (c.qty || 1) * (c.price || 0), 0);
     const add = rc.cart.addons.reduce((s, a) => s + (addons[a.id] ? a.price : 0), 0);
@@ -379,13 +395,16 @@ function RcApp() {
       disc = Math.round(Math.min(disc, base) * 100) / 100;
     }
     const payable = Math.round((base - disc) * 100) / 100;
-    const addrDone = !!((form.country || '').trim() && (form.zip || '').trim() && (form.city || '').trim());
-    const shipKnown = cart.length > 0 && addrDone;
-    const ship = shipKnown ? rcShipCost(form.country) : 0;
+    // Shipping comes ONLY from Shopify's delivery options (shipInfo). Until
+    // Shopify has rated the address it stays unknown — never a local estimate.
+    const shipKnown = cart.length > 0 && !!shipInfo;
+    const ship = shipKnown ? shipInfo.amount : 0;
     const preGift = Math.round((payable + ship) * 100) / 100;
     const gift = giftInfo ? Math.round(Math.min(giftInfo.balance, preGift) * 100) / 100 : 0;
     return { sub, add, disc, ship, shipKnown, gift, total: Math.round((preGift - gift) * 100) / 100 };
-  }, [cart, addons, rc, giftInfo, discInfo, form.country, form.zip, form.city]);
+    // `lines` MUST be a dependency: prices arrive asynchronously from Shopify,
+    // and without it the totals stayed at 0 until some other field changed.
+  }, [lines, cart, addons, rc, giftInfo, discInfo, shipInfo, form.country, form.zip, form.city]);
 
   const applyDiscount = async () => {
     const code = discCode.trim();
