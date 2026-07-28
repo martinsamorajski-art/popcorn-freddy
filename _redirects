@@ -1,15 +1,25 @@
-# IMPORTANT — no `200` rewrite rules here on purpose.
-# Cloudflare Pages does NOT support 200 rewrites in _redirects (that is a
-# Netlify feature); it treats them as redirects, which CHANGES the URL and
-# strips the locale prefix (/at/produkt/x → /Produkt). All locale routing is
-# therefore done as a real rewrite in functions/[[path]].js, which serves the
-# underlying HTML while keeping the visible URL intact.
-#
-# Locale routes handled in functions/[[path]].js:
-#   /{locale}/                 → index.html
-#   /{locale}/produkt/<handle> → Produkt.html
-#   /{locale}/<page>.html      → <page>.html
-#   /produkt/<handle>          → Produkt.html   (no-prefix fallback)
+# Headless Shopify — one reusable product template, with locale prefixes.
+# Locale prefixes at/de/ch/us serve the SAME files (no per-locale copies):
+#   /{locale}/            → index.html    (home)
+#   /{locale}/produkt/*   → Produkt.html  (product; handle read from the path)
+# Specific /produkt rules MUST come before the catch-alls (first match wins).
+
+/at/produkt/*  /Produkt.html  200
+/de/produkt/*  /Produkt.html  200
+/ch/produkt/*  /Produkt.html  200
+/us/produkt/*  /Produkt.html  200
+# Existing no-prefix product route — kept as a fallback.
+/produkt/*     /Produkt.html  200
+
+# Home per locale.
+/at    /index.html  200
+/at/*  /index.html  200
+/de    /index.html  200
+/de/*  /index.html  200
+/ch    /index.html  200
+/ch/*  /index.html  200
+/us    /index.html  200
+/us/*  /index.html  200
 
 # Retired legacy per-chapter pages → new product template (keeps old links alive)
 /Der%20Fluesterwald%20v3.html            /produkt/kapitel-1-fluesterwald  301

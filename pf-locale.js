@@ -104,6 +104,13 @@
     // Only the true bare-domain root. Never when a specific file is being served
     // (e.g. /index.html in a file preview) — that has no locale routing to hit.
     if (path !== '/') return;
+    // LOOP GUARD: redirect at most once per tab. If the server ever fails to
+    // honour the locale route we land back here — without this, that would be
+    // an endless refresh loop.
+    try {
+      if (sessionStorage.getItem('pf-geo-redirected') === '1') return;
+      sessionStorage.setItem('pf-geo-redirected', '1');
+    } catch (e) {}
     var saved = savedChoice();
     if (saved) { location.replace(home(saved) + location.hash); return; }
     fetch('/api/geo').then(function (r) { return r.json(); }).then(function (d) {
@@ -155,14 +162,14 @@
   else watchAnchors();
 
   window.PFLocale = {
-    VERSION: 'universal-4',
+    VERSION: 'universal-5',
     PREFIX: PREFIX, DEFAULT: DEFAULT,
     prefixFromPath: prefixFromPath, activePrefix: activePrefix, current: current,
     withLocale: withLocale, home: home, go: go,
     savedChoice: savedChoice, saveChoice: saveChoice, switchTo: switchTo,
     fixBase: fixBase, bootstrap: bootstrap, localizeAnchors: localizeAnchors,
   };
-  try { console.log('[PFLocale] version universal-4 · prefix=' + activePrefix()); } catch (e) {}
+  try { console.log('[PFLocale] version universal-5 · prefix=' + activePrefix()); } catch (e) {}
 
   fixBase();
 })();
