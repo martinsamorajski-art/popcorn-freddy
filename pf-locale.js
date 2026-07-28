@@ -155,14 +155,14 @@
   else watchAnchors();
 
   window.PFLocale = {
-    VERSION: 'universal-3',
+    VERSION: 'universal-4',
     PREFIX: PREFIX, DEFAULT: DEFAULT,
     prefixFromPath: prefixFromPath, activePrefix: activePrefix, current: current,
     withLocale: withLocale, home: home, go: go,
     savedChoice: savedChoice, saveChoice: saveChoice, switchTo: switchTo,
     fixBase: fixBase, bootstrap: bootstrap, localizeAnchors: localizeAnchors,
   };
-  try { console.log('[PFLocale] version universal-3 · prefix=' + activePrefix()); } catch (e) {}
+  try { console.log('[PFLocale] version universal-4 · prefix=' + activePrefix()); } catch (e) {}
 
   fixBase();
 })();
