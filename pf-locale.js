@@ -132,18 +132,37 @@
       mo.observe(document.body, { childList: true, subtree: true });
     } catch (e) {}
   }
+
+  // CLICK INTERCEPTOR — the guarantee. Catches every anchor click in the capture
+  // phase and rewrites the destination through withLocale at click time. This
+  // works even if a component rendered an unprefixed/old href (React can reset
+  // the attribute after the observer fixes it; this cannot be defeated that way).
+  function onClickCapture(e) {
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    var a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+    if (!a) return;
+    if (a.target && a.target !== '_self') return;      // new tab / named target
+    if (a.hasAttribute('download')) return;
+    var h = a.getAttribute('href');
+    if (!h) return;
+    if (/^(https?:|mailto:|tel:|\/\/|#)/i.test(h)) return;   // external / hash-only
+    if (RX.test(h)) return;                                   // already localized
+    var fixed = withLocale(h);
+    if (fixed && fixed !== h) { e.preventDefault(); location.href = fixed; }
+  }
+  document.addEventListener('click', onClickCapture, true);
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', watchAnchors);
   else watchAnchors();
 
   window.PFLocale = {
-    VERSION: 'universal-2',
+    VERSION: 'universal-3',
     PREFIX: PREFIX, DEFAULT: DEFAULT,
     prefixFromPath: prefixFromPath, activePrefix: activePrefix, current: current,
     withLocale: withLocale, home: home, go: go,
     savedChoice: savedChoice, saveChoice: saveChoice, switchTo: switchTo,
     fixBase: fixBase, bootstrap: bootstrap, localizeAnchors: localizeAnchors,
   };
-  try { console.log('[PFLocale] version universal-2 · prefix=' + activePrefix()); } catch (e) {}
+  try { console.log('[PFLocale] version universal-3 · prefix=' + activePrefix()); } catch (e) {}
 
   fixBase();
 })();
