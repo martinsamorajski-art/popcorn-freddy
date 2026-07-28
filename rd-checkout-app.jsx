@@ -373,10 +373,16 @@ function RcApp() {
   const [shipInfo, setShipInfo] = useState(null);
   const [shipCalc, setShipCalc] = useState(false);
   useEffect(() => {
-    // Country + postcode are enough for Shopify to rate — city/street only refine
-    // it, so the price appears as soon as the postcode is typed.
-    const addrDone = !!((form.country || '').trim() && (form.zip || '').trim());
-    if (!addrDone || !cart.length || !(window.PFShop && PFShop.enabled && PFShop.rateShipping)) { setShipInfo(null); setShipCalc(false); return; }
+    // Shopify needs a COMPLETE address to return delivery options — with an
+    // empty street it answers with no options at all, which is what made the
+    // line fall back to "zzgl. Versand" after the calculating state. So rate
+    // only once street + postcode + city + country are all present.
+    const addrDone = !!((form.country || '').trim() && (form.zip || '').trim() && (form.city || '').trim() && (form.street || '').trim());
+    // NOTE: no PFShop.enabled check here — `enabled` is only true after some
+    // other query has already succeeded, so on a fast address entry it can
+    // still be false and we would skip rating for good. rateShipping() runs
+    // its own detect() internally.
+    if (!addrDone || !cart.length || !(window.PFShop && PFShop.rateShipping)) { setShipInfo(null); setShipCalc(false); return; }
     let alive = true;
     setShipCalc(true);
     // Debounced: typing a postcode must not fire a mutation per keystroke.

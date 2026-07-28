@@ -495,6 +495,44 @@ document.addEventListener('DOMContentLoaded', function () {
   // own delivery options (deliveryGroups) — that is the ONLY source of shipping
   // cost. Returns the normalized cart, whose .shipping is the cheapest option
   // (or null when Shopify cannot yet rate the address).
+  // Shopify has TWO generations of this API and which one a store answers to
+  // depends on the API version the proxy talks to:
+  //   modern (2025-01+): cartDeliveryAddressesAdd + CartSelectableAddressInput
+  //   legacy:             cartBuyerIdentityUpdate { deliveryAddressPreference }
+  // The legacy field was REMOVED, not deprecated — sending it makes the whole
+  // mutation fail with "Field is not defined on CartBuyerIdentityInput", which
+  // is what silently killed the rating. We try modern first and remember which
+  // generation this store speaks.
+  var _deliveryApi = null;   // null = unknown · 'modern' · 'legacy'
+
+  function schemaMismatch(err) {
+    var m = String((err && err.message) || '');
+    return /not defined|doesn't exist|isn't defined|Unknown argument|no field/i.test(m);
+  }
+
+  function deliverModern(cartId, address) {
+    var q = 'mutation Deliver($cartId: ID!, $addresses: [CartSelectableAddressInput!]!) ' + ctx() + ' {\n' +
+      '  cartDeliveryAddressesAdd(cartId: $cartId, addresses: $addresses) { cart { ' + CART_FIELDS + ' } userErrors { field message } }\n}';
+    var addresses = [{
+      selected: true,
+      // Rate on the country/zip we have — STRICT would reject half-typed streets.
+      validationStrategy: 'COUNTRY_CODE_ONLY',
+      address: { deliveryAddress: address },
+    }];
+    return gql(q, { cartId: cartId, addresses: addresses }).then(function (d) {
+      return d && d.cartDeliveryAddressesAdd;
+    });
+  }
+
+  function deliverLegacy(cartId, address, country) {
+    var q = 'mutation Deliver($cartId: ID!, $buyerIdentity: CartBuyerIdentityInput!) ' + ctx() + ' {\n' +
+      '  cartBuyerIdentityUpdate(cartId: $cartId, buyerIdentity: $buyerIdentity) { cart { ' + CART_FIELDS + ' } userErrors { field message } }\n}';
+    var bi = { countryCode: country, deliveryAddressPreference: [{ deliveryAddress: address }] };
+    return gql(q, { cartId: cartId, buyerIdentity: bi }).then(function (d) {
+      return d && d.cartBuyerIdentityUpdate;
+    });
+  }
+
   function setDeliveryAddress(addr) {
     var ref = readCartRef();
     if (!ref.id || !addr) return Promise.resolve(null);
@@ -503,16 +541,50 @@ document.addEventListener('DOMContentLoaded', function () {
     if (addr.zip) address.zip = String(addr.zip).trim();
     if (addr.city) address.city = String(addr.city).trim();
     if (addr.address1) address.address1 = String(addr.address1).trim();
-    var bi = {
-      countryCode: country,
-      deliveryAddressPreference: [{ deliveryAddress: address }],
+
+    // The market/currency side of the cart — valid in both generations.
+    var withCountry = setBuyerCountry(country).catch(function () { return null; });
+
+    var attempt = function (mode) {
+      return mode === 'legacy' ? deliverLegacy(ref.id, address, country) : deliverModern(ref.id, address);
     };
-    var q = 'mutation Deliver($cartId: ID!, $buyerIdentity: CartBuyerIdentityInput!) ' + ctx() + ' {\n' +
-      '  cartBuyerIdentityUpdate(cartId: $cartId, buyerIdentity: $buyerIdentity) { cart { ' + CART_FIELDS + ' } userErrors { message } }\n}';
-    return gql(q, { cartId: ref.id, buyerIdentity: bi }).then(function (d) {
+    var finish = function (res, mode) {
+      _deliveryApi = mode;
       emitChange();
-      return normalizeCart(d && d.cartBuyerIdentityUpdate && d.cartBuyerIdentityUpdate.cart);
-    }).catch(function () { return null; });
+      var cart = normalizeCart(res && res.cart);
+      var dbg = {
+        api: mode,
+        address: address,
+        userErrors: (res && res.userErrors) || [],
+        options: (cart && cart.shippingOptions) || [],
+      };
+      window.PFShop && (window.PFShop.__rateDebug = dbg);
+      if (dbg.userErrors.length) {
+        try { console.warn('[PFShop] delivery address rejected by Shopify:', dbg.userErrors); } catch (e) {}
+      } else if (!dbg.options.length) {
+        try {
+          console.warn('[PFShop] Shopify returned NO delivery options for', address,
+            '\n→ check Shopify Settings → Shipping and delivery: the zone covering ' +
+            (address.countryCode || '?') + ' needs at least one shipping rate.');
+        } catch (e) {}
+      }
+      return cart;
+    };
+
+    return withCountry.then(function () {
+      var first = _deliveryApi || 'modern';
+      return attempt(first).then(function (res) { return finish(res, first); }).catch(function (err) {
+        // Unknown generation and the guess was a schema miss → try the other one.
+        if (!_deliveryApi && schemaMismatch(err)) {
+          var other = first === 'modern' ? 'legacy' : 'modern';
+          return attempt(other).then(function (res) { return finish(res, other); });
+        }
+        throw err;
+      });
+    }).catch(function (err) {
+      try { console.warn('[PFShop] rating the delivery address failed:', err); } catch (e) {}
+      return null;
+    });
   }
 
   // Rate shipping for an address at OUR checkout's address step — not only at
