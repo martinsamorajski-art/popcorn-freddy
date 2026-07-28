@@ -202,7 +202,7 @@ function RdChapters({ t, lang, onAdd, all }) {
     <section id="chapters" data-rd data-screen-label="Kapitel" style={{ padding: '96px 0 100px', background: 'var(--rd-paper-soft)' }}>
       <div aria-hidden="true" style={{ position: 'absolute', top: 44, right: 40, color: 'var(--rd-walnut)', zIndex: 1 }}><RdTrail width={200} /></div>
       <div className="rwrap" style={{ position: 'relative', zIndex: 2 }}>
-        {all && <div className="r-rev" style={{ textAlign: 'center', marginBottom: 8 }}><a className="rd-crumb" style={{ margin: '0 auto 20px' }} href="index.html">← {t.chapters.back}</a></div>}
+        {all && <div className="r-rev" style={{ textAlign: 'center', marginBottom: 8 }}><a className="rd-crumb" style={{ margin: '0 auto 20px' }} href={wP('index.html')}>← {t.chapters.back}</a></div>}
         <div style={{ marginBottom: 56 }}>
           <RdHeading eyebrow={t.chapters.eyebrow} title={t.chapters.title} lede={t.chapters.sub} max={800} ledeMax={620} />
         </div>
@@ -266,7 +266,7 @@ function RdChapterSkeleton() {
 function RdBoxCard({ t, lang, cover }) {
   const c = t.chapters;
   return (
-    <a className="rd-chap rd-chap-box r-rev" href="Alle Kapitel.html">
+    <a className="rd-chap rd-chap-box r-rev" href={wP('Alle Kapitel.html')}>
       <div className="rd-box-scene" aria-hidden="true">
         <div className="rd-box-base"></div>
         <div className="rd-box-lid">
@@ -294,9 +294,13 @@ function RdChapNo({ n }) {
   return <div className="rd-chap-no">№ {String(n).padStart(2, '0')}</div>;
 }
 
+// Route internal links through the universal locale helper (keeps the active
+// prefix on every chapter card, back link, and home link).
+function wP(path) { return (window.PFLocale ? PFLocale.withLocale(path) : path); }
+
 // Main (purchasable) chapter card — every value below comes from Shopify.
 function RdMainChapter({ p, t, lang, onAdd, showDesc }) {
-  const link = '/produkt/' + p.handle;
+  const link = wP('/produkt/' + p.handle);
   const image = p.images && p.images[0] ? p.images[0] : null;
   const stock = p.quantityAvailable != null ? p.quantityAvailable : null;
   const soldOut = p.available === false || stock === 0;

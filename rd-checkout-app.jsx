@@ -4,6 +4,9 @@
 
 const RC_STATE_KEY = 'pf-checkout-v1';
 const GIFT_API = '/.netlify/functions';
+// Route internal links through the universal locale helper so the active
+// prefix (/at, /de, /ch, /us) is preserved. External/Shopify URLs are exempt.
+function cP(path) { return (window.PFLocale ? PFLocale.withLocale(path) : path); }
 function rcStateLoad() {
   try { return JSON.parse(localStorage.getItem(RC_STATE_KEY)) || {}; } catch (e) { return {}; }
 }
@@ -215,11 +218,11 @@ function RcStepPay({ rc, lang, cur, pay, setPay, sealing, onBack, onOrder, total
       </div>
       <p style={{ marginTop: 16, textAlign: 'right', fontSize: 13.5, fontFamily: 'var(--f-sans)', color: 'var(--rd-ink-mute)', lineHeight: 1.6 }}>
         {rc.pay.legal}{' '}
-        <a href="AGB.html" style={{ color: 'var(--rd-terra)', fontWeight: 600 }}>{lang === 'de' ? 'AGB' : 'Terms'}</a>
+        <a href={cP('AGB.html')} style={{ color: 'var(--rd-terra)', fontWeight: 600 }}>{lang === 'de' ? 'AGB' : 'Terms'}</a>
         {' · '}
-        <a href="Widerruf.html" style={{ color: 'var(--rd-terra)', fontWeight: 600 }}>{lang === 'de' ? 'Widerrufsrecht' : 'Right of withdrawal'}</a>
+        <a href={cP('Widerruf.html')} style={{ color: 'var(--rd-terra)', fontWeight: 600 }}>{lang === 'de' ? 'Widerrufsrecht' : 'Right of withdrawal'}</a>
         {' · '}
-        <a href="Datenschutz.html" style={{ color: 'var(--rd-terra)', fontWeight: 600 }}>{lang === 'de' ? 'Datenschutz' : 'Privacy'}</a>
+        <a href={cP('Datenschutz.html')} style={{ color: 'var(--rd-terra)', fontWeight: 600 }}>{lang === 'de' ? 'Datenschutz' : 'Privacy'}</a>
       </p>
     </form>
   );
@@ -249,7 +252,7 @@ function RcConfirm({ rc, lang, childName, orderNo, onReset }) {
       </div>
       <style>{`@media (max-width: 640px) { .rc-timeline { grid-template-columns: 1fr !important; } .rc-tl-cell { border-left: none !important; } .rc-tl-cell + .rc-tl-cell { border-top: 1px solid color-mix(in srgb, var(--rd-ink) 13%, transparent); } }`}</style>
 
-      <a href="index.html" className="rbtn rbtn-primary rbtn-xl" style={{ marginTop: 44 }} onClick={onReset}>{rc.done.cta}</a>
+      <a href={cP('index.html')} className="rbtn rbtn-primary rbtn-xl" style={{ marginTop: 44 }} onClick={onReset}>{rc.done.cta}</a>
     </div>
   );
 }
@@ -263,7 +266,7 @@ function RcEmpty({ rc, onAddFirst }) {
       <p className="r-it" style={{ fontSize: 18, color: 'var(--rd-ink-mute)', marginTop: 12 }}>{rc.cart.empty_body}</p>
       <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap', marginTop: 30 }}>
         <button className="rbtn rbtn-primary rbtn-xl" onClick={onAddFirst}>{rc.cart.empty_cta}</button>
-        <a href="index.html" className="rbtn rbtn-ghost rbtn-xl">{rc.cart.empty_back}</a>
+        <a href={cP('index.html')} className="rbtn rbtn-ghost rbtn-xl">{rc.cart.empty_back}</a>
       </div>
     </div>
   );

@@ -3,19 +3,22 @@
 // Loads after: tweaks-panel.jsx, copy.jsx, rd-ui.jsx, rd-hero.jsx
 // ────────────────────────────────────────────────────────────────
 
+// Every internal path here is run through PFLocale.withLocale so the active
+// locale prefix is preserved on every nav, back button, footer link, etc.
+function rdP(path) { return (window.PFLocale ? PFLocale.withLocale(path) : path); }
 const RD_PAGES = {
   get home() { return (window.PFLocale ? PFLocale.home() : 'index.html'); },
-  checkout: 'Checkout.html',
-  gift: 'Geschenkkarten.html',
-  ship: 'Versand & Ruecksendung.html',
-  contact: 'Kontakt.html',
-  safety: 'Sicherheit & Material.html',
-  prodsafety: 'Produktsicherheit.html',
-  imp: 'Impressum.html',
-  priv: 'Datenschutz.html',
-  agb: 'AGB.html',
-  widerruf: 'Widerruf.html',
-  cookies: 'Cookies.html',
+  get checkout() { return rdP('Checkout.html'); },
+  get gift() { return rdP('Geschenkkarten.html'); },
+  get ship() { return rdP('Versand & Ruecksendung.html'); },
+  get contact() { return rdP('Kontakt.html'); },
+  get safety() { return rdP('Sicherheit & Material.html'); },
+  get prodsafety() { return rdP('Produktsicherheit.html'); },
+  get imp() { return rdP('Impressum.html'); },
+  get priv() { return rdP('Datenschutz.html'); },
+  get agb() { return rdP('AGB.html'); },
+  get widerruf() { return rdP('Widerruf.html'); },
+  get cookies() { return rdP('Cookies.html'); },
 };
 
 // Topbar for subpages — IDENTICAL to the home RdTopBar (same cart button + flyout),
