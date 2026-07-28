@@ -163,6 +163,20 @@ document.addEventListener('DOMContentLoaded', function () {
     return 'query Products ' + ctx() + ' {\n' + body + '\n}';
   }
 
+  // A translated storefront gives a product a DIFFERENT handle per language
+  // (kapitel-1-fluesterwald in DE vs chapter-1-whispering-woods in EN), and
+  // product(handle:) only resolves the handle of the language in context. Our
+  // links carry the German handle everywhere, so under /us they would resolve
+  // to nothing. The search filter matches the product's underlying handle
+  // regardless of the context language, so it recovers exactly those misses.
+  function productsByHandleSearchQuery(handles) {
+    var f = productFields();
+    var body = handles.map(function (h, i) {
+      return 'q' + i + ': products(first: 1, query: "handle:' + String(h).replace(/"/g, '\\"') + '") { nodes {\n' + f + '\n} }';
+    }).join('\n');
+    return 'query ProductsByHandleSearch ' + ctx() + ' {\n' + body + '\n}';
+  }
+
   // Collection that holds the chapter products, in the manual sort order set
   // in Shopify. Add a product to this collection → it appears on the site.
   var CHAPTERS_COLLECTION = 'kapitel';
@@ -270,7 +284,12 @@ document.addEventListener('DOMContentLoaded', function () {
   function getProduct(handle, lang) {
     return gql(productQuery(), { handle: handle }).then(function (d) {
       if (!d || d._notConfigured) return null;
-      return normalizeProduct(d.product, lang);
+      if (d.product) return normalizeProduct(d.product, lang);
+      // Handle belongs to another language (see productsByHandleSearchQuery).
+      return gql(productsByHandleSearchQuery([handle])).then(function (d2) {
+        var n = d2 && !d2._notConfigured && d2.q0 && d2.q0.nodes && d2.q0.nodes[0];
+        return n ? normalizeProduct(n, lang) : null;
+      }).catch(function () { return null; });
     });
   }
 
@@ -284,12 +303,22 @@ document.addEventListener('DOMContentLoaded', function () {
     if (_catalogCache[key]) return _catalogCache[key];
     var p = gql(productsQuery(list)).then(function (d) {
       if (!d || d._notConfigured) return {};
-      var out = {};
+      var out = {}, misses = [];
       list.forEach(function (h, i) {
         var raw = d['p' + i];
         out[h] = raw ? normalizeProduct(raw, lang) : null;
+        if (!raw) misses.push(h);
       });
-      return out;
+      if (!misses.length) return out;
+      // Second pass for handles that belong to another language.
+      return gql(productsByHandleSearchQuery(misses)).then(function (d2) {
+        if (!d2 || d2._notConfigured) return out;
+        misses.forEach(function (h, i) {
+          var n = d2['q' + i] && d2['q' + i].nodes && d2['q' + i].nodes[0];
+          if (n) out[h] = normalizeProduct(n, lang);
+        });
+        return out;
+      }).catch(function () { return out; });
     }).catch(function () { delete _catalogCache[key]; return {}; });
     _catalogCache[key] = p;
     return p;

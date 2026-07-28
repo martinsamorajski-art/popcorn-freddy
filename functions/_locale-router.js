@@ -13,10 +13,29 @@
 //     /{locale}/                 → index.html
 //     /{locale}/produkt/<handle> → Produkt.html
 //     /{locale}/<page>.html      → <page>.html
+//     /{locale}/<english-slug>   → the German file behind it (EN_SLUG below)
 //
 // Safety: these functions are mounted ONLY under /at, /de, /ch, /us and
 // /produkt (see functions/<locale>/[[path]].js). Assets (/assets/*, *.css,
 // *.js, *.jsx) and the API (/api/*) are never intercepted.
+
+// English URL slugs for the German page files. ONE source file per page — the
+// slug is only an address. Keep in sync with EN_SLUG in pf-locale.js, which
+// writes these slugs into links when the active locale speaks English.
+const EN_SLUG = {
+  'contact': 'Kontakt.html',
+  'shipping-returns': 'Versand & Ruecksendung.html',
+  'safety-materials': 'Sicherheit & Material.html',
+  'product-safety': 'Produktsicherheit.html',
+  'gift-cards': 'Geschenkkarten.html',
+  'chapters': 'Alle Kapitel.html',
+  'imprint': 'Impressum.html',
+  'privacy': 'Datenschutz.html',
+  'terms': 'AGB.html',
+  'cookies': 'Cookies.html',
+  'withdrawal': 'Widerruf.html',
+  'checkout': 'Checkout.html',
+};
 
 export async function rewriteLocale(context) {
   const { request, next } = context;
@@ -32,7 +51,10 @@ export async function rewriteLocale(context) {
   } else if (rest[0].toLowerCase() === 'produkt') {
     target = '/Produkt.html';                     // /at/produkt/<handle>
   } else {
-    target = '/' + rest.join('/');                // /at/Kontakt.html → /Kontakt.html
+    // English slug → German file, with or without a trailing .html.
+    const raw = decodeURIComponent(rest.join('/'));
+    const key = raw.toLowerCase().replace(/\.html$/, '');
+    target = '/' + (EN_SLUG[key] || raw);         // /us/contact → /Kontakt.html
   }
 
   return serve(context, url, target, next, request);
@@ -46,7 +68,7 @@ export async function rewriteProduct(context) {
 }
 
 async function serve(context, url, target, next, request) {
-  const assetUrl = new URL(target, url.origin);
+  const assetUrl = new URL(encodeURI(target), url.origin);
   assetUrl.search = url.search;
   try {
     // next(<request>) fetches that asset WITHOUT changing the visible URL.

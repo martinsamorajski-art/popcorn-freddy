@@ -32,6 +32,34 @@
   // country ISO (from /api/geo) → our prefix
   var GEO = { AT: 'at', DE: 'de', CH: 'ch', US: 'us' };
 
+  // English URL slugs for the German page files. The site has ONE file per page;
+  // in an English locale the ADDRESS reads English and the Pages router rewrites
+  // it back to that file (functions/_locale-router.js — keep the tables in sync).
+  var EN_SLUG = {
+    'kontakt.html': 'contact',
+    'versand & ruecksendung.html': 'shipping-returns',
+    'sicherheit & material.html': 'safety-materials',
+    'produktsicherheit.html': 'product-safety',
+    'geschenkkarten.html': 'gift-cards',
+    'alle kapitel.html': 'chapters',
+    'impressum.html': 'imprint',
+    'datenschutz.html': 'privacy',
+    'agb.html': 'terms',
+    'cookies.html': 'cookies',
+    'widerruf.html': 'withdrawal',
+    'checkout.html': 'checkout',
+  };
+  // Swap the file name for its English slug, keeping any ?query and #hash.
+  function enSlug(path, prefix) {
+    var m = PREFIX[prefix || activePrefix()];
+    if (!m || m.language !== 'EN') return path;
+    var cut = path.search(/[?#]/);
+    var file = cut === -1 ? path : path.slice(0, cut);
+    var tail = cut === -1 ? '' : path.slice(cut);
+    var slug = EN_SLUG[decodeURIComponent(file).toLowerCase()];
+    return slug ? slug + tail : path;
+  }
+
   // Prefix read straight from the URL — same source Produkt.html uses for the
   // product handle. null when the current path carries no known prefix.
   function prefixFromPath() {
@@ -69,7 +97,7 @@
     if (RX.test(s)) return s;                                   // already localized
     var pre = prefix || activePrefix();
     s = s.replace(/^\.?\//, '');                                // drop leading ./ or /
-    return '/' + pre + '/' + s;
+    return '/' + pre + '/' + enSlug(s, pre);
   }
 
   // Programmatic navigation — the localized equivalent of location.href = path.
@@ -171,15 +199,15 @@
   }
 
   window.PFLocale = {
-    VERSION: 'universal-8',
-    PREFIX: PREFIX, DEFAULT: DEFAULT,
+    VERSION: 'universal-9',
+    PREFIX: PREFIX, DEFAULT: DEFAULT, EN_SLUG: EN_SLUG,
     prefixFromPath: prefixFromPath, activePrefix: activePrefix, current: current,
     withLocale: withLocale, home: home, go: go,
     savedChoice: savedChoice, saveChoice: saveChoice, switchTo: switchTo,
     fixBase: fixBase, bootstrap: bootstrap, localizeAnchors: localizeAnchors,
     syncChoiceFromPath: syncChoiceFromPath,
   };
-  try { console.log('[PFLocale] version universal-8 · prefix=' + activePrefix()); } catch (e) {}
+  try { console.log('[PFLocale] version universal-9 · prefix=' + activePrefix()); } catch (e) {}
 
   syncChoiceFromPath();
   fixBase();
