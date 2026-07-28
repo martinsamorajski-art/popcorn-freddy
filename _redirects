@@ -1,0 +1,9 @@
+# Headless Shopify — one reusable product template under a clean URL.
+# /produkt/kapitel-1-fluesterwald  →  Produkt.html (handle read from the path)
+/produkt/*  /Produkt.html  200
+
+# Retired legacy per-chapter pages → new product template (keeps old links alive)
+/Der%20Fluesterwald%20v3.html      /produkt/kapitel-1-fluesterwald  301
+/Der%20Silbersee%20-%20Kapitel%202.html  /produkt/kapitel-2-silbersee  301
+/Der Fluesterwald v3.html          /produkt/kapitel-1-fluesterwald  301
+/Der Silbersee - Kapitel 2.html    /produkt/kapitel-2-silbersee     301
