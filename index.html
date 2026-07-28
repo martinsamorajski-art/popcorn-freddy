@@ -2,10 +2,18 @@
 <html lang="de" data-palette="wald" data-anim="on">
 <head>
   <meta charset="utf-8" />
-  <!-- Locale routing (URL prefixes). Runs first: on the bare domain it detects
-       the country via /api/geo and redirects to a locale prefix; it also pins
-       <base href="/"> so root-relative assets resolve under /at/, /de/, etc.
-       Must load in <head> before the stylesheet and before pf-shopify.js. -->
+  <script>
+    // MUST be inline and first: sets <base href="/"> so root-relative assets
+    // resolve at the site root when this page is served under a locale prefix
+    // (/at/, /de/, …). Without it, relative <script>/<link> URLs resolve under
+    // the prefix and get swallowed by the /{locale}/* catch-all. No fetch, so
+    // it wins before pf-locale.js (which is itself a relative script).
+    if (/^\/(?:at|de|ch|us)(?:\/|$)/i.test(location.pathname) || /\/produkt\//i.test(location.pathname)) {
+      var b = document.createElement('base'); b.href = '/'; document.head.appendChild(b);
+    }
+  </script>
+  <!-- Locale routing (URL prefixes). On the bare domain it detects the country
+       via /api/geo and redirects to a locale prefix. Load in <head>. -->
   <script src="pf-locale.js?v=20260728d"></script>
   <script>window.PFLocale && PFLocale.bootstrap();</script>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />

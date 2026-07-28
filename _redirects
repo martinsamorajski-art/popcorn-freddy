@@ -14,9 +14,14 @@
 /produkt/*     /Produkt.html  200
 
 # ── Home per locale (catch-alls, after the /produkt rules above) ──
+# Both the bare prefix (/at) and everything under it (/at/…) serve index.html.
+/at    /index.html  200
 /at/*  /index.html  200
+/de    /index.html  200
 /de/*  /index.html  200
+/ch    /index.html  200
 /ch/*  /index.html  200
+/us    /index.html  200
 /us/*  /index.html  200
 
 # Retired legacy per-chapter pages → new product template (keeps old links alive)
