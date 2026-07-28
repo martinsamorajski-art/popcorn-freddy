@@ -454,8 +454,16 @@ function RdApp() {
     const io = new IntersectionObserver((entries) => {
       entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
     }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
-    const id = requestAnimationFrame(() => document.querySelectorAll('.r-rev:not(.in)').forEach((el) => io.observe(el)));
-    return () => { cancelAnimationFrame(id); io.disconnect(); };
+    const scan = () => document.querySelectorAll('.r-rev:not(.in)').forEach((el) => io.observe(el));
+    let id = requestAnimationFrame(scan);
+    // Content that arrives asynchronously (e.g. Shopify chapter cards) mounts
+    // after this first scan — re-scan whenever the DOM changes or the catalog
+    // loads, so late cards still reveal instead of staying at opacity:0.
+    const rescan = () => { cancelAnimationFrame(id); id = requestAnimationFrame(scan); };
+    const mo = new MutationObserver(rescan);
+    mo.observe(document.body, { childList: true, subtree: true });
+    window.addEventListener('pf-catalog-changed', rescan);
+    return () => { cancelAnimationFrame(id); io.disconnect(); mo.disconnect(); window.removeEventListener('pf-catalog-changed', rescan); };
   }, [lang, tw.heroDir]);
 
   const addToCart = rdUseAddToCart(setCart, setCartOpen, setJustAdded, lang);
@@ -508,8 +516,16 @@ function RdChaptersPage() {
     const io = new IntersectionObserver((entries) => {
       entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
     }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
-    const id = requestAnimationFrame(() => document.querySelectorAll('.r-rev:not(.in)').forEach((el) => io.observe(el)));
-    return () => { cancelAnimationFrame(id); io.disconnect(); };
+    const scan = () => document.querySelectorAll('.r-rev:not(.in)').forEach((el) => io.observe(el));
+    let id = requestAnimationFrame(scan);
+    // Content that arrives asynchronously (e.g. Shopify chapter cards) mounts
+    // after this first scan — re-scan whenever the DOM changes or the catalog
+    // loads, so late cards still reveal instead of staying at opacity:0.
+    const rescan = () => { cancelAnimationFrame(id); id = requestAnimationFrame(scan); };
+    const mo = new MutationObserver(rescan);
+    mo.observe(document.body, { childList: true, subtree: true });
+    window.addEventListener('pf-catalog-changed', rescan);
+    return () => { cancelAnimationFrame(id); io.disconnect(); mo.disconnect(); window.removeEventListener('pf-catalog-changed', rescan); };
   }, [lang]);
   const addToCart = rdUseAddToCart(setCart, setCartOpen, setJustAdded, lang);
   const featured = rdUseFeaturedChapter(lang);

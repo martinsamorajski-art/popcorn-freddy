@@ -209,8 +209,13 @@ function RdInfoPageApp({ label, render }) {
     const io = new IntersectionObserver((entries) => {
       entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
     }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
-    const id = requestAnimationFrame(() => document.querySelectorAll('.r-rev:not(.in)').forEach((el) => io.observe(el)));
-    return () => { cancelAnimationFrame(id); io.disconnect(); };
+    const scan = () => document.querySelectorAll('.r-rev:not(.in)').forEach((el) => io.observe(el));
+    let id = requestAnimationFrame(scan);
+    const rescan = () => { cancelAnimationFrame(id); id = requestAnimationFrame(scan); };
+    const mo = new MutationObserver(rescan);
+    mo.observe(document.body, { childList: true, subtree: true });
+    window.addEventListener('pf-catalog-changed', rescan);
+    return () => { cancelAnimationFrame(id); io.disconnect(); mo.disconnect(); window.removeEventListener('pf-catalog-changed', rescan); };
   }, [lang]);
 
   return (
