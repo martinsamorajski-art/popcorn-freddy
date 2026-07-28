@@ -422,6 +422,7 @@ function PSClose({ p, ui, lang, intensity, inCart, onAdd }) {
 // ─── BODY ────────────────────────────────────────────────────
 function PSBody({ p, lang }) {
   const ui = PF_UI[lang] || PF_UI.de;
+  const t = (window.COPY && (window.COPY[lang] || window.COPY.de)) || {};
   const x = (window.CH1_TRUST && (CH1_TRUST[lang] || CH1_TRUST.de)) || { badges: [], badges_pay: [] };
   const intensity = 5;
   const [inCart, setInCart] = useState(() => rdCartLoad().some((it) => it.n === p.handle));
