@@ -1,25 +1,27 @@
-# Headless Shopify — one reusable product template, with locale prefixes.
-# Locale prefixes at/de/ch/us serve the SAME files (no per-locale copies):
-#   /{locale}/            → index.html    (home)
-#   /{locale}/produkt/*   → Produkt.html  (product; handle read from the path)
-# Specific /produkt rules MUST come before the catch-alls (first match wins).
+# Locale prefixes at/de/ch/us serve the SAME files (no per-locale copies).
+# Order matters — first match wins, so /produkt rules come before the splats.
 
+# Product template: /{locale}/produkt/<handle> → Produkt.html (handle read from URL)
 /at/produkt/*  /Produkt.html  200
 /de/produkt/*  /Produkt.html  200
 /ch/produkt/*  /Produkt.html  200
 /us/produkt/*  /Produkt.html  200
-# Existing no-prefix product route — kept as a fallback.
+# No-prefix product route — kept as a fallback.
 /produkt/*     /Produkt.html  200
 
-# Home per locale.
+# Bare prefix → home.
 /at    /index.html  200
-/at/*  /index.html  200
 /de    /index.html  200
-/de/*  /index.html  200
 /ch    /index.html  200
-/ch/*  /index.html  200
 /us    /index.html  200
-/us/*  /index.html  200
+
+# Every other page under a prefix serves the REAL file behind it.
+# :splat is the path after the prefix, so /at/Kontakt.html → /Kontakt.html
+# and /at/ (empty splat) → / → index.html.
+/at/*  /:splat  200
+/de/*  /:splat  200
+/ch/*  /:splat  200
+/us/*  /:splat  200
 
 # Retired legacy per-chapter pages → new product template (keeps old links alive)
 /Der%20Fluesterwald%20v3.html            /produkt/kapitel-1-fluesterwald  301
