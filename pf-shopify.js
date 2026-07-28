@@ -117,11 +117,54 @@
     'story_title', 'story_body', 'story_hand',
     'reviews', 'rating', 'rating_count',
     'scarcity', 'guarantee', 'gift_note', 'personalization_label',
+    // Translatable twins of the two JSON fields: plain text lists, so Shopify's
+    // Translate & Adapt can translate them (it cannot translate JSON).
+    'inside_list', 'details_list',
   ];
 
+  // Icons for the "inside the box" cards when the content is a plain text list
+  // (the JSON form names its own icon per row).
+  var INSIDE_ICONS = ['book', 'build', 'palette', 'compass', 'archive', 'star', 'check', 'heart'];
+
+  // A list metafield arrives as a JSON array of strings. Each entry is one card,
+  // written as "Titel — Beschreibung" (em dash, hyphen or colon all work).
+  function parseInsideList(v) {
+    var arr = parseMaybeJSON(v);
+    if (!Array.isArray(arr) || !arr.length) return null;
+    return arr.map(function (line, i) {
+      var s = String(line).trim();
+      var m = s.split(/\s+[—–-]\s+|:\s+/);
+      var title = (m[0] || s).trim();
+      var desc = m.length > 1 ? s.slice(s.indexOf(m[1])).trim() : '';
+      return {
+        n: String(i + 1).padStart(2, '0'),
+        icon: INSIDE_ICONS[i % INSIDE_ICONS.length],
+        t: title,
+        d: desc,
+      };
+    });
+  }
+
+  // Same idea for the at-a-glance table: "Format: A5, gedruckt in Deutschland".
+  function parseRowList(v) {
+    var arr = parseMaybeJSON(v);
+    if (!Array.isArray(arr) || !arr.length) return null;
+    return arr.map(function (line) {
+      var s = String(line).trim();
+      var i = s.indexOf(':');
+      if (i === -1) return { k: s, v: '' };
+      return { k: s.slice(0, i).trim(), v: s.slice(i + 1).trim() };
+    });
+  }
+
   function productFields() {
+    // Every metafield is queried TWICE: the German original and an optional
+    // `_en` twin. Shopify's Translate & Adapt cannot translate JSON metafields
+    // (and only handles text ones once translations are enabled), so an English
+    // locale prefers custom.<key>_en and falls back to the German value.
     var mfSelectors = METAFIELD_IDS.map(function (k) {
-      return k + ': metafield(namespace: "custom", key: "' + k + '") { value }';
+      return k + ': metafield(namespace: "custom", key: "' + k + '") { value }\n' +
+        k + '_en: metafield(namespace: "custom", key: "' + k + '_en") { value }';
     }).join('\n');
     return 'id\n handle\n title\n descriptionHtml\n availableForSale\n' +
       // Shopify's native SEO fields drive <title> and the meta description, so
@@ -207,8 +250,14 @@
   // Turn a raw Shopify product into the shape the design components expect.
   function normalizeProduct(p, lang) {
     if (!p) return null;
+    // EN locale: take the `_en` twin when it is filled, else the German value.
+    var wantEn = String(lang || langCode()).toUpperCase().indexOf('EN') === 0;
     var mf = {};
-    METAFIELD_IDS.forEach(function (k) { mf[k] = p[k] && p[k].value != null ? p[k].value : null; });
+    METAFIELD_IDS.forEach(function (k) {
+      var en = wantEn && p[k + '_en'] && p[k + '_en'].value != null ? p[k + '_en'].value : null;
+      var de = p[k] && p[k].value != null ? p[k].value : null;
+      mf[k] = en != null && String(en).trim() !== '' ? en : de;
+    });
     var variants = (p.variants && p.variants.nodes) || [];
     var v0 = variants[0] || null;
     var priceObj = (v0 && v0.price) || (p.priceRange && p.priceRange.minVariantPrice) || { amount: '0', currencyCode: 'EUR' };
@@ -242,8 +291,10 @@
       caps: mf.caps,
       emotion: mf.emotion,
       meta_rows: parseMaybeJSON(mf.meta_rows),
-      inside_items: parseMaybeJSON(mf.inside_items),
-      details: parseMaybeJSON(mf.details),
+      // Text-list form wins when present (it is the translatable one); the JSON
+      // metafield stays supported so nothing already filled in breaks.
+      inside_items: parseInsideList(mf.inside_list) || parseMaybeJSON(mf.inside_items),
+      details: parseRowList(mf.details_list) || parseMaybeJSON(mf.details),
       story_title: mf.story_title,
       story_body: mf.story_body,
       story_hand: mf.story_hand,
