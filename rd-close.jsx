@@ -197,7 +197,7 @@ function RdNewsletter({ t, intensity }) {
 }
 
 // ─── FOOTER ──────────────────────────────────────────────────
-function RdFooter({ t, lang, setLang }) {
+function RdFooter({ t, lang }) {
   const cols = [
     { title: t.footer.shop, links: [[t.footer.l_chapters, '#chapters'], [t.footer.l_folder, '#inside']] },
     { title: t.footer.about, links: [[t.footer.l_story, '#story'], [t.nav.workshop, '#brand']] },
@@ -216,7 +216,7 @@ function RdFooter({ t, lang, setLang }) {
                 <div key={s} style={{ width: 38, height: 38, borderRadius: '50%', border: '1px solid rgba(242,236,217,0.28)', display: 'grid', placeItems: 'center', fontSize: 10.5, fontWeight: 800, fontFamily: 'var(--f-sans)', letterSpacing: '0.06em' }}>{s}</div>
               ))}
             </div>
-            <div style={{ marginTop: 26 }}><RdLocaleControl lang={lang} setLang={setLang} dark /></div>
+            <div style={{ marginTop: 26 }}><RdLocaleControl lang={lang} dark /></div>
           </div>
           {cols.map((col, i) => (
             <div key={i}>
@@ -232,7 +232,7 @@ function RdFooter({ t, lang, setLang }) {
         <div style={{ marginTop: 56, paddingTop: 24, borderTop: '1px solid rgba(242,236,217,0.14)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 14, fontSize: 13.5, fontFamily: 'var(--f-sans)', color: 'rgba(242,236,217,0.5)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap' }}>
             <span>{t.footer.copy}</span>
-            <button type="button" className="rd-flink" onClick={() => window.pfOpenRegion && window.pfOpenRegion()} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', font: 'inherit', color: 'inherit' }}>{lang === 'de' ? 'Region & Sprache' : 'Region & language'}</button>
+            <button type="button" className="rd-flink" onClick={() => { try { window.dispatchEvent(new Event('pf-open-locale')); } catch (e) {} }} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', font: 'inherit', color: 'inherit' }}>{lang === 'de' ? 'Region & Sprache' : 'Region & language'}</button>
             <button type="button" className="rd-flink" onClick={() => window.pfOpenConsent && window.pfOpenConsent()} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', font: 'inherit', color: 'inherit' }}>{lang === 'de' ? 'Cookie-Einstellungen' : 'Cookie settings'}</button>
           </div>
           <div style={{ display: 'flex', gap: 16, letterSpacing: '0.06em', flexWrap: 'wrap' }}>
@@ -473,7 +473,7 @@ function RdApp() {
 
   return (
     <React.Fragment>
-      <RdTopBar t={t} lang={lang} setLang={setLang} cartCount={cart.reduce((s, c) => s + (c.qty || 1), 0)} onOpenCart={() => setCartOpen((v) => !v)} onStartAdventure={() => addToCart(featured)} />
+      <RdTopBar t={t} lang={lang} cartCount={cart.reduce((s, c) => s + (c.qty || 1), 0)} onOpenCart={() => setCartOpen((v) => !v)} onStartAdventure={() => addToCart(featured)} />
       <RdHero t={t} lang={lang} direction={tw.heroDir} intensity={intensity} onAdd={() => addToCart(featured)} />
       <RdInside t={t} lang={lang} />
       <RdWhy t={t} />
@@ -485,7 +485,7 @@ function RdApp() {
       <RdCtaBand t={t} band={t.bands && t.bands[2]} primary />
       <RdFaq lang={lang} />
       <RdNewsletter t={t} intensity={intensity} />
-      <RdFooter t={t} lang={lang} setLang={setLang} />
+      <RdFooter t={t} lang={lang} />
 
       <RdCart open={cartOpen} cart={cart} onClose={() => setCartOpen(false)} lang={lang} onQty={changeQty} onRemove={removeItem} justAdded={justAdded} />
       {featured && <RdStickyBar t={t} product={featured} onAdd={() => addToCart(featured)} />}
@@ -506,7 +506,7 @@ function RdApp() {
 
 // Standalone all-chapters page (Alle Kapitel.html sets window.RD_PAGE = 'chapters')
 function RdChaptersPage() {
-  const [lang, setLang] = useState('de');
+  const [lang] = useState(() => rdLangLoad('de'));
   const [cart, setCart] = useState(() => rdCartLoad());
   const [cartOpen, setCartOpen] = useState(false);
   const [justAdded, setJustAdded] = useState(null);
@@ -533,9 +533,9 @@ function RdChaptersPage() {
   const removeItem = (n) => setCart((c) => c.filter((x) => x.n !== n));
   return (
     <React.Fragment>
-      <RdTopBar t={t} lang={lang} setLang={setLang} cartCount={cart.reduce((s, c) => s + (c.qty || 1), 0)} onOpenCart={() => setCartOpen((v) => !v)} onStartAdventure={() => addToCart(featured)} />
+      <RdTopBar t={t} lang={lang} cartCount={cart.reduce((s, c) => s + (c.qty || 1), 0)} onOpenCart={() => setCartOpen((v) => !v)} onStartAdventure={() => addToCart(featured)} />
       <RdChapters t={t} lang={lang} onAdd={addToCart} all />
-      <RdFooter t={t} lang={lang} setLang={setLang} />
+      <RdFooter t={t} lang={lang} />
       <RdCart open={cartOpen} cart={cart} onClose={() => setCartOpen(false)} lang={lang} onQty={changeQty} onRemove={removeItem} justAdded={justAdded} />
     </React.Fragment>
   );

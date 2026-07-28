@@ -498,14 +498,14 @@ function ProductApp() {
   return (
     <React.Fragment>
       <style>{RD_PAGE_CSS}{PS_SHOP_CSS}</style>
-      <RdPageTopBar t={t} lang={lang} setLang={setLang} />
-      {typeof RdCountrySuggest === 'function' && <RdCountrySuggest lang={lang} setLang={setLang} />}
+      <RdPageTopBar t={t} lang={lang} />
+      {typeof RdCountrySuggest === 'function' && <RdCountrySuggest lang={lang} />}
       <main data-screen-label="Produkt">
         {product ? <PSBody key={lang + ':' + product.handle} p={product} lang={lang} />
           : loaded ? <PSNotFound lang={lang} />
           : <PSSkeleton />}
       </main>
-      <RdPageFooter t={t} lang={lang} setLang={setLang} />
+      <RdPageFooter t={t} lang={lang} />
       <TweaksPanel title="Tweaks">
         <TweakSection label="Palette" />
         <TweakRadio label="Stimmung" value={tw.palette} options={[{ value: 'wald', label: 'Wald' }, { value: 'birke', label: 'Birke' }, { value: 'abend', label: 'Abend' }]} onChange={(v) => setTw('palette', v)} />

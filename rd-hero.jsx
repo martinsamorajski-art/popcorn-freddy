@@ -2,7 +2,7 @@
 // Redesign — TopBar, Hero (2 directions), trust strip
 // ────────────────────────────────────────────────────────────────
 
-function RdTopBar({ t, lang, setLang, cartCount, onOpenCart, onStartAdventure }) {
+function RdTopBar({ t, lang, cartCount, onOpenCart, onStartAdventure }) {
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
     let ticking = false;
@@ -67,7 +67,7 @@ function RdTopBar({ t, lang, setLang, cartCount, onOpenCart, onStartAdventure })
             <RdMobileNav
               links={[['#story', t.nav.story], ['#how', t.nav.how], ['#chapters', t.nav.chapters], ['#brand', t.nav.workshop], ['#faq', t.nav.faq], ['Kontakt.html', t.nav.contact]]}
               ctaLabel={t.nav.mobile_cta} onCta={onStartAdventure}
-              extra={<div style={{ padding: '4px 0 10px', borderTop: '1px solid color-mix(in srgb, var(--rd-ink) 10%, transparent)', marginTop: 6, paddingTop: 14 }}><RdLocaleControl lang={lang} setLang={setLang} /></div>}
+              extra={<div style={{ padding: '4px 0 10px', borderTop: '1px solid color-mix(in srgb, var(--rd-ink) 10%, transparent)', marginTop: 6, paddingTop: 14 }}><RdLocaleControl lang={lang} /></div>}
             />
           </nav>
         </div>
@@ -83,23 +83,9 @@ function RdTopBar({ t, lang, setLang, cartCount, onOpenCart, onStartAdventure })
   );
 }
 
-function RdLangSwitch({ lang, setLang }) {
-  return (
-    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontFamily: 'var(--f-sans)', fontSize: 12.5, fontWeight: 800, letterSpacing: '0.12em' }}>
-      {['de', 'en'].map((l, i) => (
-        <React.Fragment key={l}>
-          {i > 0 && <span style={{ color: 'var(--rd-ink-mute)', fontWeight: 400 }}>/</span>}
-          <button onClick={() => setLang(l)} style={{
-            textTransform: 'uppercase', padding: '4px 2px',
-            color: lang === l ? 'var(--rd-ink)' : 'var(--rd-ink-mute)',
-            borderBottom: lang === l ? '2px solid var(--rd-gold)' : '2px solid transparent',
-            transition: 'color 0.25s, border-color 0.25s',
-          }}>{l}</button>
-        </React.Fragment>
-      ))}
-    </div>
-  );
-}
+// (Removed: standalone DE/EN toggle. Language is never switchable on its own —
+// it moves with country + currency via the locale prefix. The footer
+// country/language selector is the single source of truth.)
 
 // ─── HERO ────────────────────────────────────────────────────
 function RdHero({ t, lang, direction = 'a', intensity = 5, onAdd }) {
@@ -220,4 +206,4 @@ function RdHero({ t, lang, direction = 'a', intensity = 5, onAdd }) {
   );
 }
 
-Object.assign(window, { RdTopBar, RdLangSwitch, RdHero });
+Object.assign(window, { RdTopBar, RdHero });

@@ -161,15 +161,26 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', watchAnchors);
   else watchAnchors();
 
+  // URL → storage sync. When the URL carries a prefix, that prefix IS the truth:
+  // remember it so the unprefixed pages (Checkout, legal) agree with it instead
+  // of reading an older remembered choice. Landing on /ch makes CH/CHF the
+  // remembered locale everywhere.
+  function syncChoiceFromPath() {
+    var p = prefixFromPath();
+    if (p && p !== savedChoice()) saveChoice(p);
+  }
+
   window.PFLocale = {
-    VERSION: 'universal-7',
+    VERSION: 'universal-8',
     PREFIX: PREFIX, DEFAULT: DEFAULT,
     prefixFromPath: prefixFromPath, activePrefix: activePrefix, current: current,
     withLocale: withLocale, home: home, go: go,
     savedChoice: savedChoice, saveChoice: saveChoice, switchTo: switchTo,
     fixBase: fixBase, bootstrap: bootstrap, localizeAnchors: localizeAnchors,
+    syncChoiceFromPath: syncChoiceFromPath,
   };
-  try { console.log('[PFLocale] version universal-7 · prefix=' + activePrefix()); } catch (e) {}
+  try { console.log('[PFLocale] version universal-8 · prefix=' + activePrefix()); } catch (e) {}
 
+  syncChoiceFromPath();
   fixBase();
 })();

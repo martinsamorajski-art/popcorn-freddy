@@ -167,7 +167,7 @@ function RdFlag({ c, size = 18 }) {
 // One pick = one locale (country + language + currency). The list of locales
 // is our four routable prefixes; the names/currency shown are populated by the
 // Shopify localization query. Applying navigates to that prefix (PFLocale).
-function RdLocaleControl({ lang, setLang, dark, onNavigate }) {
+function RdLocaleControl({ lang, dark, onNavigate }) {
   const [open, setOpen] = useState(false);
   const [loc, setLoc] = useState(null);              // Shopify localization data
   const current = rdActivePrefix();
@@ -176,21 +176,26 @@ function RdLocaleControl({ lang, setLang, dark, onNavigate }) {
   const country = rdCurrentCountry();
   const show = () => { setPick(rdActivePrefix()); setOpen(true); };
 
-  // Fetch the available countries/languages from Shopify when first opened.
+  // Fetch the available countries/languages from Shopify ON MOUNT — the closed
+  // button label itself is API-driven (country name + currency), not just the
+  // modal. Falls back to page copy only while loading / when Shopify is off.
   useEffect(() => {
-    if (!open || loc || !(window.PFShop && typeof PFShop.getLocalization === 'function')) return;
+    if (!(window.PFShop && typeof PFShop.getLocalization === 'function')) return;
     let alive = true;
     PFShop.getLocalization().then((d) => { if (alive && d) setLoc(d); }).catch(() => {});
     return () => { alive = false; };
-  }, [open, loc]);
+  }, []);
   useEffect(() => {
     if (!open) return;
     const onKey = (e) => { if (e.key === 'Escape') setOpen(false); };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [open]);
-  // Allow the geo-suggestion banner to open this control from anywhere.
+  // Allow the geo-suggestion banner and the footer bottom-bar link to open this
+  // control from anywhere. Only the footer instance listens, so the event can
+  // never open two stacked modals on one page.
   useEffect(() => {
+    if (!dark) return;
     const onOpen = () => show();
     window.addEventListener('pf-open-locale', onOpen);
     return () => window.removeEventListener('pf-open-locale', onOpen);
@@ -211,6 +216,19 @@ function RdLocaleControl({ lang, setLang, dark, onNavigate }) {
     lname = lname || (T.langName[lc.toLowerCase()] || lc);
     return { cname, cur, lname, cc };
   };
+
+  // The selectable markets: OUR routable prefixes intersected with the countries
+  // Shopify actually returns from the localization query. A market Shopify does
+  // not sell to disappears from the list on its own. While localization is
+  // loading (or the store is not configured) the routable prefixes are the
+  // fallback, so the selector is never empty.
+  const options = React.useMemo(() => {
+    if (!loc || !(loc.countries || []).length) return RD_PREFIXES;
+    const have = {};
+    loc.countries.forEach((c) => { if (c && c.code) have[c.code.toUpperCase()] = true; });
+    const avail = RD_PREFIXES.filter((pre) => have[rdPrefixMeta(pre).country]);
+    return avail.length ? avail : RD_PREFIXES;
+  }, [loc]);
   const apply = () => {
     setOpen(false);
     if (onNavigate) onNavigate();
@@ -238,7 +256,7 @@ function RdLocaleControl({ lang, setLang, dark, onNavigate }) {
               <div className="rd-locale-selwrap">
                 <RdFlag c={pickCc} size={17} />
                 <select value={pick} onChange={(e) => setPick(e.target.value)}>
-                  {RD_PREFIXES.map((pre) => { const L = labelFor(pre); return <option key={pre} value={pre}>{L.cname} · {L.lname} · {L.cur}</option>; })}
+                  {options.map((pre) => { const L = labelFor(pre); return <option key={pre} value={pre}>{L.cname} · {L.lname} · {L.cur}</option>; })}
                 </select>
               </div>
             </label>
@@ -594,7 +612,7 @@ function rdCheckout() {
 }
 
 // Subtle, dismissible country/currency suggestion. Never forces anything.
-function RdCountrySuggest({ lang, setLang }) {
+function RdCountrySuggest({ lang }) {
   const [sug, setSug] = useState(null); // suggested country code
   useEffect(() => {
     if (!window.PFShop || typeof window.PFShop.suggestCountry !== 'function') return;

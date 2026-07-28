@@ -23,7 +23,7 @@ const RD_PAGES = {
 
 // Topbar for subpages — IDENTICAL to the home RdTopBar (same cart button + flyout),
 // nav links point back home. Owns its own cart flyout so every subpage shares it.
-function RdPageTopBar({ t, lang, setLang }) {
+function RdPageTopBar({ t, lang }) {
   const [scrolled, setScrolled] = useState(false);
   const [cart, setCart] = useState(() => rdCartLoad());
   const [cartOpen, setCartOpen] = useState(false);
@@ -86,7 +86,7 @@ function RdPageTopBar({ t, lang, setLang }) {
             <RdCartButtons label={t.nav.shop} cartCount={cartCount} onOpenCart={() => setCartOpen((v) => !v)} />
             <RdMobileNav
               links={links} ctaLabel={t.nav.mobile_cta} onCta={() => { window.location.href = RD_PAGES.home + '#chapters'; }}
-              extra={<div style={{ padding: '4px 0 10px', borderTop: '1px solid color-mix(in srgb, var(--rd-ink) 10%, transparent)', marginTop: 6, paddingTop: 14 }}><RdLocaleControl lang={lang} setLang={setLang} /></div>}
+              extra={<div style={{ padding: '4px 0 10px', borderTop: '1px solid color-mix(in srgb, var(--rd-ink) 10%, transparent)', marginTop: 6, paddingTop: 14 }}><RdLocaleControl lang={lang} /></div>}
             />
           </nav>
         </div>
@@ -118,7 +118,7 @@ function RdPageHero({ eyebrow, title, lede }) {
 }
 
 // Footer with real hrefs — mirrors RdFooter on the home page
-function RdPageFooter({ t, lang, setLang }) {
+function RdPageFooter({ t, lang }) {
   const cols = [
     { title: t.footer.shop, links: [[t.footer.l_chapters, RD_PAGES.home + '#chapters'], [t.footer.l_folder, RD_PAGES.home + '#inside'], [t.footer.l_gift, RD_PAGES.gift], [t.footer.l_bundles, RD_PAGES.home + '#chapters']] },
     { title: t.footer.about, links: [[t.footer.l_story, RD_PAGES.home + '#story'], [t.footer.l_team, '#'], [t.footer.l_press, '#'], [t.footer.l_journal, '#']] },
@@ -137,7 +137,7 @@ function RdPageFooter({ t, lang, setLang }) {
                 <div key={s} style={{ width: 38, height: 38, borderRadius: '50%', border: '1px solid rgba(242,236,217,0.28)', display: 'grid', placeItems: 'center', fontSize: 10.5, fontWeight: 800, fontFamily: 'var(--f-sans)', letterSpacing: '0.06em' }}>{s}</div>
               ))}
             </div>
-            {setLang && <div style={{ marginTop: 26 }}><RdLocaleControl lang={lang} setLang={setLang} dark /></div>}
+            <div style={{ marginTop: 26 }}><RdLocaleControl lang={lang} dark /></div>
           </div>
           {cols.map((col, i) => (
             <div key={i}>
@@ -224,9 +224,9 @@ function RdInfoPageApp({ label, render }) {
   return (
     <React.Fragment>
       <style>{RD_PAGE_CSS}</style>
-      <RdPageTopBar t={t} lang={lang} setLang={setLang} />
+      <RdPageTopBar t={t} lang={lang} />
       <main data-screen-label={label}>{render(t, lang)}</main>
-      <RdPageFooter t={t} lang={lang} setLang={setLang} />
+      <RdPageFooter t={t} lang={lang} />
       <TweaksPanel title="Tweaks">
         <TweakSection label="Palette" />
         <TweakRadio label="Stimmung" value={tw.palette} options={[{ value: 'wald', label: 'Wald' }, { value: 'birke', label: 'Birke' }, { value: 'abend', label: 'Abend' }]} onChange={(v) => setTw('palette', v)} />
