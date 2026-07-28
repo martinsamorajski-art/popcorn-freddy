@@ -2,14 +2,10 @@
 <html lang="de" data-palette="wald" data-anim="on">
 <head>
   <meta charset="utf-8" />
-  <script>
-    // Served under the pretty path /produkt/<handle>, relative asset URLs would
-    // resolve under /produkt/ and 404. Pin them to the site root — but ONLY on
-    // that path, so opening Produkt.html directly (preview) still works.
-    if (/\/produkt\//i.test(location.pathname)) {
-      var b = document.createElement('base'); b.href = '/'; document.head.appendChild(b);
-    }
-  </script>
+  <!-- Locale routing (URL prefixes). Pins <base href="/"> so root-relative
+       assets resolve when served under /produkt/ or a locale prefix (/at/ …).
+       Must load in <head> before the stylesheet and before pf-shopify.js. -->
+  <script src="pf-locale.js?v=20260728d"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Produkt — Popcorn &amp; Freddy</title>
   <meta name="description" content="Ein Kapitel der großen Schatzsuche: personalisiertes Buch, Holz-Bausatz und die nächste Etappe der Schatzkarte." />

@@ -4,7 +4,7 @@
 // ────────────────────────────────────────────────────────────────
 
 const RD_PAGES = {
-  home: 'index.html',
+  get home() { return (window.PFLocale ? PFLocale.home() : 'index.html'); },
   checkout: 'Checkout.html',
   gift: 'Geschenkkarten.html',
   ship: 'Versand & Ruecksendung.html',

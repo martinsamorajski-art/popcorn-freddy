@@ -108,6 +108,9 @@ function rdLangDetect() {
   } catch (e) { return 'de'; }
 }
 function rdLangLoad(fallback) {
+  // Language is decided by the URL locale prefix (PFLocale) so page copy always
+  // matches the Shopify locale. Falls back to a saved/device choice off-route.
+  try { if (window.PFLocale) return PFLocale.current().langLower; } catch (e) {}
   try { const l = localStorage.getItem(RD_LANG_KEY); if (l === 'de' || l === 'en') return l; } catch (e) {}
   // No saved choice yet — fall back to the device language.
   return rdLangDetect();
@@ -118,19 +121,13 @@ function rdLangSave(lang) {
 
 // ─── Locale (country + language) ─────────────────────────
 const RD_LOCALE_KEY = 'pf-locale-v1';
-const RD_COUNTRIES = ['AT', 'DE', 'CH', 'OTHER'];
-function rdCountryDetect() {
-  try {
-    const langs = navigator.languages || [navigator.language || ''];
-    for (const l of langs) { const m = /-([A-Z]{2})/i.exec(l || ''); if (m) { const r = m[1].toUpperCase(); if (RD_COUNTRIES.includes(r)) return r; return 'OTHER'; } }
-  } catch (e) {}
-  return 'AT';
-}
-function rdCountryLoad() {
-  try { const c = localStorage.getItem(RD_LOCALE_KEY); if (RD_COUNTRIES.includes(c)) return c; } catch (e) {}
-  return rdCountryDetect();
-}
-function rdCountrySave(c) { try { localStorage.setItem(RD_LOCALE_KEY, c); } catch (e) {} }
+// Locale is driven by the URL prefix (PFLocale). The selector routes between
+// the four locale prefixes; country/language names come from the Shopify
+// localization query, not a hardcoded list.
+const RD_PREFIXES = ['at', 'de', 'ch', 'us'];
+function rdPrefixMeta(pre) { return (window.PFLocale && PFLocale.PREFIX[pre]) || { country: (pre || 'at').toUpperCase(), language: 'DE' }; }
+function rdActivePrefix() { try { return window.PFLocale ? PFLocale.activePrefix() : 'at'; } catch (e) { return 'at'; } }
+function rdCurrentCountry() { try { return window.PFLocale ? PFLocale.current().country : 'AT'; } catch (e) { return 'AT'; } }
 
 // Subtle geo suggestion (never forces a redirect — the customer confirms)
 const RD_SUGGEST_T = {
@@ -145,13 +142,13 @@ function rdCurrencyFor(country) {
 
 const RD_LOCALE_T = {
   de: {
-    country: { AT: 'Österreich', DE: 'Deutschland', CH: 'Schweiz', OTHER: 'Anderes Land' },
-    shop: { AT: 'Du befindest dich im österreichischen Shop.', DE: 'Du befindest dich im deutschen Shop.', CH: 'Du befindest dich im Schweizer Shop.', OTHER: 'Du befindest dich im internationalen Shop.' },
+    country: { AT: 'Österreich', DE: 'Deutschland', CH: 'Schweiz', US: 'USA', OTHER: 'Anderes Land' },
+    shop: { AT: 'Du befindest dich im österreichischen Shop.', DE: 'Du befindest dich im deutschen Shop.', CH: 'Du befindest dich im Schweizer Shop.', US: 'Du befindest dich im US-Shop.', OTHER: 'Du befindest dich im internationalen Shop.' },
     hint: 'Wähle Land und Sprache für Versand und Preise.', land: 'Land', sprache: 'Sprache', go: 'Website aufrufen', langName: { de: 'Deutsch', en: 'English' }, aria: 'Land und Sprache ändern',
   },
   en: {
-    country: { AT: 'Austria', DE: 'Germany', CH: 'Switzerland', OTHER: 'Other country' },
-    shop: { AT: 'You are browsing the Austrian shop.', DE: 'You are browsing the German shop.', CH: 'You are browsing the Swiss shop.', OTHER: 'You are browsing the international shop.' },
+    country: { AT: 'Austria', DE: 'Germany', CH: 'Switzerland', US: 'United States', OTHER: 'Other country' },
+    shop: { AT: 'You are browsing the Austrian shop.', DE: 'You are browsing the German shop.', CH: 'You are browsing the Swiss shop.', US: 'You are browsing the US shop.', OTHER: 'You are browsing the international shop.' },
     hint: 'Choose country and language for shipping and prices.', land: 'Country', sprache: 'Language', go: 'Open website', langName: { de: 'Deutsch', en: 'English' }, aria: 'Change country and language',
   },
 };
@@ -162,27 +159,30 @@ function RdFlag({ c, size = 18 }) {
   if (c === 'AT') return <svg width={size} height={size} viewBox="0 0 18 18" aria-hidden="true" style={{ borderRadius: '50%', flex: 'none', boxShadow: '0 0 0 1px color-mix(in srgb, currentColor 25%, transparent)' }}><clipPath id="rdfAT"><circle cx="9" cy="9" r="9" /></clipPath><g clipPath="url(#rdfAT)"><rect width="18" height="6" fill="#C8102E" /><rect y="6" width="18" height="6" fill="#fff" /><rect y="12" width="18" height="6" fill="#C8102E" /></g></svg>;
   if (c === 'DE') return <svg width={size} height={size} viewBox="0 0 18 18" aria-hidden="true" style={{ borderRadius: '50%', flex: 'none', boxShadow: '0 0 0 1px color-mix(in srgb, currentColor 25%, transparent)' }}><clipPath id="rdfDE"><circle cx="9" cy="9" r="9" /></clipPath><g clipPath="url(#rdfDE)"><rect width="18" height="6" fill="#1a1a1a" /><rect y="6" width="18" height="6" fill="#DD0000" /><rect y="12" width="18" height="6" fill="#FFCE00" /></g></svg>;
   if (c === 'CH') return <svg width={size} height={size} viewBox="0 0 18 18" aria-hidden="true" style={{ borderRadius: '50%', flex: 'none', boxShadow: '0 0 0 1px color-mix(in srgb, currentColor 25%, transparent)' }}><clipPath id="rdfCH"><circle cx="9" cy="9" r="9" /></clipPath><g clipPath="url(#rdfCH)"><rect width="18" height="18" fill="#DA291C" /><rect x="7.6" y="4" width="2.8" height="10" fill="#fff" /><rect x="4" y="7.6" width="10" height="2.8" fill="#fff" /></g></svg>;
+  if (c === 'US') return <svg width={size} height={size} viewBox="0 0 18 18" aria-hidden="true" style={{ borderRadius: '50%', flex: 'none', boxShadow: '0 0 0 1px color-mix(in srgb, currentColor 25%, transparent)' }}><clipPath id="rdfUS"><circle cx="9" cy="9" r="9" /></clipPath><g clipPath="url(#rdfUS)"><rect width="18" height="18" fill="#fff" />{[0,1,2,3,4,5,6].map((i) => <rect key={i} y={i * 2.57} width="18" height="1.28" fill="#B22234" />)}<rect width="9" height="9" fill="#3C3B6E" /></g></svg>;
   return <svg width={size} height={size} viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.3" aria-hidden="true" style={{ flex: 'none' }}><circle cx="9" cy="9" r={r - 1.2} /><path d="M1.8 9h14.4M9 1.8c2.6 2.2 2.6 12.2 0 14.4M9 1.8c-2.6 2.2-2.6 12.2 0 14.4" /></svg>;
 }
 
-// Locale button + popup — used in the burger panel and the footer
+// Locale button + popup — used in the burger panel and the footer.
+// One pick = one locale (country + language + currency). The list of locales
+// is our four routable prefixes; the names/currency shown are populated by the
+// Shopify localization query. Applying navigates to that prefix (PFLocale).
 function RdLocaleControl({ lang, setLang, dark, onNavigate }) {
   const [open, setOpen] = useState(false);
-  const [country, setCountry] = useState(() => rdCountryLoad());
-  const [pc, setPc] = useState(country);
-  const [pl, setPl] = useState(lang);
-  const T = RD_LOCALE_T[pl] || RD_LOCALE_T.de;
-  const Tb = RD_LOCALE_T[lang] || RD_LOCALE_T.de;
-  const show = () => { setPc(country); setPl(lang); setOpen(true); };
-  const apply = () => {
-    setCountry(pc); rdCountrySave(pc); rdLangSave(pl); setLang(pl); setOpen(false);
-    if (onNavigate) onNavigate();
-    // Re-point the Shopify cart at the new market and re-price via @inContext.
-    if (window.PFShop && window.PFShop.enabled) {
-      try { window.PFShop.setBuyerCountry(window.PFShop.marketFor(pc).country); } catch (e) {}
-      setTimeout(function () { window.location.reload(); }, 60);
-    }
-  };
+  const [loc, setLoc] = useState(null);              // Shopify localization data
+  const current = rdActivePrefix();
+  const [pick, setPick] = useState(current);
+  const T = RD_LOCALE_T[lang] || RD_LOCALE_T.de;
+  const country = rdCurrentCountry();
+  const show = () => { setPick(rdActivePrefix()); setOpen(true); };
+
+  // Fetch the available countries/languages from Shopify when first opened.
+  useEffect(() => {
+    if (!open || loc || !(window.PFShop && typeof PFShop.getLocalization === 'function')) return;
+    let alive = true;
+    PFShop.getLocalization().then((d) => { if (alive && d) setLoc(d); }).catch(() => {});
+    return () => { alive = false; };
+  }, [open, loc]);
   useEffect(() => {
     if (!open) return;
     const onKey = (e) => { if (e.key === 'Escape') setOpen(false); };
@@ -195,32 +195,50 @@ function RdLocaleControl({ lang, setLang, dark, onNavigate }) {
     window.addEventListener('pf-open-locale', onOpen);
     return () => window.removeEventListener('pf-open-locale', onOpen);
   });
+
+  // Names/currency from Shopify localization; page-copy labels are the fallback.
+  const labelFor = (pre) => {
+    const meta = rdPrefixMeta(pre), cc = meta.country, lc = meta.language;
+    let cname, cur, lname;
+    if (loc) {
+      const c = (loc.countries || []).find((x) => x.code === cc);
+      if (c) { cname = c.name; cur = c.currency; }
+      const l = (loc.languages || []).find((x) => x.code === lc);
+      if (l) lname = l.endonym || l.name;
+    }
+    cname = cname || T.country[cc] || cc;
+    cur = cur || rdCurrencyFor(cc);
+    lname = lname || (T.langName[lc.toLowerCase()] || lc);
+    return { cname, cur, lname, cc };
+  };
+  const apply = () => {
+    setOpen(false);
+    if (onNavigate) onNavigate();
+    const cc = rdPrefixMeta(pick).country;
+    // Re-point the Shopify cart at the new market (re-price), then route.
+    if (window.PFShop && window.PFShop.enabled) { try { window.PFShop.setBuyerCountry(cc); } catch (e) {} }
+    setTimeout(() => { if (window.PFLocale) PFLocale.switchTo(pick); }, 60);
+  };
+  const cur = labelFor(current);
+  const pickCc = rdPrefixMeta(pick).country;
   return (
     <React.Fragment>
-      <button type="button" className={'rd-locale-btn' + (dark ? ' rd-locale-btn--dark' : '')} onClick={show} aria-haspopup="dialog" aria-label={Tb.aria}>
+      <button type="button" className={'rd-locale-btn' + (dark ? ' rd-locale-btn--dark' : '')} onClick={show} aria-haspopup="dialog" aria-label={T.aria}>
         <RdFlag c={country} size={17} />
-        <span>{Tb.country[country]} · {rdCurrencyFor(country)}</span>
+        <span>{cur.cname} · {cur.cur}</span>
       </button>
       {open && (
         <div className="rd-locale-overlay" onClick={(e) => { if (e.target === e.currentTarget) setOpen(false); }}>
           <div className="rd-locale-modal" role="dialog" aria-modal="true" aria-label={T.aria}>
             <button type="button" className="rd-locale-x" aria-label="Schließen" onClick={() => setOpen(false)}><RdIcon name="close" size={18} /></button>
-            <div style={{ display: 'flex', justifyContent: 'center' }}><RdFlag c={pc} size={40} /></div>
-            <h3 className="r-display" style={{ fontSize: 23, color: 'var(--rd-ink)', textAlign: 'center', marginTop: 16, textWrap: 'balance' }}>{T.shop[pc]}</h3>
+            <div style={{ display: 'flex', justifyContent: 'center' }}><RdFlag c={pickCc} size={40} /></div>
+            <h3 className="r-display" style={{ fontSize: 23, color: 'var(--rd-ink)', textAlign: 'center', marginTop: 16, textWrap: 'balance' }}>{T.shop[pickCc]}</h3>
             <p style={{ fontSize: 14.5, color: 'var(--rd-ink-soft)', textAlign: 'center', marginTop: 8, lineHeight: 1.55 }}>{T.hint}</p>
-            <label className="rd-locale-field">{T.land}
+            <label className="rd-locale-field">{T.land} · {T.sprache}
               <div className="rd-locale-selwrap">
-                <RdFlag c={pc} size={17} />
-                <select value={pc} onChange={(e) => setPc(e.target.value)}>
-                  {RD_COUNTRIES.map((c) => <option key={c} value={c}>{T.country[c]}{c !== 'OTHER' ? ' · ' + rdCurrencyFor(c) : ''}</option>)}
-                </select>
-              </div>
-            </label>
-            <label className="rd-locale-field">{T.sprache}
-              <div className="rd-locale-selwrap">
-                <select value={pl} onChange={(e) => setPl(e.target.value)} style={{ paddingLeft: 0 }}>
-                  <option value="de">Deutsch</option>
-                  <option value="en">English</option>
+                <RdFlag c={pickCc} size={17} />
+                <select value={pick} onChange={(e) => setPick(e.target.value)}>
+                  {RD_PREFIXES.map((pre) => { const L = labelFor(pre); return <option key={pre} value={pre}>{L.cname} · {L.lname} · {L.cur}</option>; })}
                 </select>
               </div>
             </label>
@@ -594,10 +612,11 @@ function RdCountrySuggest({ lang, setLang }) {
   const Tb = RD_LOCALE_T[lang] || RD_LOCALE_T.de;
   const dismiss = () => { try { localStorage.setItem(RD_SUGGEST_DISMISS_KEY, '1'); } catch (e) {} setSug(null); };
   const confirm = () => {
-    rdCountrySave(sug);
     try { localStorage.setItem(RD_SUGGEST_DISMISS_KEY, '1'); } catch (e) {}
-    if (window.PFShop && window.PFShop.enabled) { try { window.PFShop.setBuyerCountry(window.PFShop.marketFor(sug).country); } catch (e) {} }
-    setTimeout(function () { window.location.reload(); }, 40);
+    if (window.PFShop && window.PFShop.enabled) { try { window.PFShop.setBuyerCountry(sug); } catch (e) {} }
+    // sug is a country code (AT/DE/CH/US) → the same-named locale prefix.
+    const pre = (window.PFLocale && PFLocale.PREFIX[String(sug).toLowerCase()]) ? String(sug).toLowerCase() : rdActivePrefix();
+    setTimeout(function () { if (window.PFLocale) PFLocale.switchTo(pre); }, 40);
   };
   const other = () => { dismiss(); window.dispatchEvent(new Event('pf-open-locale')); };
   return (

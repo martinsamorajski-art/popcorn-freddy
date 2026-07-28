@@ -2,6 +2,12 @@
 <html lang="de" data-palette="wald" data-anim="on">
 <head>
   <meta charset="utf-8" />
+  <!-- Locale routing (URL prefixes). Runs first: on the bare domain it detects
+       the country via /api/geo and redirects to a locale prefix; it also pins
+       <base href="/"> so root-relative assets resolve under /at/, /de/, etc.
+       Must load in <head> before the stylesheet and before pf-shopify.js. -->
+  <script src="pf-locale.js?v=20260728d"></script>
+  <script>window.PFLocale && PFLocale.bootstrap();</script>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Popcorn &amp; Freddy — Eine Schatzsuche zum Bauen, Vorlesen &amp; Erinnern</title>
   <meta name="description" content="Ein Kinderbuch, das zum Leben erwacht. Holzspielzeug zum Bauen, eine Schatzkarte und magische Familienmomente — Kapitel für Kapitel." />

@@ -1,0 +1,101 @@
+{% comment %}
+  Popcorn & Freddy — Order confirmation email (headless-friendly)
+  WHERE TO PASTE: Shopify admin → Settings → Notifications → Order confirmation
+  → click "Edit code" → DELETE everything in the email-body box → paste ALL of this.
+  Then "Save". Use the "Preview" button to check it. (Subject line is set separately.)
+{% endcomment %}
+{% comment %} Pull the first child's name from the line-item personalisation {% endcomment %}
+{% assign child_name = '' %}
+{% for line in line_items %}
+  {% for p in line.properties %}
+    {% assign _pf = p.first | downcase %}
+    {% if _pf contains 'name' and child_name == '' and p.last != blank %}{% assign child_name = p.last %}{% endif %}
+  {% endfor %}
+{% endfor %}
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#fbf6ee;">
+<tr><td align="center">
+<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:100%;max-width:600px;background:#fbf6ee;">
+
+<tr><td style="background:#1c3d2e;padding:30px 40px;text-align:center;">
+<div style="font-family:Georgia,'Times New Roman',serif;font-size:25px;color:#f4eedd;">Popcorn <span style="color:#e9c46a;font-style:italic;">&amp;</span> Freddy</div>
+<div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#c9a24b;margin-top:8px;">Bestellung versiegelt</div>
+</td></tr>
+
+<tr><td style="padding:44px 40px 8px;text-align:center;">
+<div style="font-family:Georgia,serif;font-size:30px;line-height:1.2;color:#2b2620;">{% if child_name != '' %}Das Abenteuer von <span style="color:#b0623c;">{{ child_name }}</span> beginnt.{% else %}Das Abenteuer beginnt.{% endif %}</div>
+<p style="font-family:Georgia,serif;font-size:16px;line-height:1.6;color:#5a5147;margin:16px auto 0;max-width:440px;">Hallo {{ customer.first_name | default: 'und herzlich willkommen' }}, vielen Dank für deine Bestellung! Deine Schatzkiste wird jetzt von Hand gepackt und graviert. Hier sind alle Details.</p>
+</td></tr>
+
+<tr><td style="padding:24px 40px 0;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid #e2d8bf;border-bottom:1px solid #e2d8bf;">
+<tr>
+<td style="padding:16px 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#8a8069;letter-spacing:1px;text-transform:uppercase;">Bestellnummer<br><span style="font-size:16px;color:#6b4d2e;letter-spacing:1px;">{{ order_name }}</span></td>
+<td align="right" style="padding:16px 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#8a8069;letter-spacing:1px;text-transform:uppercase;">Datum<br><span style="font-size:16px;color:#2b2620;letter-spacing:0;">{{ created_at | date: "%d.%m.%Y" }}</span></td>
+</tr>
+</table>
+</td></tr>
+
+<tr><td style="padding:22px 40px 0;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+{% for line in line_items %}
+<tr>
+<td width="64" style="padding:10px 0;vertical-align:top;">{% if line.image %}<img src="{{ line | img_url: 'compact' }}" width="56" alt="" style="display:block;border-radius:6px;border:1px solid #d9cdb2;" />{% endif %}</td>
+<td style="padding:10px 0 10px 14px;vertical-align:top;font-family:Arial,Helvetica,sans-serif;">
+<div style="font-size:15px;font-weight:bold;color:#2b2620;">{{ line.title }}</div>
+<div style="font-size:13px;color:#8a8069;margin-top:3px;">Menge: {{ line.quantity }}</div>
+{% for p in line.properties %}{% assign _pfx = p.first | slice: 0 %}{% unless p.last == blank or _pfx == '_' %}<div style="font-size:13px;color:#b0623c;margin-top:4px;">{{ p.first }}: {{ p.last }}</div>{% endunless %}{% endfor %}
+</td>
+<td align="right" style="padding:10px 0;vertical-align:top;font-family:Arial,Helvetica,sans-serif;font-size:15px;font-weight:bold;color:#2b2620;">{{ line.final_line_price | money }}</td>
+</tr>
+{% endfor %}
+</table>
+</td></tr>
+
+<tr><td style="padding:14px 40px 0;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid #e2d8bf;">
+<tr><td style="padding:12px 0 4px;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#5a5147;">Zwischensumme</td><td align="right" style="padding:12px 0 4px;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#2b2620;">{{ subtotal_price | money }}</td></tr>
+{% if total_discounts > 0 %}<tr><td style="padding:4px 0;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#5a5147;">Rabatt</td><td align="right" style="padding:4px 0;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#b0623c;">−{{ total_discounts | money }}</td></tr>{% endif %}
+<tr><td style="padding:4px 0;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#5a5147;">Versand</td><td align="right" style="padding:4px 0;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#2b2620;">{{ shipping_price | money }}</td></tr>
+<tr><td style="padding:12px 0 0;border-top:1px solid #e2d8bf;font-family:Georgia,serif;font-size:17px;font-weight:bold;color:#2b2620;">Gesamt</td><td align="right" style="padding:12px 0 0;border-top:1px solid #e2d8bf;font-family:Georgia,serif;font-size:20px;font-weight:bold;color:#1c3d2e;">{{ total_price | money }}</td></tr>
+<tr><td colspan="2" align="right" style="font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#8a8069;padding-top:4px;">inkl. MwSt.</td></tr>
+</table>
+</td></tr>
+
+<tr><td style="padding:30px 40px 6px;text-align:center;">
+<a href="{{ order_status_url }}" style="display:inline-block;background:#1c3d2e;color:#f4eedd;font-family:Arial,Helvetica,sans-serif;font-size:15px;font-weight:bold;text-decoration:none;padding:15px 34px;border-radius:9px;">Bestellung verfolgen</a>
+</td></tr>
+
+{% if shipping_address %}
+<tr><td style="padding:26px 40px 0;">
+<div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#8a8069;">Lieferadresse</div>
+<div style="font-family:Georgia,serif;font-size:15px;line-height:1.55;color:#2b2620;margin-top:8px;">{{ shipping_address.name }}<br>{{ shipping_address.address1 }}{% if shipping_address.address2 != blank %}<br>{{ shipping_address.address2 }}{% endif %}<br>{{ shipping_address.zip }} {{ shipping_address.city }}<br>{{ shipping_address.country }}</div>
+</td></tr>
+{% endif %}
+
+<tr><td style="padding:30px 40px 0;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4eedd;border:1px solid #e2d8bf;border-radius:12px;">
+<tr>
+<td width="33%" style="padding:20px 14px;text-align:center;vertical-align:top;border-right:1px solid #e2d8bf;font-family:Arial,Helvetica,sans-serif;"><div style="font-size:12px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;color:#2b2620;">Heute</div><div style="font-size:13px;color:#8a8069;margin-top:6px;line-height:1.45;">Deine Box wird gepackt &amp; graviert.</div></td>
+<td width="34%" style="padding:20px 14px;text-align:center;vertical-align:top;border-right:1px solid #e2d8bf;font-family:Arial,Helvetica,sans-serif;"><div style="font-size:12px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;color:#2b2620;">2–3 Werktage</div><div style="font-size:13px;color:#8a8069;margin-top:6px;line-height:1.45;">Die Schatzkiste reist zu euch.</div></td>
+<td width="33%" style="padding:20px 14px;text-align:center;vertical-align:top;font-family:Arial,Helvetica,sans-serif;"><div style="font-size:12px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;color:#2b2620;">Dann</div><div style="font-size:13px;color:#8a8069;margin-top:6px;line-height:1.45;">Vorlesen, bauen — und losziehen.</div></td>
+</tr>
+</table>
+</td></tr>
+
+<tr><td style="padding:26px 40px 0;text-align:center;">
+<p style="font-family:Georgia,serif;font-style:italic;font-size:14px;color:#8a8069;margin:0;">Von Hand gefertigt — nur rund 250 Boxen im Monat.</p>
+</td></tr>
+
+<tr><td style="padding:28px 40px 34px;text-align:center;border-top:1px solid #e2d8bf;">
+<div style="font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#8a8069;line-height:1.7;">
+<a href="https://popcornfreddy.netlify.app/Impressum.html" style="color:#6b4d2e;text-decoration:none;">Impressum</a> &nbsp;·&nbsp;
+<a href="https://popcornfreddy.netlify.app/AGB.html" style="color:#6b4d2e;text-decoration:none;">AGB</a> &nbsp;·&nbsp;
+<a href="https://popcornfreddy.netlify.app/Widerruf.html" style="color:#6b4d2e;text-decoration:none;">Widerruf</a> &nbsp;·&nbsp;
+<a href="https://popcornfreddy.netlify.app/Datenschutz.html" style="color:#6b4d2e;text-decoration:none;">Datenschutz</a>
+</div>
+<div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#a89f88;margin-top:12px;">{{ shop.name }} · Personalisierte Boxen sind vom Widerruf ausgenommen.</div>
+</td></tr>
+
+</table>
+</td></tr>
+</table>

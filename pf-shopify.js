@@ -41,10 +41,10 @@ document.addEventListener('DOMContentLoaded', function () {
     DE: { country: 'DE', currency: 'EUR', active: true,  label: { de: 'Deutschland', en: 'Germany' } },
     AT: { country: 'AT', currency: 'EUR', active: true,  label: { de: 'Österreich', en: 'Austria' } },
     CH: { country: 'CH', currency: 'CHF', active: true,  label: { de: 'Schweiz', en: 'Switzerland' } },
-    US: { country: 'US', currency: 'USD', active: false, label: { de: 'USA', en: 'United States' } }, // prepared for later
+    US: { country: 'US', currency: 'USD', active: true,  label: { de: 'USA', en: 'United States' } },
   };
-  var DEFAULT_COUNTRY = 'DE';               // fallback market (EUR)
-  var LOCALE_KEY = 'pf-locale-v1';          // shared with rd-ui.jsx locale control
+  var DEFAULT_COUNTRY = 'AT';               // fallback market (EUR) — spec: default AT
+  var LOCALE_KEY = 'pf-locale-v1';          // legacy country store (superseded by PFLocale)
   var CART_KEY = 'pf-shopify-cart-v1';      // Shopify cart id + checkoutUrl
 
   function activeCountries() {
@@ -55,19 +55,16 @@ document.addEventListener('DOMContentLoaded', function () {
     if (MARKETS[c] && MARKETS[c].active) return MARKETS[c];
     return MARKETS[DEFAULT_COUNTRY];
   }
+  // Country + language come from the URL locale prefix (PFLocale), so prices,
+  // currency and product text are decided by the route — never hardcoded here.
   function savedCountry() {
-    try {
-      var c = localStorage.getItem(LOCALE_KEY);
-      if (c && MARKETS[c] && MARKETS[c].active) return c;
-    } catch (e) {}
+    try { if (window.PFLocale) return marketFor(PFLocale.current().country).country; } catch (e) {}
     return DEFAULT_COUNTRY;
   }
   function currentMarket() { return marketFor(savedCountry()); }
   function langCode() {
-    try {
-      var l = localStorage.getItem('pf-lang-v1');
-      return (l === 'en') ? 'EN' : 'DE';
-    } catch (e) { return 'DE'; }
+    try { if (window.PFLocale) return PFLocale.current().language; } catch (e) {}
+    return 'DE';
   }
 
   // ── Money formatting (uses currency returned BY Shopify) ──────
@@ -535,7 +532,33 @@ document.addEventListener('DOMContentLoaded', function () {
     try { window.dispatchEvent(new Event('pf-shop-cart-changed')); } catch (e) {}
   }
 
-  // ── Geo suggestion (subtle, never forced) ─────────────────────
+  // ── Localization (populates the country/language selector) ────
+  // The available countries + languages come straight from Shopify's
+  // localization query — never a hardcoded list. Cached for the session.
+  var _localizationPromise = null;
+  function getLocalization() {
+    if (_localizationPromise) return _localizationPromise;
+    var q = 'query Localization ' + ctx() + ' {\n' +
+      '  localization {\n' +
+      '    availableCountries { isoCode name currency { isoCode symbol } }\n' +
+      '    availableLanguages { isoCode name endonymName }\n' +
+      '  }\n}';
+    _localizationPromise = gql(q).then(function (d) {
+      var loc = d && !d._notConfigured && d.localization;
+      if (!loc) return null;
+      return {
+        countries: (loc.availableCountries || []).map(function (c) {
+          return { code: c.isoCode, name: c.name, currency: c.currency && c.currency.isoCode, symbol: c.currency && c.currency.symbol };
+        }),
+        languages: (loc.availableLanguages || []).map(function (l) {
+          return { code: l.isoCode, name: l.name, endonym: l.endonymName };
+        }),
+      };
+    }).catch(function () { _localizationPromise = null; return null; });
+    return _localizationPromise;
+  }
+
+  // ── Geo suggestion (subtle, never forced) ─────────────────
   function suggestCountry() {
     return fetch('/api/geo').then(function (r) { return r.json(); })
       .then(function (d) { return (d && d.country) || ''; })
@@ -556,6 +579,7 @@ document.addEventListener('DOMContentLoaded', function () {
     getProduct: getProduct,
     getProducts: getProducts,
     getChapters: getChapters,
+    getLocalization: getLocalization,
     peek: peek,
     ensure: ensure,
     // cart

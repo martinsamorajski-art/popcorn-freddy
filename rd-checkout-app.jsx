@@ -324,8 +324,8 @@ function RcApp() {
   useEffect(() => {
     if (form.country) return;
     try {
-      const code = rdCountryLoad();
-      const map = { AT: 1, DE: 0, CH: 2 };
+      const code = rdCurrentCountry();
+      const map = { DE: 0, AT: 1, CH: 2 };
       const idx = map[code];
       const rcx = RC_COPY[lang] || RC_COPY.de;
       if (idx != null && rcx.ship.countries[idx]) setForm((f) => ({ ...f, country: rcx.ship.countries[idx] }));
