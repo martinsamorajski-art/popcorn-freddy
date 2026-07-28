@@ -1,27 +1,17 @@
-# Locale prefixes at/de/ch/us serve the SAME files (no per-locale copies).
-# Order matters — first match wins, so /produkt rules come before the splats.
+# NO `200` rules here — deliberately.
+# Cloudflare Pages does not honour 200 rewrites in _redirects (Netlify feature);
+# it performs a REAL redirect, which changes the address bar and strips the
+# locale prefix (/at/produkt/x → /Produkt). All locale routing is therefore done
+# as a true rewrite in Pages Functions, which keep the URL intact:
+#   functions/at|de|ch|us/[[path]].js  →  /{locale}/… (home, produkt, pages)
+#   functions/produkt/[[path]].js      →  /produkt/<handle> (no-prefix fallback)
+# Only genuine 3xx redirects belong in this file.
 
-# Product template: /{locale}/produkt/<handle> → Produkt.html (handle read from URL)
-/at/produkt/*  /Produkt.html  200
-/de/produkt/*  /Produkt.html  200
-/ch/produkt/*  /Produkt.html  200
-/us/produkt/*  /Produkt.html  200
-# No-prefix product route — kept as a fallback.
-/produkt/*     /Produkt.html  200
-
-# Bare prefix → home.
-/at    /index.html  200
-/de    /index.html  200
-/ch    /index.html  200
-/us    /index.html  200
-
-# Every other page under a prefix serves the REAL file behind it.
-# :splat is the path after the prefix, so /at/Kontakt.html → /Kontakt.html
-# and /at/ (empty splat) → / → index.html.
-/at/*  /:splat  200
-/de/*  /:splat  200
-/ch/*  /:splat  200
-/us/*  /:splat  200
+# Bare prefix → prefixed home (301 is a real redirect, so the prefix survives).
+/at  /at/  301
+/de  /de/  301
+/ch  /ch/  301
+/us  /us/  301
 
 # Retired legacy per-chapter pages → new product template (keeps old links alive)
 /Der%20Fluesterwald%20v3.html            /produkt/kapitel-1-fluesterwald  301
