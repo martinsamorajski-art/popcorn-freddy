@@ -32,6 +32,9 @@ const PF_UI = {
     readmore: 'Die ganze Geschichte lesen', rating_count: function (n) { return 'aus ' + n + ' Bewertungen'; },
     name_hint: '— erscheint gedruckt in der Geschichte', name_ph: 'z. B. Mia', emotion_k: 'Gefühl',
     reviews_eyebrow: 'Stimmen von Familien', reviews_title: 'Was Eltern nach der ersten Box sagen.', verified: 'Verifizierter Kauf',
+    pages_eyebrow: 'Blick ins Buch', pages_title: 'Die ersten Seiten dieses Kapitels.',
+    pages_note: 'Ein kleiner Vorgeschmack — gedruckt auf feinem Papier, in A5.',
+    others_eyebrow: 'Die Reise geht weiter', others_title: 'Die anderen Kapitel.',
     inside_eyebrow: 'In der Box', inside_title: 'Was in eurer Schatzkiste steckt.',
     story_eyebrow: 'Worum es geht', details_eyebrow: 'Auf einen Blick', details_title: 'Die Fakten zu diesem Kapitel.',
     close_caps: 'Bereit für den ersten Schritt?', close_title: 'Das Abenteuer wartet schon.',
@@ -41,6 +44,9 @@ const PF_UI = {
     readmore: 'Read the full story', rating_count: function (n) { return 'from ' + n + ' reviews'; },
     name_hint: '— appears printed in the story', name_ph: 'e.g. Mia', emotion_k: 'Emotion',
     reviews_eyebrow: 'Voices from families', reviews_title: 'What parents say after the first box.', verified: 'Verified purchase',
+    pages_eyebrow: 'A look inside', pages_title: 'The first pages of this chapter.',
+    pages_note: 'A little taste — printed on fine paper, in A5.',
+    others_eyebrow: 'The journey continues', others_title: 'The other chapters.',
     inside_eyebrow: 'Inside the box', inside_title: 'What your treasure chest holds.',
     story_eyebrow: 'The story', details_eyebrow: 'At a glance', details_title: 'The facts about this chapter.',
     close_caps: 'Ready for the first step?', close_title: 'The adventure is waiting.',
@@ -242,21 +248,41 @@ function PSSticky({ p, ui, inCart, onAdd }) {
 }
 
 // ─── REVIEWS ─────────────────────────────────────────────────
+// ─── REVIEWS ────────────────────────────────────────
+// Quotes come from Judge.me via /api/reviews; the manual `custom.reviews`
+// metafield is the fallback for a store without the app. Stars + count come
+// from the synced `reviews.*` metafields. Design is unchanged either way.
+function usePSReviews(p) {
+  const [live, setLive] = useState(null);
+  const id = p && p.id;
+  useEffect(() => {
+    if (!id || !(window.PFShop && PFShop.getReviews)) return;
+    let alive = true;
+    PFShop.getReviews(p).then((list) => { if (alive) setLive(list || []); }).catch(() => {});
+    return () => { alive = false; };
+  }, [id]);
+  if (live && live.length) return live;
+  return (p && p.reviews) || [];
+}
+
 function PSReviews({ p, ui, lang }) {
-  if (!p.reviews || !p.reviews.length) return null;
-  const score = p.rating ? String(p.rating).replace('.', lang === 'de' ? ',' : '.') + '/5' : '4,8/5';
+  const reviews = usePSReviews(p);
+  if (!reviews.length) return null;
+  const score = p.rating ? String(p.rating).replace('.', lang === 'de' ? ',' : '.') + '/5' : null;
   return (
     <section id="reviews" data-rd data-screen-label="Bewertungen" style={{ padding: '118px 0 118px', background: 'var(--rd-cream)', borderTop: '1px solid color-mix(in srgb, var(--rd-ink) 8%, transparent)' }}>
       <div className="rwrap" style={{ position: 'relative', zIndex: 2 }}>
         <RdHeading eyebrow={ui.reviews_eyebrow} title={ui.reviews_title} max={760} />
-        <div className="r-rev" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, marginTop: 20, flexWrap: 'wrap' }}>
-          <Ch1Stars size={17} />
-          <span style={{ fontFamily: 'var(--f-sans)', fontWeight: 800, fontSize: 16, color: 'var(--rd-ink)' }}>{score}</span>
-          {p.rating_count ? <span style={{ fontSize: 14.5, color: 'var(--rd-ink-mute)' }}>· {ui.rating_count(p.rating_count)}</span> : null}
-        </div>
+        {score && (
+          <div className="r-rev" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, marginTop: 20, flexWrap: 'wrap' }}>
+            <Ch1Stars size={17} />
+            <span style={{ fontFamily: 'var(--f-sans)', fontWeight: 800, fontSize: 16, color: 'var(--rd-ink)' }}>{score}</span>
+            {p.rating_count ? <span style={{ fontSize: 14.5, color: 'var(--rd-ink-mute)' }}>· {ui.rating_count(p.rating_count)}</span> : null}
+          </div>
+        )}
         <div className="r-rev" style={{ marginTop: 40 }}>
           <RdPeekCarousel ariaLabel={ui.reviews_eyebrow}>
-            {p.reviews.map((r, i) => (
+            {reviews.map((r, i) => (
               <div key={i} className="shop-review">
                 <Ch1Stars size={13} />
                 <p className="r-serif" style={{ fontSize: 16.5, lineHeight: 1.6, color: 'var(--rd-ink)', marginTop: 14, textWrap: 'pretty', flex: '1 1 auto' }}>&ldquo;{r.q}&rdquo;</p>
@@ -264,8 +290,33 @@ function PSReviews({ p, ui, lang }) {
                   <span style={{ fontFamily: 'var(--f-sans)', fontWeight: 800, fontSize: 13.5, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--rd-walnut)' }}>{r.n}</span>
                   <span style={{ fontSize: 13.5, color: 'var(--rd-ink-mute)' }}>{r.m}</span>
                 </div>
-                <div className="shop-verified"><RdIcon name="check" size={12} /> {ui.verified}</div>
+                {r.verified !== false && <div className="shop-verified"><RdIcon name="check" size={12} /> {ui.verified}</div>}
               </div>
+            ))}
+          </RdPeekCarousel>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ─── A LOOK INSIDE THE CHAPTER ────────────────────────
+// Sample pages of THIS chapter, uploaded per product as a file-list metafield
+// (custom.page_previews). Empty → the section hides itself.
+function PSPages({ p, ui }) {
+  const pages = p.pagePreviews || [];
+  if (!pages.length) return null;
+  return (
+    <section id="pages" data-rd data-screen-label="Blick ins Buch" style={{ padding: '124px 0 128px', background: 'var(--rd-paper)', borderTop: '1px solid color-mix(in srgb, var(--rd-ink) 10%, transparent)' }}>
+      <div className="rwrap" style={{ position: 'relative', zIndex: 2 }}>
+        <RdHeading eyebrow={ui.pages_eyebrow} title={ui.pages_title} max={760} />
+        <p className="r-it r-rev" style={{ textAlign: 'center', fontSize: 16.5, color: 'var(--rd-ink-soft)', marginTop: 14 }}>{ui.pages_note}</p>
+        <div className="r-rev" style={{ marginTop: 46 }}>
+          <RdPeekCarousel ariaLabel={ui.pages_eyebrow}>
+            {pages.map((g, i) => (
+              <figure key={g.src + i} className="shop-page">
+                <img src={g.src} alt={g.alt} loading="lazy" decoding="async" />
+              </figure>
             ))}
           </RdPeekCarousel>
         </div>
@@ -399,17 +450,44 @@ function PSBody({ p, lang }) {
     }
   };
 
+  // Add ANOTHER chapter. The cards in the "other chapters" carousel call their
+  // handler with { handle, variantId, max } — a product, not a child name — so
+  // they cannot reuse onAdd above. Same cart shape, no personalisation: that
+  // name is collected on that chapter's own page.
+  const addChapter = (item) => {
+    if (!item || !item.handle) return;
+    const cart = rdCartLoad();
+    const i = cart.findIndex((it) => it.n === item.handle);
+    if (i >= 0) cart[i] = { ...cart[i], qty: (cart[i].qty || 1) + 1 };
+    else cart.push({ n: item.handle, handle: item.handle, variantId: item.variantId, qty: 1, ...(item.max != null ? { max: item.max } : {}), attrs: {} });
+    rdCartSave(cart);
+    window.dispatchEvent(new Event('rd-cart-changed'));
+    if (window.PFShop && PFShop.enabled && item.variantId) {
+      PFShop.addLine(item.variantId, 1, {}).catch(function (e) { console.warn('[Shop] add failed', e); });
+    }
+  };
+
   return (
     <React.Fragment>
       <PSShopHero p={p} ui={ui} x={x} lang={lang} intensity={intensity} inCart={inCart} onAdd={onAdd} />
       {typeof Ch1TrustBadges === 'function' && <Ch1TrustBadges x={x} />}
       <PSReviews p={p} ui={ui} lang={lang} />
       <PSInside p={p} ui={ui} />
+      <PSPages p={p} ui={ui} />
       {typeof Ch1Benefits === 'function' && <Ch1Benefits x={x} />}
       <PSStory p={p} ui={ui} />
+      {/* Shared with the home page — the same steps for every chapter. */}
+      {typeof RdHow === 'function' && t.how && <RdHow t={t} />}
       <PSDetails p={p} ui={ui} />
       {typeof GpsrCompliance === 'function' && <GpsrCompliance lang={lang} />}
       {typeof Ch1Faq === 'function' && <Ch1Faq x={x} />}
+      {/* The other chapters, straight from the Shopify collection. Its cards
+          call onAdd with a product object, not a child name — so they get
+          their own handler rather than the buy box's. */}
+      {typeof RdChapters === 'function' && t.chapters && (
+        <RdChapters t={t} lang={lang} exclude={p.handle} onAdd={addChapter}
+          heading={{ eyebrow: ui.others_eyebrow, title: ui.others_title, sub: t.chapters.sub }} />
+      )}
       <PSClose p={p} ui={ui} lang={lang} intensity={intensity} inCart={inCart} onAdd={onAdd} />
       <PSSticky p={p} ui={ui} inCart={inCart} onAdd={onAdd} />
     </React.Fragment>
@@ -469,7 +547,28 @@ function ProductApp() {
     const done = (p) => {
       if (!alive) return;
       setProduct(p || null); setLoaded(true);
-      if (p) document.title = p.title + ' — Popcorn & Freddy';
+      // SEO comes from Shopify's own SEO fields per product, with title /
+      // description as the fallback — never one static title for every chapter.
+      if (p) {
+        document.title = p.seoTitle || (p.title + ' — Popcorn & Freddy');
+        const desc = p.seoDescription || pfStripTags(p.descriptionHtml).slice(0, 300);
+        const tag = (kind, key, val) => {
+          if (!val) return;
+          var sel = 'meta[' + kind + '="' + key + '"]';
+          var el = document.head.querySelector(sel);
+          if (!el) { el = document.createElement('meta'); el.setAttribute(kind, key); document.head.appendChild(el); }
+          el.setAttribute('content', val);
+        };
+        tag('name', 'description', desc);
+        tag('property', 'og:title', p.seoTitle || p.title);
+        tag('property', 'og:description', desc);
+        tag('property', 'og:type', 'product');
+        tag('property', 'og:url', location.href);
+        if (p.images && p.images[0]) tag('property', 'og:image', p.images[0].src);
+        var link = document.head.querySelector('link[rel="canonical"]');
+        if (!link) { link = document.createElement('link'); link.rel = 'canonical'; document.head.appendChild(link); }
+        link.href = location.origin + location.pathname;
+      }
     };
     if (!window.PFShop) { done(null); return; }
     const req = handle
@@ -519,6 +618,8 @@ function ProductApp() {
 }
 
 const PS_SHOP_CSS = `
+  .shop-page { margin: 0; background: var(--rd-cream); border: 1px solid color-mix(in srgb, var(--rd-ink) 12%, transparent); border-radius: 14px; padding: 12px; box-shadow: 0 30px 70px -50px color-mix(in srgb, var(--rd-ink) 55%, transparent); }
+  .shop-page img { display: block; width: 100%; aspect-ratio: 1 / 1.414; object-fit: cover; border-radius: 8px; }
   .shop-hero-grid { display: grid; grid-template-columns: 1.02fr 0.98fr; gap: 60px; align-items: start; padding-top: 132px; padding-bottom: 96px; }
   .shop-gal { position: sticky; top: 108px; }
   .shop-gal-main { border-radius: 16px; overflow: hidden; background: var(--rd-cream); border: 1px solid color-mix(in srgb, var(--rd-ink) 12%, transparent); box-shadow: 0 40px 90px -50px color-mix(in srgb, var(--rd-ink) 55%, transparent); aspect-ratio: 4 / 4.3; }

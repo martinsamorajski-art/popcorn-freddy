@@ -1,0 +1,26 @@
+{%- comment -%}
+  Popcorn & Freddy — send the Shopify-hosted storefront back to the real site.
+
+  WHY: the site is headless (Cloudflare Pages at popcornfreddy.com); Shopify only
+  serves cart/checkout. Checkout's own links — the logo, "continue shopping",
+  the login link — point at Shopify's PRIMARY domain, i.e. its templated theme.
+  This bounces every theme-rendered page to popcornfreddy.com, keeping the
+  customer's market so an AT buyer lands on /at and a US buyer on /us.
+
+  Checkout is NOT affected: Shopify does not load theme.liquid inside checkout.
+
+  WHERE: Shopify admin → Online Store → Themes → ⋯ → Edit code → layout/theme.liquid
+  Paste this block IMMEDIATELY after the opening <head> tag, before anything else.
+{%- endcomment -%}
+<script>
+  (function () {
+    var SITE = 'https://popcornfreddy.com';
+    // Shopify's market country → our locale prefix. Anything else → bare domain,
+    // where /api/geo picks the prefix.
+    var MAP = { AT: '/at/', DE: '/de/', CH: '/ch/', US: '/us/' };
+    var country = {{ localization.country.iso_code | json }};
+    var target = SITE + (MAP[country] || '/');
+    // replace(), not href: no Shopify page in the customer's back history.
+    window.location.replace(target);
+  })();
+</script>

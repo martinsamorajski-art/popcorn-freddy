@@ -1,17 +1,3 @@
-/* PF_BUILD: stamped so you can tell at a glance which files a server is
-   actually serving. Open the browser console on the live site: if it does not
-   say 20260728a, the new files are NOT deployed. */
-window.PF_BUILD = '20260728d';
-console.log('%c[Popcorn & Freddy] build ' + window.PF_BUILD, 'color:#b0623c;font-weight:bold');
-document.addEventListener('DOMContentLoaded', function () {
-  var b = document.createElement('div');
-  b.className = 'pf-build-badge';
-  b.textContent = 'build ' + window.PF_BUILD;
-  b.title = 'Temporary deploy indicator';
-  b.style.cssText = 'position:fixed;left:10px;bottom:10px;z-index:99999;background:#2C2519;color:#FBF6E9;font:600 11px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.08em;padding:7px 10px;border-radius:5px;opacity:.85;pointer-events:none';
-  document.body.appendChild(b);
-});
-
 /* ────────────────────────────────────────────────────────────────
    Popcorn & Freddy — Shopify headless data layer  (window.PFShop)
    ────────────────────────────────────────────────────────────────
@@ -138,8 +124,19 @@ document.addEventListener('DOMContentLoaded', function () {
       return k + ': metafield(namespace: "custom", key: "' + k + '") { value }';
     }).join('\n');
     return 'id\n handle\n title\n descriptionHtml\n availableForSale\n' +
+      // Shopify's native SEO fields drive <title> and the meta description, so
+      // each chapter gets its own — edited in Shopify, never in the HTML.
+      'seo { title description }\n' +
       'featuredImage { url altText }\n' +
       'images(first: 12) { nodes { url altText } }\n' +
+      // Sample pages of THIS chapter: a file-list metafield of images, so the
+      // preview strip is per chapter and uploaded in Shopify (Content → Files).
+      'page_previews: metafield(namespace: "custom", key: "page_previews") {\n' +
+      '  references(first: 12) { nodes { ... on MediaImage { image { url altText } } } }\n' +
+      '}\n' +
+      // Judge.me syncs its aggregate into the standard `reviews` namespace.
+      'jm_rating: metafield(namespace: "reviews", key: "rating") { value }\n' +
+      'jm_rating_count: metafield(namespace: "reviews", key: "rating_count") { value }\n' +
       'priceRange { minVariantPrice { amount currencyCode } }\n' +
       'variants(first: 25) {\n' +
       '  nodes { id title availableForSale quantityAvailable\n' +
@@ -198,6 +195,15 @@ document.addEventListener('DOMContentLoaded', function () {
     try { return JSON.parse(v); } catch (e) { return v; }
   }
 
+  // Shopify's `rating` metafield type stores JSON: {"value":"4.8","scale_max":"5"}.
+  // Judge.me writes the shop's aggregate there. Plain numbers still work.
+  function parseRating(v) {
+    if (v == null) return null;
+    var p = parseMaybeJSON(v);
+    var n = Number(p && typeof p === 'object' ? p.value : p);
+    return isNaN(n) ? null : n;
+  }
+
   // Turn a raw Shopify product into the shape the design components expect.
   function normalizeProduct(p, lang) {
     if (!p) return null;
@@ -216,6 +222,8 @@ document.addEventListener('DOMContentLoaded', function () {
       handle: p.handle,
       title: p.title,
       descriptionHtml: p.descriptionHtml || '',
+      seoTitle: (p.seo && p.seo.title) || null,
+      seoDescription: (p.seo && p.seo.description) || null,
       available: p.availableForSale,
       variantId: v0 && v0.id,
       variants: variants,
@@ -240,8 +248,20 @@ document.addEventListener('DOMContentLoaded', function () {
       story_body: mf.story_body,
       story_hand: mf.story_hand,
       reviews: parseMaybeJSON(mf.reviews),
-      rating: mf.rating != null ? Number(mf.rating) : null,
-      rating_count: mf.rating_count != null ? Number(mf.rating_count) : null,
+      // Rating: Judge.me's synced aggregate wins; the manual metafield is the
+      // fallback for a store without the app.
+      rating: parseRating(p.jm_rating && p.jm_rating.value) != null
+        ? parseRating(p.jm_rating && p.jm_rating.value)
+        : parseRating(mf.rating),
+      rating_count: (p.jm_rating_count && p.jm_rating_count.value != null)
+        ? Number(p.jm_rating_count.value)
+        : (mf.rating_count != null ? Number(mf.rating_count) : null),
+      // Sample pages of this chapter (file-list metafield of images).
+      pagePreviews: (function () {
+        var nodes = (p.page_previews && p.page_previews.references && p.page_previews.references.nodes) || [];
+        return nodes.filter(function (n) { return n && n.image && n.image.url; })
+          .map(function (n) { return { src: n.image.url, alt: n.image.altText || p.title }; });
+      })(),
       scarcity: mf.scarcity,
       guarantee: mf.guarantee,
       gift_note: mf.gift_note,
@@ -714,6 +734,26 @@ document.addEventListener('DOMContentLoaded', function () {
     try { window.dispatchEvent(new Event('pf-shop-cart-changed')); } catch (e) {}
   }
 
+  // ── Reviews (Judge.me) ────────────────────────────────────────
+  // Review TEXT is not in the Storefront API, so it comes from Judge.me through
+  // our own proxy (functions/api/reviews.js — the API token stays server-side).
+  // The stars/count come from the synced `reviews.*` metafields read above.
+  // Never rejects: no app, no token, no network → empty list, and the product
+  // page falls back to the manual `custom.reviews` metafield.
+  var _reviewsCache = {};
+  function getReviews(product) {
+    var gid = product && (product.id || product);
+    var numeric = String(gid || '').replace(/\D/g, '');
+    if (!numeric) return Promise.resolve([]);
+    if (_reviewsCache[numeric]) return _reviewsCache[numeric];
+    var p = fetch('/api/reviews?product_id=' + numeric)
+      .then(function (r) { return r.json(); })
+      .then(function (d) { return (d && d.reviews) || []; })
+      .catch(function () { return []; });
+    _reviewsCache[numeric] = p;
+    return p;
+  }
+
   // ── Localization (populates the country/language selector) ────
   // The available countries + languages come straight from Shopify's
   // localization query — never a hardcoded list. Cached for the session.
@@ -762,6 +802,7 @@ document.addEventListener('DOMContentLoaded', function () {
     getProducts: getProducts,
     getChapters: getChapters,
     getLocalization: getLocalization,
+    getReviews: getReviews,
     peek: peek,
     ensure: ensure,
     // cart

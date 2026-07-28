@@ -90,6 +90,13 @@ function RdTopBar({ t, lang, cartCount, onOpenCart, onStartAdventure }) {
 // ─── HERO ────────────────────────────────────────────────────
 function RdHero({ t, lang, direction = 'a', intensity = 5, onAdd }) {
   const h = t.heroImg;
+  // The hero fact line leads with the price. That price is Shopify's — so it
+  // follows the market currency (EUR / CHF / USD) instead of a hardcoded €.
+  // The copy string supplies the trailing facts and the loading fallback.
+  const chapter1 = usePFProduct('kapitel-1-fluesterwald', lang);
+  const factsLine = (chapter1 && chapter1.priceFormatted)
+    ? h.facts.replace(/^[^·]+·/, chapter1.priceFormatted + ' ·')
+    : h.facts;
   const title = (center) => (
     <h1 className="r-display r-rev r-rev-1" style={{ fontSize: 'clamp(38px, 4.9vw, 74px)', color: 'var(--rd-ink)', marginTop: 0, textWrap: 'balance' }}>
       {t.hero.title_a2}
@@ -112,7 +119,7 @@ function RdHero({ t, lang, direction = 'a', intensity = 5, onAdd }) {
     </div>
   );
   const facts = (center) => (
-    <div className="rh-facts" style={{ justifyContent: center ? 'center' : 'flex-start' }}>{h.facts}</div>
+    <div className="rh-facts" style={{ justifyContent: center ? 'center' : 'flex-start' }}>{factsLine}</div>
   );
   const trust = (center) => (
     <RdTrustRow t={t} center={center} style={{ marginTop: 18 }} />

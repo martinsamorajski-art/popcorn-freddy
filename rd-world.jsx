@@ -195,16 +195,20 @@ function RdWhy({ t }) {
 // Every chapter comes from Shopify: the "kapitel" collection (manual order),
 // or the "kapitel" tag as fallback. Adding a product there is all it takes —
 // no code change, no hardcoded image, price, title or stock anywhere.
-function RdChapters({ t, lang, onAdd, all }) {
-  const { list, loading } = usePFChapters(lang);
+function RdChapters({ t, lang, onAdd, all, exclude, heading }) {
+  const { list: raw, loading } = usePFChapters(lang);
+  // `exclude` lets the product page show "the other chapters" from the same
+  // Shopify collection without listing the chapter you are already reading.
+  const list = exclude ? raw.filter((p) => p.handle !== exclude) : raw;
   const buyable = (p) => p.available !== false && p.quantityAvailable !== 0;
+  const head = heading || { eyebrow: t.chapters.eyebrow, title: t.chapters.title, sub: t.chapters.sub };
   return (
     <section id="chapters" data-rd data-screen-label="Kapitel" style={{ padding: '96px 0 100px', background: 'var(--rd-paper-soft)' }}>
       <div aria-hidden="true" style={{ position: 'absolute', top: 44, right: 40, color: 'var(--rd-walnut)', zIndex: 1 }}><RdTrail width={200} /></div>
       <div className="rwrap" style={{ position: 'relative', zIndex: 2 }}>
         {all && <div className="r-rev" style={{ textAlign: 'center', marginBottom: 8 }}><a className="rd-crumb" style={{ margin: '0 auto 20px' }} href={wP('index.html')}>← {t.chapters.back}</a></div>}
         <div style={{ marginBottom: 56 }}>
-          <RdHeading eyebrow={t.chapters.eyebrow} title={t.chapters.title} lede={t.chapters.sub} max={800} ledeMax={620} />
+          <RdHeading eyebrow={head.eyebrow} title={head.title} lede={head.sub} max={800} ledeMax={620} />
         </div>
 
         {loading ? (
