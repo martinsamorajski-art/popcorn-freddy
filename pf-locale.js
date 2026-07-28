@@ -14,6 +14,9 @@
    reads the remembered choice below. See _redirects for the rules.
 
    Prefix → market:  at→AT/DE · de→DE/DE · ch→CH/DE · us→US/EN
+   English inside the EUR/CHF markets:  at-en→AT/EN · de-en→DE/EN · ch-en→CH/EN
+   (same market, same currency, English text — for customers living in a
+   German-speaking country who do not read German.)
    No/unknown prefix on an unprefixed page → remembered choice → AT.
    ──────────────────────────────────────────────────────────────── */
 (function () {
@@ -21,14 +24,19 @@
 
   var PREFIX = {
     at: { country: 'AT', language: 'DE' },
+    'at-en': { country: 'AT', language: 'EN' },
     de: { country: 'DE', language: 'DE' },
+    'de-en': { country: 'DE', language: 'EN' },
     ch: { country: 'CH', language: 'DE' },
+    'ch-en': { country: 'CH', language: 'EN' },
     us: { country: 'US', language: 'EN' },
   };
   var DEFAULT = 'at';                       // fallback prefix (spec: default AT)
   var CHOICE_KEY = 'pf-locale-prefix-v1';   // remembered explicit user choice
-  // First path segment when it is a known locale prefix.
-  var RX = /^\/(at|de|ch|us)(?=\/|$)/i;
+  var EXPLICIT_KEY = 'pf-locale-explicit-v1'; // the visitor picked a locale themselves
+  // First path segment when it is a known locale prefix. The two-part English
+  // prefixes must come FIRST — otherwise /at-en would match the /at branch.
+  var RX = /^\/(at-en|de-en|ch-en|at|de|ch|us)(?=\/|$)/i;
   // country ISO (from /api/geo) → our prefix
   var GEO = { AT: 'at', DE: 'de', CH: 'ch', US: 'us' };
 
@@ -60,6 +68,61 @@
     return slug ? slug + tail : path;
   }
 
+  // The reverse table: English address → the real (German) file name, in its
+  // proper casing. Needed when switching FROM an English locale so /at-en/contact
+  // becomes /at/Kontakt.html rather than a dead /at/contact.
+  var DE_FILE = {
+    'contact': 'Kontakt.html',
+    'shipping-returns': 'Versand & Ruecksendung.html',
+    'safety-materials': 'Sicherheit & Material.html',
+    'product-safety': 'Produktsicherheit.html',
+    'gift-cards': 'Geschenkkarten.html',
+    'chapters': 'Alle Kapitel.html',
+    'imprint': 'Impressum.html',
+    'privacy': 'Datenschutz.html',
+    'terms': 'AGB.html',
+    'cookies': 'Cookies.html',
+    'withdrawal': 'Widerruf.html',
+    'checkout': 'Checkout.html',
+  };
+  function deSlug(path) {
+    var cut = path.search(/[?#]/);
+    var file = cut === -1 ? path : path.slice(0, cut);
+    var tail = cut === -1 ? '' : path.slice(cut);
+    var f = DE_FILE[decodeURIComponent(file).toLowerCase().replace(/^\//, '')];
+    return f ? f + tail : path;
+  }
+
+  // The visitor's own language, from their browser/phone settings.
+  // German-speaking locales → DE, everything else → EN.
+  function deviceLanguage() {
+    try {
+      var n = (navigator.languages && navigator.languages[0]) || navigator.language || '';
+      return /^de\b/i.test(n) ? 'DE' : 'EN';
+    } catch (e) { return 'DE'; }
+  }
+
+  // {country, language} → prefix. Falls back to any prefix for that country, so
+  // a language a market does not publish can never produce a dead route.
+  function prefixFor(country, language) {
+    var cc = String(country || '').toUpperCase();
+    var lc = String(language || '').toUpperCase();
+    var keys = Object.keys(PREFIX), i;
+    for (i = 0; i < keys.length; i++) if (PREFIX[keys[i]].country === cc && PREFIX[keys[i]].language === lc) return keys[i];
+    for (i = 0; i < keys.length; i++) if (PREFIX[keys[i]].country === cc) return keys[i];
+    return null;
+  }
+
+  // The same market in the OTHER language (at ↔ at-en). null when the market
+  // has only one language — the language nudge then never appears.
+  function peerLanguage(prefix) {
+    var p = prefix || activePrefix();
+    var m = PREFIX[p];
+    if (!m) return null;
+    var peer = prefixFor(m.country, m.language === 'DE' ? 'EN' : 'DE');
+    return peer && peer !== p ? peer : null;
+  }
+
   // Prefix read straight from the URL — same source Produkt.html uses for the
   // product handle. null when the current path carries no known prefix.
   function prefixFromPath() {
@@ -71,6 +134,9 @@
     try { var c = localStorage.getItem(CHOICE_KEY); return PREFIX[c] ? c : null; } catch (e) { return null; }
   }
   function saveChoice(prefix) { try { if (PREFIX[prefix]) localStorage.setItem(CHOICE_KEY, prefix); } catch (e) {} }
+  // An explicit pick (selector, or confirming a nudge) silences the nudges.
+  function markExplicit() { try { localStorage.setItem(EXPLICIT_KEY, '1'); } catch (e) {} }
+  function wasExplicit() { try { return localStorage.getItem(EXPLICIT_KEY) === '1'; } catch (e) { return false; } }
 
   // The active prefix: URL wins; on an unprefixed page fall back to the
   // remembered choice; otherwise the AT default.
@@ -105,12 +171,38 @@
 
   // Switch locale: remember the choice, then reload the SAME page under the new
   // prefix (strip any current prefix, keep the rest of the path, re-add prefix).
+  // The page slug is translated on the way through, so an English address
+  // becomes its German file when switching to a German locale and vice versa.
   function switchTo(prefix) {
     if (!PREFIX[prefix]) return;
-    saveChoice(prefix);
+    saveChoice(prefix); markExplicit();
     var stripped = (location.pathname || '/').replace(RX, '');
     if (stripped === '' || stripped === '/') { location.href = home(prefix) + location.search + location.hash; return; }
-    location.href = '/' + prefix + stripped + location.search + location.hash;
+    var rest = enSlug(deSlug(stripped.replace(/^\//, '')), prefix);
+    location.href = '/' + prefix + '/' + rest + location.search + location.hash;
+  }
+
+  // hreflang for the routes that exist in every locale (home + product), so
+  // Google reads the German and English versions as translations, not as
+  // duplicate content. Page files keep their own canonical only.
+  function hreflang() {
+    try {
+      var path = (location.pathname || '/').replace(RX, '') || '/';
+      if (path !== '/' && !/^\/produkt\//i.test(path)) return;
+      var head = document.head || document.documentElement;
+      var old = head.querySelectorAll('link[rel="alternate"][data-pf-hl]');
+      for (var i = 0; i < old.length; i++) old[i].parentNode.removeChild(old[i]);
+      var add = function (hl, pre) {
+        var l = document.createElement('link');
+        l.rel = 'alternate'; l.setAttribute('hreflang', hl); l.setAttribute('data-pf-hl', '1');
+        l.href = location.origin + '/' + pre + (path === '/' ? '/' : path);
+        head.appendChild(l);
+      };
+      Object.keys(PREFIX).forEach(function (p) {
+        add(PREFIX[p].language.toLowerCase() + '-' + PREFIX[p].country, p);
+      });
+      add('x-default', DEFAULT);
+    } catch (e) {}
   }
 
   // Base-href fix: index/Produkt are served under a locale prefix, so their
@@ -141,8 +233,11 @@
     } catch (e) {}
     var saved = savedChoice();
     if (saved) { location.replace(home(saved) + location.hash); return; }
+    // First visit on the bare domain: country from geo, language from the device.
+    // An English-speaking visitor in Austria lands on /at-en (EUR, English).
     fetch('/api/geo').then(function (r) { return r.json(); }).then(function (d) {
-      var pre = (d && GEO[(d.country || '').toUpperCase()]) || DEFAULT;
+      var cc = (d && d.country || '').toUpperCase();
+      var pre = (GEO[cc] && prefixFor(cc, deviceLanguage())) || GEO[cc] || prefixFor(PREFIX[DEFAULT].country, deviceLanguage()) || DEFAULT;
       location.replace(home(pre) + location.hash);
     }).catch(function () { location.replace(home(DEFAULT) + location.hash); });
   }
@@ -199,16 +294,20 @@
   }
 
   window.PFLocale = {
-    VERSION: 'universal-9',
+    VERSION: 'universal-10',
     PREFIX: PREFIX, DEFAULT: DEFAULT, EN_SLUG: EN_SLUG,
     prefixFromPath: prefixFromPath, activePrefix: activePrefix, current: current,
     withLocale: withLocale, home: home, go: go,
     savedChoice: savedChoice, saveChoice: saveChoice, switchTo: switchTo,
+    markExplicit: markExplicit, wasExplicit: wasExplicit,
+    deviceLanguage: deviceLanguage, prefixFor: prefixFor, peerLanguage: peerLanguage,
     fixBase: fixBase, bootstrap: bootstrap, localizeAnchors: localizeAnchors,
-    syncChoiceFromPath: syncChoiceFromPath,
+    syncChoiceFromPath: syncChoiceFromPath, hreflang: hreflang,
   };
-  try { console.log('[PFLocale] version universal-9 · prefix=' + activePrefix()); } catch (e) {}
+  try { console.log('[PFLocale] version universal-10 · prefix=' + activePrefix()); } catch (e) {}
 
   syncChoiceFromPath();
   fixBase();
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', hreflang);
+  else hreflang();
 })();

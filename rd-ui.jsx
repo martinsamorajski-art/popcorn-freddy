@@ -124,8 +124,12 @@ const RD_LOCALE_KEY = 'pf-locale-v1';
 // Locale is driven by the URL prefix (PFLocale). The selector routes between
 // the four locale prefixes; country/language names come from the Shopify
 // localization query, not a hardcoded list.
-const RD_PREFIXES = ['at', 'de', 'ch', 'us'];
-function rdPrefixMeta(pre) { return (window.PFLocale && PFLocale.PREFIX[pre]) || { country: (pre || 'at').toUpperCase(), language: 'DE' }; }
+const RD_PREFIXES = ['at', 'at-en', 'de', 'de-en', 'ch', 'ch-en', 'us'];
+function rdPrefixMeta(pre) {
+  if (window.PFLocale && PFLocale.PREFIX[pre]) return PFLocale.PREFIX[pre];
+  var s = String(pre || 'at');
+  return { country: s.split('-')[0].toUpperCase(), language: /-en$/i.test(s) ? 'EN' : 'DE' };
+}
 function rdActivePrefix() { try { return window.PFLocale ? PFLocale.activePrefix() : 'at'; } catch (e) { return 'at'; } }
 function rdCurrentCountry() { try { return window.PFLocale ? PFLocale.current().country : 'AT'; } catch (e) { return 'AT'; } }
 
@@ -135,6 +139,13 @@ const RD_SUGGEST_T = {
   en: { line: (c, cur) => `It looks like you're in ${c}. Would you like to shop in ${cur}?`, yes: 'Yes, switch', other: 'Choose another', close: 'Dismiss' },
 };
 const RD_SUGGEST_DISMISS_KEY = 'pf-geo-suggest-v1';
+// The language nudge is written in the language it OFFERS — someone who does not
+// read German must be able to read the offer.
+const RD_LANGSUG_T = {
+  en: { line: 'This shop is also available in English.', yes: 'Switch to English', other: 'Stay in German', close: 'Dismiss' },
+  de: { line: 'Diesen Shop gibt es auch auf Deutsch.', yes: 'Auf Deutsch wechseln', other: 'Bei Englisch bleiben', close: 'Schließen' },
+};
+const RD_LANGSUG_DISMISS_KEY = 'pf-lang-suggest-v1';
 function rdCurrencyFor(country) {
   try { if (window.PFShop) return window.PFShop.marketFor(country).currency; } catch (e) {}
   return country === 'CH' ? 'CHF' : 'EUR';
@@ -633,8 +644,10 @@ function RdCountrySuggest({ lang }) {
   const confirm = () => {
     try { localStorage.setItem(RD_SUGGEST_DISMISS_KEY, '1'); } catch (e) {}
     if (window.PFShop && window.PFShop.enabled) { try { window.PFShop.setBuyerCountry(sug); } catch (e) {} }
-    // sug is a country code (AT/DE/CH/US) → the same-named locale prefix.
-    const pre = (window.PFLocale && PFLocale.PREFIX[String(sug).toLowerCase()]) ? String(sug).toLowerCase() : rdActivePrefix();
+    // sug is a country code (AT/DE/CH/US) → the prefix for that country IN THE
+    // LANGUAGE currently being read, so switching market never switches language.
+    let pre = rdActivePrefix();
+    try { pre = (window.PFLocale && PFLocale.prefixFor(sug, PFLocale.current().language)) || pre; } catch (e) {}
     setTimeout(function () { if (window.PFLocale) PFLocale.switchTo(pre); }, 40);
   };
   const other = () => { dismiss(); window.dispatchEvent(new Event('pf-open-locale')); };
@@ -645,6 +658,62 @@ function RdCountrySuggest({ lang }) {
       <div className="rd-suggest-actions">
         <button className="rbtn rbtn-primary" style={{ padding: '9px 16px', fontSize: 13.5 }} onClick={confirm}>{T.yes}</button>
         <button className="rbtn rbtn-ghost" style={{ padding: '9px 16px', fontSize: 13.5 }} onClick={other}>{T.other}</button>
+      </div>
+      <style>{`
+        .rd-suggest { position: fixed; left: 18px; bottom: 18px; z-index: 55; width: min(340px, calc(100vw - 36px)); background: var(--rd-cream); border: 1px solid color-mix(in srgb, var(--rd-ink) 16%, transparent); border-radius: 14px; padding: 16px 18px 15px; box-shadow: 0 24px 60px -26px color-mix(in srgb, var(--rd-ink) 60%, transparent); animation: rdSuggestIn .4s cubic-bezier(.22,.61,.36,1); }
+        @keyframes rdSuggestIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+        .rd-suggest-x { position: absolute; top: 9px; right: 9px; width: 28px; height: 28px; display: grid; place-items: center; border: none; background: transparent; color: var(--rd-ink-mute); cursor: pointer; border-radius: 7px; }
+        .rd-suggest-x:hover { color: var(--rd-ink); background: color-mix(in srgb, var(--rd-ink) 7%, transparent); }
+        .rd-suggest-row { display: flex; align-items: flex-start; gap: 11px; padding-right: 22px; }
+        .rd-suggest-line { font-family: var(--f-sans); font-size: 14.5px; line-height: 1.5; color: var(--rd-ink); }
+        .rd-suggest-actions { display: flex; gap: 9px; margin-top: 14px; }
+      `}</style>
+    </div>
+  );
+}
+
+// Subtle, dismissible LANGUAGE suggestion — the exact same pattern as the
+// country nudge above, for a visitor whose device speaks the other language.
+// Same market, same currency: only the text language changes (/at ↔ /at-en).
+function RdLangSuggest() {
+  const [target, setTarget] = useState(null); // 'de' | 'en' — the language offered
+  useEffect(() => {
+    if (!window.PFLocale || typeof PFLocale.peerLanguage !== 'function') return;
+    try { if (localStorage.getItem(RD_LANGSUG_DISMISS_KEY)) return; } catch (e) {}
+    try { if (PFLocale.wasExplicit()) return; } catch (e) {}   // they chose a locale themselves
+    const here = PFLocale.current().language;
+    const dev = PFLocale.deviceLanguage();
+    if (dev === here) return;
+    if (!PFLocale.peerLanguage()) return;                      // no route in that language
+    let alive = true;
+    // One nudge at a time: if the country banner is about to appear, stay quiet
+    // and offer the language on the next visit instead.
+    const countryPending = () => new Promise((res) => {
+      try { if (localStorage.getItem(RD_SUGGEST_DISMISS_KEY)) return res(false); } catch (e) {}
+      if (!(window.PFShop && typeof PFShop.suggestCountry === 'function')) return res(false);
+      PFShop.suggestCountry().then((code) => {
+        try { res(!!code && PFShop.activeCountries().indexOf(code) >= 0 && code !== PFShop.savedCountry()); }
+        catch (e) { res(false); }
+      }).catch(() => res(false));
+    });
+    countryPending().then((busy) => { if (alive && !busy) setTarget(dev.toLowerCase()); });
+    return () => { alive = false; };
+  }, []);
+  if (!target) return null;
+  const T = RD_LANGSUG_T[target] || RD_LANGSUG_T.en;
+  const dismiss = () => { try { localStorage.setItem(RD_LANGSUG_DISMISS_KEY, '1'); } catch (e) {} setTarget(null); };
+  const confirm = () => {
+    dismiss();
+    const pre = PFLocale.peerLanguage();
+    if (pre) setTimeout(() => PFLocale.switchTo(pre), 40);
+  };
+  return (
+    <div className="rd-suggest" role="dialog" aria-live="polite">
+      <button className="rd-suggest-x" aria-label={T.close} onClick={dismiss}><RdIcon name="close" size={15} /></button>
+      <div className="rd-suggest-row"><RdFlag c="OTHER" size={20} /><span className="rd-suggest-line">{T.line}</span></div>
+      <div className="rd-suggest-actions">
+        <button className="rbtn rbtn-primary" style={{ padding: '9px 16px', fontSize: 13.5 }} onClick={confirm}>{T.yes}</button>
+        <button className="rbtn rbtn-ghost" style={{ padding: '9px 16px', fontSize: 13.5 }} onClick={dismiss}>{T.other}</button>
       </div>
       <style>{`
         .rd-suggest { position: fixed; left: 18px; bottom: 18px; z-index: 55; width: min(340px, calc(100vw - 36px)); background: var(--rd-cream); border: 1px solid color-mix(in srgb, var(--rd-ink) 16%, transparent); border-radius: 14px; padding: 16px 18px 15px; box-shadow: 0 24px 60px -26px color-mix(in srgb, var(--rd-ink) 60%, transparent); animation: rdSuggestIn .4s cubic-bezier(.22,.61,.36,1); }
@@ -784,4 +853,4 @@ function RdCartButtons({ label, cartCount, onOpenCart }) {
   );
 }
 
-Object.assign(window, { usePFChapters, usePFProduct, usePFCartLines, RdIcon, RdOrnament, RdSquiggle, RdCompass, RdLeaves, RdFireflies, RdPines, RdHeading, RdLogo, rdCartLoad, rdCartSave, RD_CART_KEY, RD_CRAFT, RdCraftNote, RdTrustRow, RdCarousel, RdPeekCarousel, RdFlag, RdLocaleControl, RdTrail, RdPaws, rdMoney, rdCheckout, RdCountrySuggest, RdCart, RdCartButtons });
+Object.assign(window, { usePFChapters, usePFProduct, usePFCartLines, RdIcon, RdOrnament, RdSquiggle, RdCompass, RdLeaves, RdFireflies, RdPines, RdHeading, RdLogo, rdCartLoad, rdCartSave, RD_CART_KEY, RD_CRAFT, RdCraftNote, RdTrustRow, RdCarousel, RdPeekCarousel, RdFlag, RdLocaleControl, RdTrail, RdPaws, rdMoney, rdCheckout, RdCountrySuggest, RdLangSuggest, RdCart, RdCartButtons });

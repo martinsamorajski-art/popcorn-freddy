@@ -600,6 +600,7 @@ function ProductApp() {
       <style>{RD_PAGE_CSS}{PS_SHOP_CSS}</style>
       <RdPageTopBar t={t} lang={lang} />
       {typeof RdCountrySuggest === 'function' && <RdCountrySuggest lang={lang} />}
+      {typeof RdLangSuggest === 'function' && <RdLangSuggest />}
       <main data-screen-label="Produkt">
         {product ? <PSBody key={lang + ':' + product.handle} p={product} lang={lang} />
           : loaded ? <PSNotFound lang={lang} />

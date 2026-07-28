@@ -475,6 +475,8 @@ function RdApp() {
     <React.Fragment>
       <RdTopBar t={t} lang={lang} cartCount={cart.reduce((s, c) => s + (c.qty || 1), 0)} onOpenCart={() => setCartOpen((v) => !v)} onStartAdventure={() => addToCart(featured)} />
       <RdHero t={t} lang={lang} direction={tw.heroDir} intensity={intensity} onAdd={() => addToCart(featured)} />
+      {typeof RdCountrySuggest === 'function' && <RdCountrySuggest lang={lang} />}
+      {typeof RdLangSuggest === 'function' && <RdLangSuggest />}
       <RdInside t={t} lang={lang} />
       <RdWhy t={t} />
       <RdStory t={t} intensity={intensity} />
