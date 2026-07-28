@@ -15,6 +15,8 @@
 // ────────────────────────────────────────────────────────────────
 
 // ── which product? handle from the pretty path or ?handle= ──────
+// Route internal links through the universal locale helper (keeps the prefix).
+function wP(path) { return (window.PFLocale ? PFLocale.withLocale(path) : path); }
 function pfProductHandle() {
   var q = new URLSearchParams(location.search);
   var h = q.get('handle') || q.get('produkt') || q.get('product');
@@ -356,7 +358,7 @@ function PSClose({ p, ui, lang, intensity, inCart, onAdd }) {
           {!inCart
             ? <button className="rbtn rbtn-primary rbtn-xl" onClick={() => onAdd('')}>{ui.add} · {p.priceFormatted}</button>
             : <button className="rbtn rbtn-primary rbtn-xl" onClick={() => rdCheckout()}>{ui.checkout} <RdIcon name="arrow" size={17} /></button>}
-          <a href="Alle Kapitel.html" className="rbtn rbtn-ghost-light rbtn-xl">{ui.back_link}</a>
+          <a href={wP('Alle Kapitel.html')} className="rbtn rbtn-ghost-light rbtn-xl">{ui.back_link}</a>
         </div>
         <div style={{ marginTop: 26, display: 'flex', justifyContent: 'center' }}>
           <RdCraftNote lang={lang} k="count" center dark size={15} />
@@ -438,7 +440,7 @@ function PSNotFound({ lang }) {
     <section data-rd style={{ padding: '160px 0 180px', textAlign: 'center' }}>
       <div className="rwrap-tight">
         <h1 className="r-display" style={{ fontSize: 'clamp(30px, 4vw, 46px)', color: 'var(--rd-ink)' }}>{ui.unavailable}</h1>
-        <div style={{ marginTop: 28 }}><a href="Alle Kapitel.html" className="rbtn rbtn-primary rbtn-xl">{ui.back_link}</a></div>
+        <div style={{ marginTop: 28 }}><a href={wP('Alle Kapitel.html')} className="rbtn rbtn-primary rbtn-xl">{ui.back_link}</a></div>
       </div>
     </section>
   );
