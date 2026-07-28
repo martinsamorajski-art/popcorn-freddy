@@ -125,7 +125,7 @@ function RdHero({ t, lang, direction = 'a', intensity = 5, onAdd }) {
         <React.Fragment>
         <div className="rh-m">
           <div className="rh-m-media r-rev r-rev-1">
-            <img src="assets/hero-family-crop.jpg" alt="Familie liest gemeinsam am Tisch — mit Kapitel-1-Box, Schatzmappe und Holzauto-Bausatz" fetchpriority="high" decoding="async" />
+            <img src="assets/hero-family-crop.webp" alt="Familie liest gemeinsam am Tisch — mit Kapitel-1-Box, Schatzmappe und Holzauto-Bausatz" fetchpriority="high" decoding="async" />
             <div className="rh-m-overlay">
               {title(true)}
             </div>
@@ -166,7 +166,7 @@ function RdHero({ t, lang, direction = 'a', intensity = 5, onAdd }) {
 
           <div className="rh-split-media r-rev r-rev-2">
             <div className="rh-fam-frame">
-              <img src="assets/hero-family.jpg" alt="Familie liest gemeinsam am Tisch — mit Kapitel-1-Box, Schatzmappe und Holzauto-Bausatz" fetchpriority="high" decoding="async" />
+              <img src="assets/hero-family.webp" alt="Familie liest gemeinsam am Tisch — mit Kapitel-1-Box, Schatzmappe und Holzauto-Bausatz" fetchpriority="high" decoding="async" />
             </div>
             <p className="r-it rh-fam-cap">Kapitel 1 — Das Geheimnis des Flüsterwaldes</p>
           </div>
@@ -186,7 +186,7 @@ function RdHero({ t, lang, direction = 'a', intensity = 5, onAdd }) {
           </div>
           <div className="rwrap-wide">
             <figure className="rh-b-plate r-rev r-rev-3" style={{ marginInline: 'auto' }}>
-              <img src="assets/scene-table.jpg" alt="Ein Kind baut mit Popcorn und Freddy ein Holzauto" loading="lazy" decoding="async" />
+              <img src="assets/scene-table.webp" alt="Ein Kind baut mit Popcorn und Freddy ein Holzauto" loading="lazy" decoding="async" />
               <figcaption className="rh-b-caps">
                 {h.cards.map((c, i) => (
                   <div key={i} className="rh-b-cap">

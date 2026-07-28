@@ -5,9 +5,9 @@
 // ─── STORY — vintage book plates ─────────────────────────────
 function RdStory({ t, intensity }) {
   const chars = [
-    { name: t.story.pop_name, role: t.story.pop_role, text: t.story.pop_desc, img: 'assets/char-popcorn.png' },
-    { name: t.story.fred_name, role: t.story.fred_role, text: t.story.fred_desc, img: 'assets/char-freddy.png' },
-    { name: t.story.peter_name, role: t.story.peter_role, text: t.story.peter_desc, img: 'assets/char-child.png' },
+    { name: t.story.pop_name, role: t.story.pop_role, text: t.story.pop_desc, img: 'assets/char-popcorn.webp' },
+    { name: t.story.fred_name, role: t.story.fred_role, text: t.story.fred_desc, img: 'assets/char-freddy.webp' },
+    { name: t.story.peter_name, role: t.story.peter_role, text: t.story.peter_desc, img: 'assets/char-child.webp' },
   ];
   return (
     <section id="story" data-rd data-screen-label="Story / Charaktere" style={{ padding: '96px 0 100px', background: 'var(--rd-cream)', borderTop: '1px solid color-mix(in srgb, var(--rd-ink) 8%, transparent)' }}>
@@ -83,7 +83,7 @@ function RdMap({ t, lang }) {
         <div className="r-rev r-rev-1" style={{ marginTop: 70, textAlign: 'center' }}>
           <div className="rd-map-frame">
             <div className="rd-map-frame-inner">
-              <img src="assets/adventure-map.png" alt="Popcorn & Freddys Schatzkarte mit acht Kapiteln" />
+              <img src="assets/adventure-map.webp" alt="Popcorn & Freddys Schatzkarte mit acht Kapiteln" loading="lazy" decoding="async" />
             </div>
           </div>
           <div className="rd-plaque">
@@ -123,7 +123,7 @@ function RdInside({ t, lang }) {
 
         <div className="r-rev rd-inside-stage">
           <div className="rd-inside-frame">
-            <img src="assets/box-contents.png" alt="Inhalt der Box" />
+            <img src="assets/box-contents.webp" alt="Inhalt der Box" loading="lazy" decoding="async" />
             <span className="rd-corner rd-corner--tl" aria-hidden="true"></span>
             <span className="rd-corner rd-corner--tr" aria-hidden="true"></span>
             <span className="rd-corner rd-corner--bl" aria-hidden="true"></span>
@@ -163,7 +163,7 @@ function RdInside({ t, lang }) {
 // ─── CHAPTERS ────────────────────────────────────────────────
 // ─── WHY — reasons carousel, photo cards with overlay text ───
 function RdWhy({ t }) {
-  const imgs = ['assets/why-1-time.png', 'assets/why-2-learning.png', 'assets/why-3-hero.png', 'assets/why-4-journey.png'];
+  const imgs = ['assets/why-1-time.webp', 'assets/why-2-learning.webp', 'assets/why-3-hero.webp', 'assets/why-4-journey.webp'];
   return (
     <section id="why" data-rd data-screen-label="Warum" style={{ padding: '96px 0 100px', background: 'var(--rd-cream)', borderTop: '1px solid color-mix(in srgb, var(--rd-ink) 8%, transparent)' }}>
       <div className="rwrap" style={{ position: 'relative', zIndex: 2 }}>

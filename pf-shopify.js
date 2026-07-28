@@ -515,6 +515,32 @@ document.addEventListener('DOMContentLoaded', function () {
     }).catch(function () { return null; });
   }
 
+  // Rate shipping for an address at OUR checkout's address step — not only at
+  // the payment handoff. Our Checkout page keeps the basket in localStorage, so
+  // there is often no Shopify cart yet and setDeliveryAddress above would bail
+  // out (that is why the summary used to stay "zzgl. Versand" until payment).
+  // Here we mirror the local basket into a Shopify cart first, then rate it.
+  function rateShipping(addr) {
+    if (!addr) return Promise.resolve(null);
+    return detect().then(function (ok) {
+      if (!ok) return null;
+      if (readCartRef().id) return setDeliveryAddress(addr);
+      var items = localCartItems();
+      if (!items.length) return null;
+      return Promise.all(items.map(function (it) {
+        var handle = it.handle || (typeof it.n === 'string' ? it.n : null);
+        var vp = it.variantId ? Promise.resolve(it.variantId) : resolveVariant(handle);
+        return vp.then(function (vid) {
+          return vid ? { merchandiseId: vid, quantity: it.qty || 1, attributes: lineAttrs(it) } : null;
+        });
+      })).then(function (lines) {
+        lines = lines.filter(Boolean);
+        if (!lines.length) return null;
+        return cartCreate(lines).then(function (c) { return c ? setDeliveryAddress(addr) : null; });
+      });
+    }).catch(function () { return null; });
+  }
+
   // Re-point an existing cart at a new market (currency) after a switch.
   function setBuyerCountry(country) {
     var ref = readCartRef();
@@ -644,6 +670,7 @@ document.addEventListener('DOMContentLoaded', function () {
     removeLine: removeLine,
     setBuyerCountry: setBuyerCountry,
     setDeliveryAddress: setDeliveryAddress,
+    rateShipping: rateShipping,
     checkout: checkout,
     // geo
     suggestCountry: suggestCountry,

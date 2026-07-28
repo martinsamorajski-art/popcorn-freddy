@@ -299,7 +299,7 @@ function PSInside({ p, ui }) {
 // ─── STORY ───────────────────────────────────────────────────
 function PSStory({ p, ui }) {
   if (!p.story_title && !p.story_body) return null;
-  const img = (p.images && p.images[0] && p.images[0].src) || 'assets/book-1-forest.jpg';
+  const img = (p.images && p.images[0] && p.images[0].src) || 'assets/book-1-forest.webp';
   return (
     <section id="story" data-rd data-screen-label="Worum es geht" style={{ padding: '124px 0 124px', background: 'var(--rd-paper)' }}>
       <div className="rwrap" style={{ position: 'relative', zIndex: 2 }}>

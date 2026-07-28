@@ -20,9 +20,14 @@
   <title>Popcorn &amp; Freddy — Eine Schatzsuche zum Bauen, Vorlesen &amp; Erinnern</title>
   <meta name="description" content="Ein Kinderbuch, das zum Leben erwacht. Holzspielzeug zum Bauen, eine Schatzkarte und magische Familienmomente — Kapitel für Kapitel." />
 
-  <link rel="stylesheet" href="rd-styles.css?v=20260728k">
-  <link rel="preload" as="image" href="assets/hero-family-crop.jpg" fetchpriority="high" media="(max-width: 1024px)">
-  <link rel="preload" as="image" href="assets/hero-family.jpg" fetchpriority="high" media="(min-width: 1025px)">
+  <link rel="stylesheet" href="rd-styles.css?v=20260728l">
+  <!-- Above-the-fold faces: fetched in parallel with the stylesheet instead of
+       after it, so the loader does not have to wait for CSS to discover them. -->
+  <link rel="preload" as="font" type="font/ttf" href="assets/fonts/young-serif-400.ttf" crossorigin>
+  <link rel="preload" as="font" type="font/ttf" href="assets/fonts/alegreya-sans-400.ttf" crossorigin>
+  <link rel="preload" as="font" type="font/ttf" href="assets/fonts/alegreya-sans-700.ttf" crossorigin>
+  <link rel="preload" as="image" href="assets/hero-family-crop.webp" fetchpriority="high" media="(max-width: 1024px)">
+  <link rel="preload" as="image" href="assets/hero-family.webp" fetchpriority="high" media="(min-width: 1025px)">
   <template id="__bundler_thumbnail" data-bg-color="#1c3d2e">
     <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
       <rect width="1200" height="800" fill="#1c3d2e"/>
@@ -67,8 +72,18 @@
         }, wait);
       }
       var root = document.getElementById('root');
+      // Wait for BOTH: React has painted AND the webfonts are in. Hiding on
+      // paint alone is what made the first frame show the fallback font and
+      // then visibly swap. Fonts get a 2.5s cap of their own so a slow
+      // connection can never hold the loader hostage.
+      function whenFontsReady(cb) {
+        if (!document.fonts || !document.fonts.ready) { cb(); return; }
+        var done = false, fire = function () { if (!done) { done = true; cb(); } };
+        document.fonts.ready.then(fire);
+        setTimeout(fire, 2500);
+      }
       var mo = new MutationObserver(function () {
-        if (root.childElementCount > 0) { mo.disconnect(); hide(); }
+        if (root.childElementCount > 0) { mo.disconnect(); whenFontsReady(hide); }
       });
       mo.observe(root, { childList: true });
       setTimeout(hide, 6000); // safety fallback

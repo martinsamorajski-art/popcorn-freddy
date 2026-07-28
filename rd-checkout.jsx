@@ -91,6 +91,7 @@ const RC_COPY = {
       subtotal: 'Zwischensumme',
       shipping: 'Versand',
       ship_later: 'zzgl. Versand',
+      ship_calc: 'wird berechnet …',
       ship_later_note: 'Wird nach Eingabe der Lieferadresse berechnet.',
       free: 'Gratis',
       total: 'Gesamt',
@@ -202,6 +203,7 @@ const RC_COPY = {
       subtotal: 'Subtotal',
       shipping: 'Shipping',
       ship_later: 'plus shipping',
+      ship_calc: 'calculating …',
       ship_later_note: 'Calculated once you enter your delivery address.',
       free: 'Free',
       total: 'Total',
@@ -466,7 +468,9 @@ function RcSummary({ rc, t, lang, cur, cart, addons, totals, gift, disc }) {
             <div className="rc-sum-row" key={a.id}><span>{a.t}</span><span>{rcFmt(a.price, lang, cur)}</span></div>
           ))}
           {totals.shipKnown ? (
-            <div className="rc-sum-row"><span>{rc.sum.shipping}</span><span style={{ fontFamily: 'var(--f-sans)', fontWeight: 600 }}>{rcFmt(totals.ship, lang, cur)}</span></div>
+            <div className="rc-sum-row"><span>{rc.sum.shipping}{totals.shipTitle ? <span className="r-it" style={{ color: 'var(--rd-ink-mute)', fontSize: 12.5 }}> · {totals.shipTitle}</span> : null}</span><span style={{ fontFamily: 'var(--f-sans)', fontWeight: 600 }}>{totals.ship > 0 ? rcFmt(totals.ship, lang, cur) : rc.sum.free}</span></div>
+          ) : totals.shipCalc ? (
+            <div className="rc-sum-row"><span>{rc.sum.shipping}</span><span className="rc-ship-calc" style={{ fontFamily: 'var(--f-sans)', fontWeight: 600, color: 'var(--rd-ink-mute)', fontStyle: 'italic' }}>{rc.sum.ship_calc}</span></div>
           ) : (
             <div className="rc-sum-row"><span>{rc.sum.shipping}</span><span style={{ fontFamily: 'var(--f-sans)', fontWeight: 600, color: 'var(--rd-ink-mute)', fontStyle: 'italic' }}>{rc.sum.ship_later}</span></div>
           )}

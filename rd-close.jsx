@@ -14,7 +14,7 @@ function RdBrand({ t }) {
         <div style={{ marginTop: 26 }} className="r-rev"><RdOrnament /></div>
         <div className="r-rev r-rev-1" style={{ margin: '54px auto 0', maxWidth: 420 }}>
           <div style={{ borderRadius: '210px 210px 16px 16px', overflow: 'hidden', border: '1px solid color-mix(in srgb, var(--rd-gold) 45%, transparent)', padding: 10, background: 'var(--rd-cream)', boxShadow: '0 24px 60px -30px color-mix(in srgb, var(--rd-forest-deep) 45%, transparent)' }}>
-            <img src="assets/founders-martin-jessa.jpg" alt="Martin & Jess" style={{ display: 'block', width: '100%', aspectRatio: '4 / 5', objectFit: 'cover', objectPosition: '50% 30%', borderRadius: '200px 200px 10px 10px' }} />
+            <img src="assets/founders-martin-jessa.webp" alt="Martin & Jess" loading="lazy" decoding="async" style={{ display: 'block', width: '100%', aspectRatio: '4 / 5', objectFit: 'cover', objectPosition: '50% 30%', borderRadius: '200px 200px 10px 10px' }} />
           </div>
           <p className="r-it" style={{ margin: '16px 0 0', fontSize: 15.5, color: 'color-mix(in srgb, var(--rd-ink) 62%, transparent)' }}>Martin &amp; Jess — {b.eyebrow}</p>
         </div>

@@ -47,7 +47,7 @@ function RcStepCart({ rc, lang, cur, cart, setQty, removeItem, units, personal, 
 
         {/* included folder */}
         <div style={{ marginTop: 14, padding: 16, borderRadius: 10, border: '1px dashed color-mix(in srgb, var(--rd-gold) 60%, transparent)', display: 'grid', gridTemplateColumns: '58px 1fr auto', gap: 16, alignItems: 'center', background: 'color-mix(in srgb, var(--rd-gold-soft) 10%, transparent)' }}>
-          <div className="rc-addon-thumb"><img src="assets/wooden-folder.png" alt="" /></div>
+          <div className="rc-addon-thumb"><img src="assets/wooden-folder.webp" alt="" /></div>
           <div>
             <div style={{ fontFamily: 'var(--f-sans)', fontWeight: 700, fontSize: 15, color: 'var(--rd-ink)' }}>{rc.cart.folder_t}</div>
             <div className="r-it" style={{ fontSize: 14.5, color: 'var(--rd-ink-mute)', marginTop: 2, lineHeight: 1.45 }}>{rc.cart.folder_d}</div>
@@ -371,16 +371,23 @@ function RcApp() {
   // Whenever the delivery address is complete we hand it to Shopify and read the
   // delivery option it returns. No address (or no rate) → shipping stays unknown.
   const [shipInfo, setShipInfo] = useState(null);
+  const [shipCalc, setShipCalc] = useState(false);
   useEffect(() => {
-    const addrDone = !!((form.country || '').trim() && (form.zip || '').trim() && (form.city || '').trim());
-    if (!addrDone || !cart.length || !(window.PFShop && PFShop.enabled && PFShop.setDeliveryAddress)) { setShipInfo(null); return; }
+    // Country + postcode are enough for Shopify to rate — city/street only refine
+    // it, so the price appears as soon as the postcode is typed.
+    const addrDone = !!((form.country || '').trim() && (form.zip || '').trim());
+    if (!addrDone || !cart.length || !(window.PFShop && PFShop.enabled && PFShop.rateShipping)) { setShipInfo(null); setShipCalc(false); return; }
     let alive = true;
-    PFShop.setDeliveryAddress({
-      countryCode: rcCountryCode(form.country),
-      zip: form.zip, city: form.city, address1: form.street,
-    }).then((c) => { if (alive) setShipInfo(c && c.shipping ? c.shipping : null); })
-      .catch(() => { if (alive) setShipInfo(null); });
-    return () => { alive = false; };
+    setShipCalc(true);
+    // Debounced: typing a postcode must not fire a mutation per keystroke.
+    const timer = setTimeout(() => {
+      PFShop.rateShipping({
+        countryCode: rcCountryCode(form.country),
+        zip: form.zip, city: form.city, address1: form.street,
+      }).then((c) => { if (alive) { setShipInfo(c && c.shipping ? c.shipping : null); setShipCalc(false); } })
+        .catch(() => { if (alive) { setShipInfo(null); setShipCalc(false); } });
+    }, 550);
+    return () => { alive = false; clearTimeout(timer); };
   }, [form.country, form.zip, form.city, form.street, cart.length]);
 
   const totals = useMemo(() => {
@@ -399,12 +406,13 @@ function RcApp() {
     // Shopify has rated the address it stays unknown — never a local estimate.
     const shipKnown = cart.length > 0 && !!shipInfo;
     const ship = shipKnown ? shipInfo.amount : 0;
+    const shipTitle = shipKnown ? (shipInfo.title || '') : '';
     const preGift = Math.round((payable + ship) * 100) / 100;
     const gift = giftInfo ? Math.round(Math.min(giftInfo.balance, preGift) * 100) / 100 : 0;
-    return { sub, add, disc, ship, shipKnown, gift, total: Math.round((preGift - gift) * 100) / 100 };
+    return { sub, add, disc, ship, shipKnown, shipTitle, shipCalc: shipCalc && !shipKnown, gift, total: Math.round((preGift - gift) * 100) / 100 };
     // `lines` MUST be a dependency: prices arrive asynchronously from Shopify,
     // and without it the totals stayed at 0 until some other field changed.
-  }, [lines, cart, addons, rc, giftInfo, discInfo, shipInfo, form.country, form.zip, form.city]);
+  }, [lines, cart, addons, rc, giftInfo, discInfo, shipInfo, shipCalc, form.country, form.zip, form.city]);
 
   const applyDiscount = async () => {
     const code = discCode.trim();
