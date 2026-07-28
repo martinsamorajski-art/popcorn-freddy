@@ -497,9 +497,15 @@ document.addEventListener('DOMContentLoaded', function () {
   // Hand off to Shopify's hosted checkout. Rebuilds the Shopify cart from
   // the existing on-site cart (the design's source of truth) so checkout
   // works no matter which page or button added the item.
+  // Internal fallback to our own Checkout page — keep the active locale prefix.
+  // (Shopify checkoutUrl links below are external and stay untouched.)
+  function gotoCheckoutPage() {
+    if (window.PFLocale) { window.PFLocale.go('Checkout.html'); return; }
+    window.location.href = 'Checkout.html';
+  }
   function checkout(buyer) {
     return detect().then(function (ok) {
-      if (!ok) { window.location.href = 'Checkout.html'; return false; }
+      if (!ok) { gotoCheckoutPage(); return false; }
       var items = localCartItems();
       if (!items.length) {
         return getCart().then(function (c) {
@@ -516,12 +522,12 @@ document.addEventListener('DOMContentLoaded', function () {
         });
       })).then(function (lines) {
         lines = lines.filter(Boolean);
-        if (!lines.length) { window.location.href = 'Checkout.html'; return false; }
+        if (!lines.length) { gotoCheckoutPage(); return false; }
         // Fresh cart that mirrors the current basket exactly.
         writeCartRef({});
         return cartCreate(lines, buyer).then(function (cart) {
           if (cart && cart.checkoutUrl) { window.location.href = checkoutUrlWithPrefill(cart.checkoutUrl, buyer); return true; }
-          window.location.href = 'Checkout.html';
+          gotoCheckoutPage();
           return false;
         });
       });

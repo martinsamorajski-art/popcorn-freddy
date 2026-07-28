@@ -58,31 +58,31 @@
 
   function home(prefix) { return '/' + (prefix || activePrefix()) + '/'; }
 
-  // Prefix an app route (/ or /produkt/…) with a locale. External links,
-  // anchors, mailto and already-prefixed paths pass through untouched.
+  // THE universal rule. Prepend the active locale prefix to ANY internal path,
+  // so no link anywhere can drop the locale. Exempt: external links (http/
+  // mailto/tel), pure hash anchors (#faq), and paths already carrying a prefix.
+  // Query strings and hashes ride along unchanged.
   function withLocale(path, prefix) {
-    if (!path) return home(prefix);
-    if (/^(https?:|mailto:|tel:|#)/i.test(path)) return path;
-    if (RX.test(path)) return path;                 // already localized
+    if (path == null || path === '') return home(prefix);
+    var s = String(path);
+    if (/^(https?:|mailto:|tel:|\/\/|#)/i.test(s)) return s;   // external / hash-only
+    if (RX.test(s)) return s;                                   // already localized
     var pre = prefix || activePrefix();
-    if (path.charAt(0) !== '/') path = '/' + path;
-    if (path === '/') return '/' + pre + '/';
-    if (/^\/produkt\//i.test(path)) return '/' + pre + path;
-    return path;                                    // not a localizable route
+    s = s.replace(/^\.?\//, '');                                // drop leading ./ or /
+    return '/' + pre + '/' + s;
   }
 
-  // Switch locale: remember the choice, then reload the equivalent page under
-  // the new prefix (home / product get a prefix; unprefixed pages just reload
-  // so they pick up the remembered choice).
+  // Programmatic navigation — the localized equivalent of location.href = path.
+  function go(path, prefix) { location.href = withLocale(path, prefix); }
+
+  // Switch locale: remember the choice, then reload the SAME page under the new
+  // prefix (strip any current prefix, keep the rest of the path, re-add prefix).
   function switchTo(prefix) {
     if (!PREFIX[prefix]) return;
     saveChoice(prefix);
     var stripped = (location.pathname || '/').replace(RX, '');
-    var target;
-    if (stripped === '' || stripped === '/') target = home(prefix);
-    else if (/^\/produkt\//i.test(stripped)) target = '/' + prefix + stripped;
-    else target = stripped;                         // unprefixed subpage stays bare
-    location.href = target + location.search + location.hash;
+    if (stripped === '' || stripped === '/') { location.href = home(prefix) + location.search + location.hash; return; }
+    location.href = '/' + prefix + stripped + location.search + location.hash;
   }
 
   // Base-href fix: index/Produkt are served under a locale prefix, so their
@@ -112,13 +112,17 @@
     }).catch(function () { location.replace(home(DEFAULT) + location.hash); });
   }
 
-  // Give every in-page product link the active prefix, without each component
-  // having to know about locales. Re-applied as React re-renders the tree.
+  // Give EVERY internal link the active prefix, without each component having to
+  // know about locales. Skips external links, pure-hash anchors, and links that
+  // already carry a prefix. Re-applied as React re-renders the tree.
   function localizeAnchors(root) {
-    var as = (root || document).querySelectorAll('a[href^="/produkt/"]');
+    var as = (root || document).querySelectorAll('a[href]');
     for (var i = 0; i < as.length; i++) {
       var h = as[i].getAttribute('href');
-      if (h && !RX.test(h)) as[i].setAttribute('href', withLocale(h));
+      if (!h) continue;
+      if (/^(https?:|mailto:|tel:|\/\/|#)/i.test(h)) continue;   // external / hash-only
+      if (RX.test(h)) continue;                                   // already localized
+      as[i].setAttribute('href', withLocale(h));
     }
   }
   function watchAnchors() {
@@ -134,7 +138,7 @@
   window.PFLocale = {
     PREFIX: PREFIX, DEFAULT: DEFAULT,
     prefixFromPath: prefixFromPath, activePrefix: activePrefix, current: current,
-    withLocale: withLocale, home: home,
+    withLocale: withLocale, home: home, go: go,
     savedChoice: savedChoice, saveChoice: saveChoice, switchTo: switchTo,
     fixBase: fixBase, bootstrap: bootstrap, localizeAnchors: localizeAnchors,
   };

@@ -589,6 +589,7 @@ function rdMoney(n, lang) { return lang === 'de' ? `${n.toFixed(2).replace('.', 
 // (basket → delivery). The delivery step then hands off to Shopify's hosted
 // checkout, pre-filled, at the payment step (see rd-checkout-app.jsx goToPayment).
 function rdCheckout() {
+  if (window.PFLocale) { PFLocale.go('Checkout.html'); return; }
   window.location.href = 'Checkout.html';
 }
 

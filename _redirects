@@ -1,11 +1,10 @@
-# Headless Shopify — one reusable product template under a clean URL,
-# with Shopify-native localization via URL locale prefixes.
-# Locale prefixes at/de/ch/us serve the SAME files (no per-locale copies):
-#   /{locale}/            → index.html    (home)
-#   /{locale}/produkt/*   → Produkt.html  (product; handle read from the path)
-# The locale is read client-side from window.location.pathname (pf-locale.js).
+# Headless Shopify — one reusable product template, with Shopify-native
+# localization via URL locale prefixes. Locale prefixes at/de/ch/us serve the
+# SAME files (no per-locale copies). The locale is read client-side from
+# window.location.pathname (pf-locale.js) and passed into Shopify @inContext.
 
-# ── Product template: specific /produkt rules BEFORE the home catch-alls ──
+# ── Product template: specific /produkt rules BEFORE the splat catch-alls ──
+# (rewrites are single-pass, so /{locale}/produkt/* must be matched here first)
 /at/produkt/*  /Produkt.html  200
 /de/produkt/*  /Produkt.html  200
 /ch/produkt/*  /Produkt.html  200
@@ -13,19 +12,22 @@
 # Existing no-prefix product route — kept as a fallback.
 /produkt/*     /Produkt.html  200
 
-# ── Home per locale (catch-alls, after the /produkt rules above) ──
-# Both the bare prefix (/at) and everything under it (/at/…) serve index.html.
+# ── Every other page under a locale prefix serves the same real file ──
+# /at/            → /            (index.html)
+# /de/Checkout.html → /Checkout.html
+# /us/AGB.html    → /AGB.html   … etc. (:splat is the path after the prefix)
+/at/*  /:splat  200
+/de/*  /:splat  200
+/ch/*  /:splat  200
+/us/*  /:splat  200
+# Bare prefix with no trailing slash → home.
 /at    /index.html  200
-/at/*  /index.html  200
 /de    /index.html  200
-/de/*  /index.html  200
 /ch    /index.html  200
-/ch/*  /index.html  200
 /us    /index.html  200
-/us/*  /index.html  200
 
 # Retired legacy per-chapter pages → new product template (keeps old links alive)
-/Der%20Fluesterwald%20v3.html      /produkt/kapitel-1-fluesterwald  301
-/Der%20Silbersee%20-%20Kapitel%202.html  /produkt/kapitel-2-silbersee  301
-/Der Fluesterwald v3.html          /produkt/kapitel-1-fluesterwald  301
-/Der Silbersee - Kapitel 2.html    /produkt/kapitel-2-silbersee     301
+/Der%20Fluesterwald%20v3.html            /produkt/kapitel-1-fluesterwald  301
+/Der%20Silbersee%20-%20Kapitel%202.html  /produkt/kapitel-2-silbersee     301
+/Der Fluesterwald v3.html                /produkt/kapitel-1-fluesterwald  301
+/Der Silbersee - Kapitel 2.html          /produkt/kapitel-2-silbersee     301
