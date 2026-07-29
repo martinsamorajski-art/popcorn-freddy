@@ -51,6 +51,15 @@ async function handle({ request, env }) {
     return json({ ok: true, pong: true, saw_key: Boolean(key), revision: revision });
   }
 
+  // Reachability probe: does an outbound call to Klaviyo work at all?
+  if (body && body.debug === 'reach') {
+    const probe = await race(fetch('https://a.klaviyo.com/api/accounts/', {
+      headers: { Authorization: 'Klaviyo-API-Key ' + key, revision: revision, accept: 'application/json' },
+    }).then(async function (r) { return { status: r.status, body: (await r.text()).slice(0, 300) }; }),
+    function (e) { return { failed: String(e).slice(0, 200) }; });
+    return json({ ok: true, probe: probe });
+  }
+
   const email = String((body && body.email) || '').trim().toLowerCase();
   if (!EMAIL_RX.test(email) || email.length > 254) return json({ ok: false, error: 'bad_email' }, 400);
   // Honeypot: a real person never fills a hidden field. Answer 200 so a bot
@@ -97,33 +106,33 @@ async function handle({ request, env }) {
     },
   };
 
-  // Hard timeout: without it a hanging upstream call kills the whole worker
-  // and Cloudflare answers with an unreadable 502 page.
-  const abort = new AbortController();
-  const timer = setTimeout(function () { abort.abort(); }, 5000);
+  // A race, not an AbortController: this way a hanging or misbehaving upstream
+  // call can never take the whole invocation down with it.
+  const result = await race(fetch('https://a.klaviyo.com/api/profile-subscription-bulk-create-jobs/', {
+    method: 'POST',
+    headers: {
+      Authorization: 'Klaviyo-API-Key ' + key,
+      revision: revision,
+      'Content-Type': 'application/json',
+      accept: 'application/json',
+    },
+    body: JSON.stringify(payload),
+  }).then(async function (r) {
+    return { status: r.status, ok: r.ok, text: r.status === 202 ? '' : (await r.text()).slice(0, 500) };
+  }), function (e) { return { failed: String(e).slice(0, 300) }; });
 
-  try {
-    const upstream = await fetch('https://a.klaviyo.com/api/profile-subscription-bulk-create-jobs/', {
-      method: 'POST',
-      headers: {
-        Authorization: 'Klaviyo-API-Key ' + key,
-        revision: revision,
-        'Content-Type': 'application/json',
-        accept: 'application/json',
-      },
-      body: JSON.stringify(payload),
-      signal: abort.signal,
-    });
-    clearTimeout(timer);
-    // Klaviyo answers 202 with an empty body on success.
-    if (upstream.status === 202 || upstream.ok) return json({ ok: true, language: language });
-    const detail = await upstream.text();
-    return json({ ok: false, error: 'klaviyo_' + upstream.status, detail: detail.slice(0, 500) }, 502);
-  } catch (e) {
-    clearTimeout(timer);
-    const aborted = e && (e.name === 'AbortError' || /abort/i.test(String(e)));
-    return json({ ok: false, error: aborted ? 'upstream_timeout' : 'upstream_failed', detail: String(e).slice(0, 300) }, 502);
-  }
+  if (result.timeout) return json({ ok: false, error: 'upstream_timeout' }, 502);
+  if (result.failed) return json({ ok: false, error: 'upstream_failed', detail: result.failed }, 502);
+  if (result.status === 202 || result.ok) return json({ ok: true, language: language });
+  return json({ ok: false, error: 'klaviyo_' + result.status, detail: result.text }, 502);
+}
+
+// Resolves with the promise's value, {timeout:true} after 6s, or onError(e).
+function race(promise, onError) {
+  return Promise.race([
+    promise.catch(onError),
+    new Promise(function (resolve) { setTimeout(function () { resolve({ timeout: true }); }, 6000); }),
+  ]);
 }
 
 // GET /api/newsletter → harmless status check. Reports WHETHER the variables
