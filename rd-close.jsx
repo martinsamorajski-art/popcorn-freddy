@@ -105,7 +105,7 @@ const RD_FAQ = {
       { q: 'Für welches Alter ist das Abenteuer gedacht?', a: 'Ab 4 Jahren. Jüngere Kinder bauen und bemalen gemeinsam mit euch, ältere Entdecker schaffen vieles schon allein — die Geschichte wächst mit.' },
       { q: 'Was steckt in jeder Box?', a: 'Ein illustriertes Buchkapitel, ein echter Holzspielzeug-Bausatz, Pinsel und Farben, die Schatzkarte zur nächsten Etappe und eine einfache Bauanleitung. Zur ersten Box gibt es die gravierte Kunstleder-Mappe geschenkt.' },
       { q: 'Ist das ein Abo?', a: 'Nein. Jedes Kapitel wird einzeln bestellt — ganz in eurem Tempo. Wenn ein neues Kapitel erscheint, erfährst du es zuerst über die Reisepost (unseren Newsletter).' },
-      { q: 'Wie schnell wird geliefert?', a: 'Deine Schatzkiste wird von Hand gepackt und ist in 2–3 Werktagen bei euch. Die Versandkosten werden an der Kasse berechnet.' },
+      { q: 'Wie schnell wird geliefert?', a: 'Deine Schatzkiste wird von Hand gepackt und ist in 3–5 Werktagen bei euch. Die Versandkosten werden an der Kasse berechnet.' },
       { q: 'Sind die Materialien sicher?', a: 'Ja. Wir verwenden FSC-Birkenholz und schadstofffreie, kindgerechte Farben. Alles wird in der EU gefertigt und streng geprüft.' },
       { q: 'Kann ich das Abenteuer verschenken?', a: 'Sehr gut sogar. Wähle an der Kasse die magische Geschenkverpackung mit Wachssiegel und Tannenzweig — und trage den Namen des Kindes ein, das beschenkt wird.' },
     ],
@@ -118,7 +118,7 @@ const RD_FAQ = {
       { q: 'What age is the adventure made for?', a: 'Ages 4 and up. Younger children build and paint together with you, older explorers manage much of it on their own — the story grows with them.' },
       { q: "What's inside each box?", a: 'An illustrated book chapter, a real wooden toy kit, brush and paints, the treasure map to the next stop and simple assembly instructions. The engraved faux leather folder comes free with your first box.' },
       { q: 'Is it a subscription?', a: "No. Each chapter is ordered individually — at your own pace. When a new chapter appears, you'll hear it first through the travel post (our newsletter)." },
-      { q: 'How fast is delivery?', a: 'Your treasure chest is packed by hand and reaches you in 2–3 business days. Shipping is calculated at checkout.' },
+      { q: 'How fast is delivery?', a: 'Your treasure chest is packed by hand and reaches you in 3–5 business days. Shipping is calculated at checkout.' },
       { q: 'Are the materials safe?', a: 'Yes. We use FSC birch wood and non-toxic, child-safe paints. Everything is made in the EU and strictly tested.' },
       { q: 'Can I give the adventure as a gift?', a: 'Absolutely. Choose the magical gift wrapping with wax seal and a sprig of pine at checkout — and enter the name of the child receiving it.' },
     ],
@@ -152,11 +152,21 @@ function RdNewsletter({ t, intensity }) {
   const [email, setEmail] = useState('');
   const [agree, setAgree] = useState(false);
   const [err, setErr] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [failed, setFailed] = useState(false);
   const [sent, setSent] = useState(false);
+  const trap = React.useRef(null);
   const submit = (e) => {
     e.preventDefault();
     if (!agree) { setErr(true); return; }
-    if (email) setSent(true);
+    if (!window.PFNews || !PFNews.valid(email)) return;
+    setBusy(true); setFailed(false);
+    PFNews.subscribe(email, 'footer', trap.current ? trap.current.value : '').then((r) => {
+      setBusy(false);
+      // A store that is not wired up yet must not tell the visitor they are
+      // subscribed — that would silently lose the address.
+      if (r && r.ok) setSent(true); else setFailed(true);
+    });
   };
   return (
     <section id="newsletter" data-rd data-screen-label="Newsletter" style={{ padding: '120px 0 150px', color: 'var(--rd-cream)', background: 'radial-gradient(ellipse 70% 55% at 50% 100%, color-mix(in srgb, var(--rd-gold) 18%, transparent) 0%, transparent 55%), linear-gradient(180deg, var(--rd-cream) 0%, color-mix(in srgb, var(--rd-cream) 55%, var(--rd-forest) 45%) 10%, color-mix(in srgb, var(--rd-forest) 65%, var(--rd-cream) 35%) 20%, var(--rd-forest) 32%, var(--rd-forest-deep) 48%, var(--rd-night) 78%)' }}>
@@ -178,13 +188,16 @@ function RdNewsletter({ t, intensity }) {
             <form className="rd-news-doi" onSubmit={submit} noValidate>
               <div className="rd-news-form">
                 <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" required placeholder={t.news.placeholder} aria-label={t.news.placeholder} />
-                <button type="submit" className="rbtn rbtn-primary">{t.news.cta}</button>
+                <button type="submit" className="rbtn rbtn-primary" disabled={busy}>{busy ? (t.news.sending || t.news.cta) : t.news.cta}</button>
               </div>
+              {/* Honeypot — hidden from people, irresistible to bots. */}
+              <input ref={trap} type="text" name="company" tabIndex="-1" autoComplete="off" aria-hidden="true" style={{ position: 'absolute', left: '-9999px', width: 1, height: 1, opacity: 0 }} />
               <label className="rd-news-consent">
                 <input type="checkbox" checked={agree} onChange={(e) => { setAgree(e.target.checked); if (e.target.checked) setErr(false); }} aria-describedby={err ? 'rd-news-err' : undefined} />
                 <span>{t.news.consent} <a href="Datenschutz.html">{t.news.consent_link}</a>.</span>
               </label>
               {err && <div id="rd-news-err" role="alert" className="rd-news-err">{t.news.consent_err}</div>}
+              {failed && <div role="alert" className="rd-news-err">{t.news.error}</div>}
             </form>
           ) : (
             <div className="r-it" style={{ fontSize: 20, background: 'var(--rd-cream)', color: 'var(--rd-ink)', padding: '20px 34px', borderRadius: 12, boxShadow: '0 26px 55px -22px rgba(0,0,0,0.6)', maxWidth: 460, lineHeight: 1.45, textWrap: 'pretty' }}>{t.news.success}</div>
@@ -477,6 +490,7 @@ function RdApp() {
       <RdHero t={t} lang={lang} direction={tw.heroDir} intensity={intensity} onAdd={() => addToCart(featured)} />
       {typeof RdCountrySuggest === 'function' && <RdCountrySuggest lang={lang} />}
       {typeof RdLangSuggest === 'function' && <RdLangSuggest />}
+      {typeof RdNewsPopup === 'function' && <RdNewsPopup lang={lang} />}
       <RdInside t={t} lang={lang} />
       <RdWhy t={t} />
       <RdStory t={t} intensity={intensity} />

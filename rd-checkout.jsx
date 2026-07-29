@@ -42,7 +42,7 @@ const RC_COPY = {
       title: 'Wohin reist die Box?',
       f_name: 'Vor- & Nachname', f_street: 'Straße & Hausnummer', f_zip: 'PLZ', f_city: 'Ort', f_country: 'Land', f_email: 'E-Mail für die Reisepost',
       countries: ['Deutschland', 'Österreich', 'Schweiz'],
-      note: 'In 2–3 Werktagen bei dir. Die Versandkosten werden nach Eingabe deiner Lieferadresse berechnet.',
+      note: 'In 3–5 Werktagen bei dir. Die Versandkosten werden nach Eingabe deiner Lieferadresse berechnet.',
       back: 'Zurück',
       next: 'Weiter zur Zahlung',
     },
@@ -98,7 +98,7 @@ const RC_COPY = {
       vat: 'inkl. MwSt.',
       contents: 'Das steckt in jeder Box',
       trust: [
-        { icon: 'truck', t: 'Versand in 2–3 Werktagen' },
+        { icon: 'truck', t: 'Versand in 3–5 Werktagen' },
         { icon: 'shield', t: 'Sicher & schadstofffrei' },
         { icon: 'gift', t: 'Geschenkfertig verpackt' },
       ],
@@ -110,7 +110,7 @@ const RC_COPY = {
       order_no: 'Bestellnummer',
       timeline: [
         { icon: 'build', t: 'Heute', d: 'Deine Box wird gepackt & graviert.' },
-        { icon: 'truck', t: '2–3 Werktage', d: 'Die Schatzkiste reist zu euch.' },
+        { icon: 'truck', t: '3–5 Werktage', d: 'Die Schatzkiste reist zu euch.' },
         { icon: 'book', t: 'Dann', d: 'Vorlesen, bauen — und losziehen.' },
       ],
       cta: 'Zurück zur Startseite',
@@ -154,7 +154,7 @@ const RC_COPY = {
       title: 'Where is the box travelling?',
       f_name: 'First & last name', f_street: 'Street & number', f_zip: 'Postcode', f_city: 'City', f_country: 'Country', f_email: 'Email for the travel post',
       countries: ['Germany', 'Austria', 'Switzerland'],
-      note: 'With you in 2–3 business days. Shipping is calculated once you enter your delivery address.',
+      note: 'With you in 3–5 business days. Shipping is calculated once you enter your delivery address.',
       back: 'Back',
       next: 'Continue to payment',
     },
@@ -210,7 +210,7 @@ const RC_COPY = {
       vat: 'incl. VAT',
       contents: "What's inside every box",
       trust: [
-        { icon: 'truck', t: 'Ships in 2–3 business days' },
+        { icon: 'truck', t: 'Ships in 3–5 business days' },
         { icon: 'shield', t: 'Safe & non-toxic' },
         { icon: 'gift', t: 'Gift-ready packaging' },
       ],
@@ -222,7 +222,7 @@ const RC_COPY = {
       order_no: 'Order number',
       timeline: [
         { icon: 'build', t: 'Today', d: 'Your box is packed & engraved.' },
-        { icon: 'truck', t: '2–3 business days', d: 'The treasure chest travels to you.' },
+        { icon: 'truck', t: '3–5 business days', d: 'The treasure chest travels to you.' },
         { icon: 'book', t: 'Then', d: 'Read aloud, build — and set off.' },
       ],
       cta: 'Back to the homepage',

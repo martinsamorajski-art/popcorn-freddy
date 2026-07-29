@@ -39,7 +39,7 @@ const CH1_TRUST = {
     ],
     badges: [
       { icon: 'shield', t: 'Sichere Bezahlung', d: 'SSL-verschlüsselter Checkout' },
-      { icon: 'truck', t: 'Schnelle Lieferung', d: 'In 2–3 Werktagen bei euch' },
+      { icon: 'truck', t: 'Schnelle Lieferung', d: 'In 3–5 Werktagen bei euch' },
       { icon: 'gift', t: 'Sorgfältig verpackt', d: 'Bereit zum Verschenken' },
       { icon: 'check', t: 'Premium-Material', d: 'FSC-Holz, Farben nach DIN EN 71-3' },
     ],
@@ -54,7 +54,7 @@ const CH1_TRUST = {
       { q: 'Welches Format hat das Buch?', a: 'Jedes Kapitel ist ein hochwertiger A5-Druck — genau passend für die Sammel-Mappe.' },
       { q: 'Welche Materialien werden verwendet?', a: 'FSC-zertifiziertes Birkenholz, speichelfeste Farben auf Wasserbasis nach DIN EN 71-3 und Premiumpapier.' },
       { q: 'Wo wird gedruckt?', a: 'Alle Kapitel werden in Deutschland auf Premiumpapier gedruckt.' },
-      { q: 'Wie lange dauert der Versand?', a: '2–3 Werktage. Die Versandkosten werden an der Kasse berechnet.' },
+      { q: 'Wie lange dauert der Versand?', a: '3–5 Werktage. Die Versandkosten werden an der Kasse berechnet.' },
     ],
   },
   en: {
@@ -96,7 +96,7 @@ const CH1_TRUST = {
     ],
     badges: [
       { icon: 'shield', t: 'Secure payment', d: 'SSL-secured checkout' },
-      { icon: 'truck', t: 'Fast delivery', d: 'With you in 2–3 business days' },
+      { icon: 'truck', t: 'Fast delivery', d: 'With you in 3–5 business days' },
       { icon: 'gift', t: 'Carefully packaged', d: 'Ready for gifting' },
       { icon: 'check', t: 'Premium materials', d: 'FSC wood, paints to DIN EN 71-3' },
     ],
@@ -111,7 +111,7 @@ const CH1_TRUST = {
       { q: 'What size is the book?', a: 'Each chapter is a premium A5 print — sized exactly for the collector folder.' },
       { q: 'What materials are used?', a: 'FSC-certified birch wood, saliva-resistant water-based paints to DIN EN 71-3, and premium paper.' },
       { q: 'Where is it printed?', a: 'Every chapter is printed in Germany on premium paper.' },
-      { q: 'How long does shipping take?', a: '2–3 business days. Shipping is calculated at checkout.' },
+      { q: 'How long does shipping take?', a: '3–5 business days. Shipping is calculated at checkout.' },
     ],
   },
 };

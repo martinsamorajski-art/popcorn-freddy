@@ -24,28 +24,28 @@
         <tr><td style="padding:40px 34px 8px;font-family:Georgia,'Times New Roman',serif;color:#22301f;">
           <h1 style="margin:0 0 14px;font-size:28px;line-height:1.2;font-weight:normal;">Nur noch ein Klick.</h1>
           <p style="margin:0 0 18px;font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.65;color:#4a5a48;">
-            Schön, dass du bei der Reisepost dabei sein möchtest! Damit wir dir wirklich schreiben dürfen, bestätige bitte kurz deine E-Mail-Adresse <strong>[E-Mail-Adresse]</strong>.
+            Schön, dass du bei der Reisepost dabei sein möchtest! Damit wir dir wirklich schreiben dürfen, bestätige bitte kurz deine E-Mail-Adresse <strong>{{ person.email }}</strong>.
           </p>
         </td></tr>
         <tr><td align="center" style="padding:14px 34px 28px;">
-          <a href="[BESTÄTIGUNGS-LINK]" style="display:inline-block;background:#c1673f;color:#faf6eb;text-decoration:none;font-family:Arial,Helvetica,sans-serif;font-weight:bold;font-size:16px;padding:15px 34px;border-radius:10px;">Anmeldung bestätigen</a>
+          <a href="{{ opt_in_link }}" style="display:inline-block;background:#c1673f;color:#faf6eb;text-decoration:none;font-family:Arial,Helvetica,sans-serif;font-weight:bold;font-size:16px;padding:15px 34px;border-radius:10px;">Anmeldung bestätigen</a>
         </td></tr>
         <tr><td style="padding:0 34px 34px;font-family:Arial,Helvetica,sans-serif;color:#4a5a48;">
           <p style="margin:0 0 16px;font-size:13.5px;line-height:1.6;">
             Klappt der Button nicht, kopiere diesen Link in deinen Browser:<br />
-            <span style="color:#c1673f;word-break:break-all;">[BESTÄTIGUNGS-LINK]</span>
+            <span style="color:#c1673f;word-break:break-all;">{{ opt_in_link }}</span>
           </p>
           <p style="margin:0 0 16px;font-size:13.5px;line-height:1.6;color:#7a8678;">
             Du hast dich nicht angemeldet? Dann ignoriere diese E-Mail einfach — ohne deine Bestätigung senden wir dir nichts.
           </p>
           <hr style="border:none;border-top:1px solid rgba(28,61,46,0.14);margin:22px 0;" />
           <p style="margin:0;font-size:12px;line-height:1.6;color:#7a8678;">
-            [Firmenname] · [Anschrift] · [E-Mail-Adresse]<br />
-            Verarbeitung deiner Daten: <a href="[URL]/Datenschutz.html" style="color:#c1673f;">Datenschutzerklärung</a> · <a href="[URL]/Impressum.html" style="color:#c1673f;">Impressum</a>
+            Popcorn &amp; Freddy GmbH · Am Waldrand 7, 6020 Innsbruck · post@popcornfreddy.com<br />
+            Verarbeitung deiner Daten: <a href="https://popcornfreddy.com/Datenschutz.html" style="color:#c1673f;">Datenschutzerklärung</a> · <a href="https://popcornfreddy.com/Impressum.html" style="color:#c1673f;">Impressum</a>
           </p>
         </td></tr>
       </table>
-      <p style="margin:18px 0 0;font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#9aa595;">VORLAGE — Platzhalter in [Klammern] vor Versand ersetzen.</p>
+      
     </td></tr>
   </table>
 </body>
