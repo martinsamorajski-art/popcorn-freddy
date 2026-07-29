@@ -485,6 +485,24 @@ function RcApp() {
   // Shopify (secure/PCI). If the store isn't live (preview), fall back to the
   // built-in mock payment step so the design still works.
   const COUNTRY_CC = { 'Deutschland': 'DE', 'Germany': 'DE', 'Österreich': 'AT', 'Osterreich': 'AT', 'Austria': 'AT', 'Schweiz': 'CH', 'Switzerland': 'CH' };
+  // One Shopify line per box so every child's name reaches the order.
+  // Keys stay German on purpose — the order always reads the same for you.
+  const checkoutLines = () => {
+    const out = [];
+    lines.forEach((c) => {
+      const q = Math.max(1, c.qty || 1);
+      for (let i = 0; i < q; i++) {
+        const p = personal[c.n + ':' + i] || {};
+        const attrs = {};
+        const childName = (p.name || '').trim();
+        if (childName) attrs['Name des Kindes'] = childName;
+        attrs['Sprache'] = String(p.lang || 'de').toUpperCase();
+        out.push({ n: c.n, handle: c.handle || c.n, variantId: c.variantId, qty: 1, attrs: attrs });
+      }
+    });
+    return out;
+  };
+
   const goToPayment = () => {
     var nm = (form.name || '').trim();
     var buyer = {
@@ -502,7 +520,7 @@ function RcApp() {
       setSealing(true);
       PFShop.detect().then(function (ok) {
         if (!ok) { setSealing(false); goTo(2); return; }   // preview / not live: mock step
-        return Promise.resolve(PFShop.checkout(buyer)).then(function (started) {
+        return Promise.resolve(PFShop.checkout(buyer, checkoutLines())).then(function (started) {
           if (!started) { setSealing(false); goTo(2); }     // couldn't hand off: mock step
         });
       }).catch(function () { setSealing(false); goTo(2); });

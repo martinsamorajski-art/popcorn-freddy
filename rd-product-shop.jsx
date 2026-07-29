@@ -102,7 +102,6 @@ function PSGallery({ images }) {
 
 // ─── BUY BOX ─────────────────────────────────────────────────
 function PSBuyBox({ p, ui, x, lang, inCart, onAdd }) {
-  const [childName, setChildName] = useState('');
   const ratingCount = p.rating_count || 0;
   const lede = pfStripTags(p.descriptionHtml) || '';
   const soldOut = p.available === false;
@@ -153,17 +152,10 @@ function PSBuyBox({ p, ui, x, lang, inCart, onAdd }) {
       </div>
 
       <div style={{ marginTop: 18, display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {p.personalization_label && (
-          <label style={{ display: 'flex', flexDirection: 'column', gap: 6, fontFamily: 'var(--f-sans)', fontSize: 13.5, color: 'var(--rd-ink-soft)' }}>
-            <span>{p.personalization_label} <em style={{ color: 'var(--rd-ink-mute)' }}>{ui.name_hint}</em></span>
-            <input type="text" value={childName} onChange={(e) => setChildName(e.target.value)} placeholder={ui.name_ph} maxLength={24}
-              style={{ height: 46, border: '1px solid color-mix(in srgb, var(--rd-ink) 20%, transparent)', borderRadius: 12, padding: '0 14px', fontSize: 16, fontFamily: 'var(--f-serif)', color: 'var(--rd-ink)', background: '#fffdf6', outline: 'none' }} />
-          </label>
-        )}
         {soldOut ? (
           <span className="rbtn rbtn-ghost rbtn-xl" style={{ cursor: 'default', justifyContent: 'center' }}>{ui.sold_out}</span>
         ) : !inCart ? (
-          <button className="rbtn rbtn-primary rbtn-xl shop-cta" onClick={() => onAdd(childName)}>{ui.add} · {p.priceFormatted} <RdIcon name="arrow" size={17} /></button>
+          <button className="rbtn rbtn-primary rbtn-xl shop-cta" onClick={() => onAdd()}>{ui.add} · {p.priceFormatted} <RdIcon name="arrow" size={17} /></button>
         ) : (
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
             <span className="rbtn rbtn-ghost rbtn-xl" style={{ cursor: 'default', color: 'var(--rd-moss)', borderColor: 'color-mix(in srgb, var(--rd-moss) 50%, transparent)', flex: '1 1 auto', justifyContent: 'center' }}><RdIcon name="check" size={17} /> {ui.added}</span>
@@ -434,9 +426,9 @@ function PSBody({ p, lang }) {
     return () => { window.removeEventListener('rd-cart-changed', sync); window.removeEventListener('pf-shop-cart-changed', sync); };
   }, [p.handle]);
 
-  const onAdd = (childName) => {
+  const onAdd = () => {
+    // The child's name is collected per box in the checkout, not here.
     const attrs = {};
-    if (childName && childName.trim()) attrs[p.personalization_label || 'Name'] = childName.trim();
     // Local mirror drives the existing cart flyout design (and preview).
     const cart = rdCartLoad();
     const i = cart.findIndex((it) => it.n === p.handle);

@@ -116,8 +116,7 @@ function GpsrPriceNote({ lang }) {
   const g = GPSR[lang] || GPSR.de;
   return (
     <div style={{ marginTop: 10, fontFamily: 'var(--f-sans)', fontSize: 13.5, color: 'var(--rd-ink-mute)', lineHeight: 1.55 }}>
-      <div>{g.price_incl} · {g.price_ship_a} <a href="Versand & Ruecksendung.html" style={{ color: 'var(--rd-terra)', fontWeight: 600 }}>{g.price_ship_link}</a> {g.price_ship_b}</div>
-      <div style={{ marginTop: 3 }}>{g.price_lowest}</div>
+      <div>{g.price_incl} · {g.price_ship_a} <a href="Versand & Ruecksendung.html" style={{ color: 'var(--rd-terra)', fontWeight: 600 }}>{g.price_ship_link}</a></div>
     </div>
   );
 }

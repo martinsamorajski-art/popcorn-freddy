@@ -173,8 +173,22 @@
   // prefix (strip any current prefix, keep the rest of the path, re-add prefix).
   // The page slug is translated on the way through, so an English address
   // becomes its German file when switching to a German locale and vice versa.
+  // Switching locale never throws the basket away. The basket only stores
+  // product references (handle + quantity), so Shopify re-prices it in the new
+  // market on the next render. A language-only switch (at → at-en) is the same
+  // market and the same currency, so nothing at all has to change.
+  // A COUNTRY switch (at → ch) does change the currency: the Shopify cart id is
+  // bound to one currency, so we drop that id and let the next checkout build a
+  // fresh cart in the new one. The items themselves stay put.
+  function resetCartForMarket(fromPrefix, toPrefix) {
+    var a = PREFIX[fromPrefix], b = PREFIX[toPrefix];
+    if (!a || !b || a.country === b.country) return;
+    try { localStorage.removeItem('pf-shopify-cart-v1'); } catch (e) {}
+  }
+
   function switchTo(prefix) {
     if (!PREFIX[prefix]) return;
+    resetCartForMarket(activePrefix(), prefix);
     saveChoice(prefix); markExplicit();
     var stripped = (location.pathname || '/').replace(RX, '');
     if (stripped === '' || stripped === '/') { location.href = home(prefix) + location.search + location.hash; return; }

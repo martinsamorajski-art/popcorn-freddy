@@ -19,7 +19,7 @@ const AGB_COPY = {
         'Alle Preise verstehen sich in Euro inklusive der gesetzlichen Umsatzsteuer. Die Versandkosten betragen 7 € nach Österreich sowie je 9 € nach Deutschland und in die Schweiz und werden im Bestellvorgang gesondert ausgewiesen. Wir akzeptieren die an der Kasse angezeigten Zahlungsarten (Kreditkarte, PayPal, Klarna, SEPA). Der Kaufpreis ist mit Vertragsschluss fällig.',
       ]},
       { h: 'Lieferung', body: [
-        'Die Lieferzeit beträgt in der Regel 3–5 Werktage ab Bestellbestätigung; da jede Box personalisiert gefertigt wird, kann sie sich im Einzelfall um einen Werktag verlängern. Ist ein Artikel nicht lieferbar, informieren wir euch unverzüglich und erstatten bereits geleistete Zahlungen.',
+        'Die Lieferzeit beträgt in der Regel 2–3 Werktage ab Bestellbestätigung; da jede Box personalisiert gefertigt wird, kann sie sich im Einzelfall um einen Werktag verlängern. Ist ein Artikel nicht lieferbar, informieren wir euch unverzüglich und erstatten bereits geleistete Zahlungen.',
       ]},
       { h: 'Rücktrittsrecht (Widerruf) nach FAGG', body: [
         'Verbraucher:innen können von einem Fernabsatzvertrag grundsätzlich binnen 14 Tagen ab Erhalt der Ware ohne Angabe von Gründen zurücktreten (§ 11 FAGG). Für den Rücktritt genügt eine eindeutige Erklärung, z. B. per E-Mail an post@popcornundfreddy.at.',
@@ -60,7 +60,7 @@ const AGB_COPY = {
         'All prices are in euros and include statutory VAT. Shipping costs are €7 to Austria and €9 each to Germany and Switzerland, shown separately during checkout. We accept the payment methods displayed at checkout (credit card, PayPal, Klarna, SEPA). The purchase price is due upon conclusion of the contract.',
       ]},
       { h: 'Delivery', body: [
-        'Delivery usually takes 3–5 business days from order confirmation; as every box is made to order, it may occasionally take one business day longer. If an item is unavailable, we will inform you immediately and refund any payments already made.',
+        'Delivery usually takes 2–3 business days from order confirmation; as every box is made to order, it may occasionally take one business day longer. If an item is unavailable, we will inform you immediately and refund any payments already made.',
       ]},
       { h: 'Right of withdrawal under the Austrian FAGG', body: [
         'Consumers may in principle withdraw from a distance contract within 14 days of receiving the goods without giving reasons (§ 11 FAGG — Austrian Distance Selling Act). An unambiguous declaration is sufficient, e.g. by email to post@popcornundfreddy.at.',

@@ -697,7 +697,7 @@
     return detect().then(function (ok) {
       if (!ok) return null;
       if (readCartRef().id) return setDeliveryAddress(addr);
-      var items = localCartItems();
+      var items = (itemsOverride && itemsOverride.length) ? itemsOverride : localCartItems();
       if (!items.length) return null;
       return Promise.all(items.map(function (it) {
         var handle = it.handle || (typeof it.n === 'string' ? it.n : null);
@@ -750,10 +750,10 @@
     if (window.PFLocale) { window.PFLocale.go('Checkout.html'); return; }
     window.location.href = 'Checkout.html';
   }
-  function checkout(buyer) {
+  function checkout(buyer, itemsOverride) {
     return detect().then(function (ok) {
       if (!ok) { gotoCheckoutPage(); return false; }
-      var items = localCartItems();
+      var items = (itemsOverride && itemsOverride.length) ? itemsOverride : localCartItems();
       if (!items.length) {
         return getCart().then(function (c) {
           if (c && c.checkoutUrl) { window.location.href = checkoutUrlWithPrefill(c.checkoutUrl, buyer); return true; }
