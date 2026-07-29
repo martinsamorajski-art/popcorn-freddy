@@ -1,0 +1,24 @@
+# NO `200` rules here — deliberately.
+# Cloudflare Pages does not honour 200 rewrites in _redirects (Netlify feature);
+# it performs a REAL redirect, which changes the address bar and strips the
+# locale prefix (/at/produkt/x → /Produkt). All locale routing is therefore done
+# as a true rewrite in Pages Functions, which keep the URL intact:
+#   functions/at|de|ch|us/[[path]].js  →  /{locale}/… (home, produkt, pages)
+#   functions/at-en|de-en|ch-en/…      →  the same, in English (same market)
+#   functions/produkt/[[path]].js      →  /produkt/<handle> (no-prefix fallback)
+# Only genuine 3xx redirects belong in this file.
+
+# Bare prefix → prefixed home (301 is a real redirect, so the prefix survives).
+/at  /at/  301
+/de  /de/  301
+/ch  /ch/  301
+/us  /us/  301
+/at-en  /at-en/  301
+/de-en  /de-en/  301
+/ch-en  /ch-en/  301
+
+# Retired legacy per-chapter pages → new product template (keeps old links alive)
+/Der%20Fluesterwald%20v3.html            /produkt/kapitel-1-fluesterwald  301
+/Der%20Silbersee%20-%20Kapitel%202.html  /produkt/kapitel-2-silbersee     301
+/Der Fluesterwald v3.html                /produkt/kapitel-1-fluesterwald  301
+/Der Silbersee - Kapitel 2.html          /produkt/kapitel-2-silbersee     301

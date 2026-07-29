@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Shop-Setup — dein Fahrplan | Popcorn &amp; Freddy</title>
+<link rel="stylesheet" href="assets/fonts.css?v=20260727" />
+<style>
+:root{--paper:#F7F0DF;--paper-warm:#F1E7D0;--cream:#FBF5E6;--ink:#2C2519;--ink-soft:#6B5D48;--ink-mute:#9A8A6E;--forest:#3F4E36;--forest-deep:#2B3626;--walnut:#5F4A32;--terra:#B0623C;--gold:#A8823F;--gold-soft:#C9A96C;--moss:#5E7A4F;--line:#E4D7B6}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:'Alegreya',Georgia,serif;line-height:1.6;-webkit-font-smoothing:antialiased}
+.ui{font-family:'Alegreya Sans',sans-serif}
+a{color:var(--forest);text-decoration:underline;text-underline-offset:2px}
+a:hover{color:var(--terra)}
+.wrap{max-width:820px;margin:0 auto;padding:0 24px}
+header.hero{background:radial-gradient(ellipse 60% 80% at 85% 0%,color-mix(in srgb,var(--gold-soft) 30%,transparent),transparent 60%),var(--forest-deep);color:var(--paper);padding:64px 0 56px}
+.hero .eyebrow{font-family:'Alegreya Sans',sans-serif;text-transform:uppercase;letter-spacing:.24em;font-size:13px;color:var(--gold-soft)}
+.hero h1{font-family:'Young Serif',serif;font-weight:400;font-size:clamp(34px,5vw,52px);margin:14px 0 12px;line-height:1.05}
+.hero p{font-size:19px;color:rgba(247,240,223,.86);max-width:620px;font-style:italic}
+.hand{font-family:'Caveat',cursive;color:var(--terra);font-size:23px;line-height:1.3}
+section{padding:44px 0}
+section+section{border-top:1px solid var(--line)}
+h2{font-family:'Young Serif',serif;font-weight:400;font-size:27px;color:var(--forest-deep);margin:0 0 6px;display:flex;align-items:baseline;gap:14px}
+h2 .num{font-family:'Alegreya Sans',sans-serif;font-weight:800;font-size:15px;color:#fff;background:var(--terra);width:34px;height:34px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;flex:none;transform:translateY(-2px)}
+h2 .later{font-family:'Alegreya Sans',sans-serif;font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--moss);background:color-mix(in srgb,var(--moss) 14%,transparent);border:1px solid color-mix(in srgb,var(--moss) 40%,transparent);padding:3px 10px;border-radius:20px;margin-left:auto;align-self:center}
+h3{font-family:'Alegreya Sans',sans-serif;font-size:16px;font-weight:800;color:var(--walnut);margin:22px 0 4px}
+p.lead{font-size:18px;color:var(--ink-soft)}
+ol,ul{padding-left:22px}li{margin:7px 0}
+.stack{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:8px 0 4px}
+@media(max-width:600px){.stack{grid-template-columns:1fr}.split{grid-template-columns:1fr!important}}
+.chip{background:var(--cream);border:1px solid var(--line);border-radius:12px;padding:13px 15px}
+.chip b{font-family:'Alegreya Sans',sans-serif;font-size:15px;color:var(--ink)}
+.chip span{display:block;font-size:14px;color:var(--ink-soft);font-style:italic;margin-top:2px}
+.cost{font-family:'Alegreya Sans',sans-serif;font-size:13px;font-weight:700;color:var(--terra);margin-top:6px}
+code{font-family:'SF Mono',ui-monospace,Menlo,Consolas,monospace;background:var(--paper-warm);border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:.82em;color:var(--walnut)}
+pre{background:var(--forest-deep);color:#eadfc4;border-radius:12px;padding:16px 18px;overflow:auto;font-size:13px;line-height:1.55}
+pre code{background:none;border:none;color:inherit;padding:0}
+.callout{background:var(--cream);border:1px solid var(--line);border-left:4px solid var(--gold);border-radius:0 12px 12px 0;padding:16px 20px;margin:20px 0}
+.callout.done{border-left-color:var(--moss)}
+.callout.warn{border-left-color:var(--terra)}
+.callout h4{font-family:'Alegreya Sans',sans-serif;font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;margin:0 0 6px;color:var(--walnut)}
+.callout.done h4{color:var(--moss)}.callout.warn h4{color:var(--terra)}
+.check{list-style:none;padding:0}
+.check li{padding-left:30px;position:relative;font-size:16px}
+.check li::before{content:'';position:absolute;left:0;top:5px;width:16px;height:16px;border:2px solid var(--gold);border-radius:4px}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.done-box,.todo-box{border-radius:14px;padding:20px 22px}
+.done-box{background:color-mix(in srgb,var(--moss) 10%,var(--cream));border:1px solid color-mix(in srgb,var(--moss) 35%,transparent)}
+.todo-box{background:color-mix(in srgb,var(--terra) 8%,var(--cream));border:1px solid color-mix(in srgb,var(--terra) 30%,transparent)}
+.done-box h3,.todo-box h3{margin-top:0}
+footer{background:var(--forest-deep);color:rgba(247,240,223,.7);padding:34px 0;font-size:14px;text-align:center;font-style:italic}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow">Dein Shop-Fahrplan</div>
+    <h1>Von der schönen Seite zum echten Shop.</h1>
+    <p>Dein Design bleibt zu 100 % erhalten. Snipcart, Stripe, sevDesk und Brevo docken nur an — jeder Baustein macht einen Job. Diese Seite ist deine Reihenfolge zum Abhaken.</p>
+  </div>
+</header>
+
+<div class="wrap">
+
+<section>
+  <div class="split">
+    <div class="done-box">
+      <h3>✓ Schon erledigt (von mir)</h3>
+      <ul>
+        <li>Kaufbutton ist ein Snipcart-Button — inkl. Pflichtfeld <b>„Name des Kindes"</b> (Kapitel 1 &amp; 2)</li>
+        <li>Preise, Artikelnummern, GPSR-Pflichtangaben auf den Produktseiten</li>
+        <li>Snipcart-Loader eingebaut — <b>eine Datei, ein Key</b></li>
+        <li>Umschalter: bis dein Key drin ist, läuft der bisherige Warenkorb weiter — kein Doppelsystem</li>
+        <li>Alle Rechtsseiten als Platzhalter-Gerüst, lokale Schriften (DSGVO)</li>
+      </ul>
+    </div>
+    <div class="todo-box">
+      <h3>→ Das machst du</h3>
+      <ul>
+        <li>Snipcart-Konto + Public API Key eintragen</li>
+        <li>GitHub + Netlify verbinden (Auto-Deploy)</li>
+        <li>Stripe verbinden <em>(kann zuletzt)</em></li>
+        <li>sevDesk für Rechnungen anbinden</li>
+        <li>Brevo für den Newsletter</li>
+        <li>Rechtstexte final vom Anwalt einsetzen</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="num">1</span> Snipcart-Konto &amp; Key</h2>
+  <p class="lead">Das ist der einzige Schritt, der den Shop „anschaltet".</p>
+  <ol>
+    <li>Auf <a href="https://snipcart.com" target="_blank" rel="noopener">snipcart.com</a> registrieren (kostenlos; 2 % fallen erst im Live-Betrieb an).</li>
+    <li>Dashboard → <b>Account → API Keys</b>.</li>
+    <li>Den <b>PUBLIC API KEY</b> kopieren. <b>Niemals</b> den geheimen Secret Key in die Website!</li>
+    <li>Datei <code>snipcart-loader.js</code> öffnen und den Key hier einsetzen:</li>
+  </ol>
+  <pre><code>window.SNIPCART_API_KEY = "DEIN_PUBLIC_API_KEY";</code></pre>
+  <p class="hand">Sobald ein echter Key drinsteht, übernimmt Snipcart automatisch Warenkorb + Kasse. ✎</p>
+  <div class="callout warn">
+    <h4>Vor dem echten Livegang</h4>
+    In <code>snipcart-loader.js</code> steht die Test-/Live-Logik über deinen Key. Snipcart läuft zunächst im <b>Test-Modus</b> (Test-Kreditkarten, kein echtes Geld), bis Stripe verbunden und der Live-Key hinterlegt ist.
+  </div>
+</section>
+
+<section>
+  <h2><span class="num">2</span> GitHub + Netlify</h2>
+  <p class="lead">Das löst dein „drei Versionen"-Problem dauerhaft — und macht Änderungen automatisch live.</p>
+  <h3>Warum GitHub?</h3>
+  <ul>
+    <li><b>Versionsverlauf</b> — jede Änderung gespeichert, nichts geht mehr verloren (wie damals die Gutschein-Funktionen).</li>
+    <li><b>Eine Quelle der Wahrheit</b> — nie wieder „welcher Ordner ist aktuell".</li>
+    <li><b>Auto-Deploy</b> — GitHub an Netlify koppeln: Änderung gespeichert → Seite baut sich selbst neu. Kein manuelles Hochladen.</li>
+  </ul>
+  <ol>
+    <li>Kostenloses Konto auf <a href="https://github.com" target="_blank" rel="noopener">github.com</a>.</li>
+    <li>Ein <b>Repository</b> anlegen, den Projektinhalt hochladen (kann ich für den Export vorbereiten).</li>
+    <li>In Netlify → <b>Add new site → Import from Git</b> → dein Repo wählen. Publish-Verzeichnis: <code>.</code></li>
+    <li>Fertig: ab jetzt genügt „speichern in GitHub", und Netlify stellt es live.</li>
+  </ol>
+</section>
+
+<section>
+  <h2><span class="num">3</span> Stripe — Zahlung <span class="later">später möglich</span></h2>
+  <p class="lead">Apple Pay &amp; Google Pay sind automatisch dabei.</p>
+  <ol>
+    <li>Konto auf <a href="https://stripe.com" target="_blank" rel="noopener">stripe.com</a>, Firmendaten + Bankverbindung hinterlegen.</li>
+    <li>Snipcart-Dashboard → <b>Payment Gateway → Stripe</b> verbinden (ein Klick, kein Code).</li>
+    <li>Apple/Google Pay aktivieren sich damit von selbst.</li>
+  </ol>
+  <div class="callout"><h4>Sicherheit</h4>Kartendaten laufen <b>nie</b> über deine Seite — direkt zu Stripe (PCI-DSS Level 1). Du haftest nicht für Kartendaten.</div>
+</section>
+
+<section>
+  <h2><span class="num">4</span> sevDesk — Rechnungen</h2>
+  <p class="lead">Rechtssichere österreichische Rechnung, automatisch aus jeder Bestellung.</p>
+  <ol>
+    <li>sevDesk-Konto (Tarif „Rechnung"), UID + Firmendaten eintragen; Rechnungsnummernkreis + Steuersätze (20 % / 10 %) einmalig einstellen.</li>
+    <li>Brücke Snipcart → sevDesk über <a href="https://make.com" target="_blank" rel="noopener">Make.com</a> (oder Zapier):
+      <ul><li>Auslöser: Snipcart <b>„Order completed"</b> (Webhook)</li><li>Aktion: sevDesk <b>„Rechnung erstellen"</b> mit Positionen + Kundendaten</li></ul>
+    </li>
+    <li>Eine Testrechnung prüfen.</li>
+  </ol>
+  <div class="callout warn"><h4>Wichtig</h4>Snipcarts eigener „Receipt" ist ein Kaufbeleg, <b>keine</b> finanzamtstaugliche Rechnung. Für Österreich braucht es die echte sevDesk-Rechnung (fortlaufende Nr., UID, MwSt.).</div>
+</section>
+
+<section>
+  <h2><span class="num">5</span> Brevo — Newsletter</h2>
+  <p class="lead">Double-Opt-In, Bestätigungsmail, Abmeldelink — macht Brevo komplett selbst.</p>
+  <ol>
+    <li>Konto auf <a href="https://brevo.com" target="_blank" rel="noopener">brevo.com</a> (gratis bis 300 Mails/Tag).</li>
+    <li><b>Double-Opt-In</b> aktivieren, Bestätigungs- &amp; Abmeldeseite hinterlegen.</li>
+    <li>Das Newsletter-Formular der Seite auf Brevo zeigen lassen (sag Bescheid, ich verdrahte es).</li>
+  </ol>
+</section>
+
+<section>
+  <h2><span class="num">6</span> Bestellungen &amp; Kindername sehen</h2>
+  <p class="lead">Snipcart-Dashboard → <b>Orders</b> → Bestellung öffnen.</p>
+  <p>Dort stehen Adresse, Kapitel, Betrag <b>und „Name des Kindes: …"</b> — das ist deine Druck- und Versandliste. Der Name reist automatisch mit und landet auch auf der sevDesk-Rechnung.</p>
+</section>
+
+<section>
+  <h2><span class="num">7</span> Vor dem Livegang</h2>
+  <ul class="check">
+    <li>Public API Key in <code>snipcart-loader.js</code> eingetragen</li>
+    <li>Preise geprüft (<code>39.90</code> mit Punkt) auf allen Produktseiten</li>
+    <li><code>data-item-url</code> = volle Live-URL der jeweiligen Produktseite (sobald Domain steht)</li>
+    <li>Stripe verbunden, Test-Bestellung erfolgreich</li>
+    <li>sevDesk-Automatik getestet (eine Testrechnung geprüft)</li>
+    <li>Datenschutzerklärung final (Snipcart, Stripe, sevDesk, Brevo + AVV-Verträge; Kindername als Verarbeitungszweck) — vom Anwalt / abmahnsicheren Anbieter</li>
+    <li>2-Faktor-Login bei Snipcart, Stripe, sevDesk, GitHub, Netlify aktiviert</li>
+  </ul>
+  <div class="callout done"><h4>Kosten grob</h4>~20–30 €/Monat planbar (v. a. sevDesk) + ~3,5 % pro Bestellung (Snipcart 2 % + Stripe 1,5 %). Netlify &amp; Brevo starten gratis.</div>
+</section>
+
+</div>
+
+<footer><div class="wrap">Popcorn &amp; Freddy · Dein Shop-Fahrplan · Rechtstexte immer final vom Anwalt prüfen lassen</div></footer>
+
+</body>
+</html>
