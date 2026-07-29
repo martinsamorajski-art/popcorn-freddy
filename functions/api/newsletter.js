@@ -114,15 +114,11 @@ async function handle({ request, env }) {
         profiles: {
           data: [{
             type: 'profile',
+            // This endpoint accepts ONLY email/phone and subscriptions.
+            // Anything else (properties, locale) is rejected with a 400 —
+            // those are written afterwards via profile-import.
             attributes: {
               email: email,
-              locale: locale,
-              properties: {
-                language: language,
-                country: country,
-                signup_source: source,
-                signup_locale: locale,
-              },
               subscriptions: { email: { marketing: { consent: 'SUBSCRIBED' } } },
             },
           }],
@@ -152,7 +148,35 @@ async function handle({ request, env }) {
 
   if (result.timeout) return json({ ok: false, error: 'upstream_timeout' });
   if (result.failed) return json({ ok: false, error: 'upstream_failed', detail: result.failed });
-  if (result.status === 202 || result.ok) return json({ ok: true, language: language });
+  if (result.status === 202 || result.ok) {
+    // Best effort, never fatal: the signup already counts at this point.
+    const tagged = await race(fetch('https://a.klaviyo.com/api/profile-import/', {
+      method: 'POST',
+      headers: {
+        Authorization: 'Klaviyo-API-Key ' + key,
+        revision: revision,
+        'Content-Type': 'application/json',
+        accept: 'application/json',
+      },
+      body: JSON.stringify({
+        data: {
+          type: 'profile',
+          attributes: {
+            email: email,
+            locale: locale.indexOf('-') > 0 ? language + '-' + country : language + '-' + country,
+            properties: {
+              language: language,
+              country: country,
+              signup_source: source,
+              signup_locale: locale,
+            },
+          },
+        },
+      }),
+    }).then(function (r) { return { status: r.status }; }),
+    function (e) { return { failed: String(e).slice(0, 120) }; });
+    return json({ ok: true, language: language, profile_update: tagged });
+  }
   return json({ ok: false, error: 'klaviyo_' + result.status, detail: result.text });
 }
 
