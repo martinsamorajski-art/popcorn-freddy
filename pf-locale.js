@@ -234,7 +234,14 @@
   // (that no-prefix route is a supported fallback).
   function bootstrap() {
     var path = location.pathname || '/';
-    if (prefixFromPath() || /\/produkt\//i.test(path)) return;
+    // Remember the prefix of any localized page we land on, so a later return to
+    // the bare domain (e.g. the logo on Shopify's thank-you page) comes back to
+    // the SAME locale instead of falling through to the AT default.
+    // saveChoice only — not markExplicit: arriving on a URL is not a decision,
+    // so the language/country nudges stay available.
+    var here = prefixFromPath();
+    if (here) { saveChoice(here); return; }
+    if (/\/produkt\//i.test(path)) return;
     // Only the true bare-domain root. Never when a specific file is being served
     // (e.g. /index.html in a file preview) — that has no locale routing to hit.
     if (path !== '/') return;

@@ -15,6 +15,66 @@
 (function () {
   'use strict';
   var KEY = 'pf-consent-v1';
+
+  // ── Language ──────────────────────────────────────────────────────
+  // The banner is shown BEFORE the visitor has chosen a locale, so the /at/
+  // prefix is only a geo default at that point — not a decision. Until they
+  // pick a locale themselves, the browser language wins. After an explicit
+  // pick, that pick wins.
+  function ccLang() {
+    try {
+      var L = window.PFLocale;
+      if (L) {
+        if (L.wasExplicit && L.wasExplicit()) return L.current().language === 'EN' ? 'en' : 'de';
+        if (L.deviceLanguage) return L.deviceLanguage() === 'EN' ? 'en' : 'de';
+        return L.current().language === 'EN' ? 'en' : 'de';
+      }
+      var n = (navigator.languages && navigator.languages[0]) || navigator.language || '';
+      return /^de/i.test(n) ? 'de' : 'en';
+    } catch (e) { return 'de'; }
+  }
+  // Legal pages have localized file names — link the right ones.
+  function ccHref(file) {
+    try { if (window.PFLocale && window.PFLocale.withLocale) return window.PFLocale.withLocale(file); } catch (e) {}
+    return file;
+  }
+  var CC_T = {
+    de: {
+      eyebrow: 'Datenschutz',
+      s_title: 'Cookie-Einstellungen',
+      s_text: 'Wähle selbst, was erlaubt ist. Notwendige Cookies sind für den Betrieb des Shops (Warenkorb, Kasse, Spracheinstellung) erforderlich und immer aktiv. Details in der <a href="{cookies}">Cookie-Erklärung</a> und der <a href="{privacy}">Datenschutzerklärung</a>.',
+      b_title: 'Wir fragen zuerst.',
+      b_text: 'Notwendige Cookies halten Warenkorb und Kasse am Laufen. Für Statistik oder Marketing setzen wir nichts, bevor du zustimmst. Du entscheidest — und kannst es jederzeit ändern. Mehr in der <a href="{cookies}">Cookie-Erklärung</a> und <a href="{privacy}">Datenschutzerklärung</a>.',
+      save: 'Auswahl speichern', reject: 'Alle ablehnen', accept: 'Alle akzeptieren',
+      settings: 'Einstellungen', always: 'Immer aktiv', allow: function (n) { return n + ' erlauben'; },
+      c_need: 'Notwendig',
+      c_need_d: 'Warenkorb, Bestellvorgang, Sprache und die Cookie-Entscheidung selbst. Ohne diese funktioniert der Shop nicht.',
+      c_stat: 'Statistik',
+      c_stat_d: 'Anonyme, reichweitenarme Auswertung, wie der Shop genutzt wird — nur mit deiner Einwilligung. Aktuell nicht im Einsatz.',
+      c_mkt: 'Marketing',
+      c_mkt_d: 'Personalisierte Inhalte und Messung von Werbung (z. B. eingebettete Videos). Aktuell nicht im Einsatz.',
+    },
+    en: {
+      eyebrow: 'Privacy',
+      s_title: 'Cookie settings',
+      s_text: 'Choose what you allow. Necessary cookies are required to run the shop (basket, checkout, language choice) and are always on. Details in our <a href="{cookies}">cookie notice</a> and <a href="{privacy}">privacy policy</a>.',
+      b_title: 'We ask first.',
+      b_text: 'Necessary cookies keep your basket and checkout working. We set nothing for statistics or marketing before you agree. It is your choice — and you can change it any time. More in our <a href="{cookies}">cookie notice</a> and <a href="{privacy}">privacy policy</a>.',
+      save: 'Save selection', reject: 'Reject all', accept: 'Accept all',
+      settings: 'Settings', always: 'Always on', allow: function (n) { return 'Allow ' + n; },
+      c_need: 'Necessary',
+      c_need_d: 'Basket, checkout, language and the cookie decision itself. The shop does not work without these.',
+      c_stat: 'Statistics',
+      c_stat_d: 'Anonymous, low-impact measurement of how the shop is used — only with your consent. Not in use at the moment.',
+      c_mkt: 'Marketing',
+      c_mkt_d: 'Personalised content and ad measurement (e.g. embedded videos). Not in use at the moment.',
+    },
+  };
+  function ccText(t, key) {
+    return CC_T[t][key]
+      .split('{cookies}').join(ccHref('Cookies.html'))
+      .split('{privacy}').join(ccHref('Datenschutz.html'));
+  }
   var CATS = ['statistik', 'marketing']; // 'notwendig' ist immer aktiv
   var listeners = [];
 
@@ -135,30 +195,31 @@
     var stored = read() || {};
     var state = { statistik: !!stored.statistik, marketing: !!stored.marketing };
 
+    var t = ccLang(), T = CC_T[t];
     var panel = h('div', { class: 'pf-cc-panel', role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'pf-cc-title' });
 
     if (mode === 'settings') {
-      panel.appendChild(h('p', { class: 'pf-cc-eyebrow', text: 'Datenschutz' }));
-      panel.appendChild(h('h2', { class: 'pf-cc-title', id: 'pf-cc-title', text: 'Cookie-Einstellungen' }));
-      panel.appendChild(h('p', { class: 'pf-cc-text', html: 'Wähle selbst, was erlaubt ist. Notwendige Cookies sind für den Betrieb des Shops (Warenkorb, Kasse, Spracheinstellung) erforderlich und immer aktiv. Details in der <a href="Cookies.html">Cookie-Erklärung</a> und der <a href="Datenschutz.html">Datenschutzerklärung</a>.' }));
+      panel.appendChild(h('p', { class: 'pf-cc-eyebrow', text: T.eyebrow }));
+      panel.appendChild(h('h2', { class: 'pf-cc-title', id: 'pf-cc-title', text: T.s_title }));
+      panel.appendChild(h('p', { class: 'pf-cc-text', html: ccText(t, 's_text') }));
 
       var cats = h('div', { class: 'pf-cc-cats' });
       // Notwendig — fix aktiv
-      cats.appendChild(catRow('Notwendig', 'Warenkorb, Bestellvorgang, Sprache und die Cookie-Entscheidung selbst. Ohne diese funktioniert der Shop nicht.', null, true));
+      cats.appendChild(catRow(T.c_need, T.c_need_d, null, true));
       // Statistik
-      var swStat = catRow('Statistik', 'Anonyme, reichweitenarme Auswertung, wie der Shop genutzt wird — nur mit deiner Einwilligung. Aktuell nicht im Einsatz.', 'statistik', false, state.statistik);
+      var swStat = catRow(T.c_stat, T.c_stat_d, 'statistik', false, state.statistik);
       cats.appendChild(swStat);
       // Marketing
-      var swMkt = catRow('Marketing', 'Personalisierte Inhalte und Messung von Werbung (z. B. eingebettete Videos). Aktuell nicht im Einsatz.', 'marketing', false, state.marketing);
+      var swMkt = catRow(T.c_mkt, T.c_mkt_d, 'marketing', false, state.marketing);
       cats.appendChild(swMkt);
       panel.appendChild(cats);
 
       var foot = h('div', { class: 'pf-cc-foot' });
-      var saveBtn = h('button', { class: 'pf-cc-btn pf-cc-save', type: 'button', text: 'Auswahl speichern' });
+      var saveBtn = h('button', { class: 'pf-cc-btn pf-cc-save', type: 'button', text: T.save });
       saveBtn.addEventListener('click', function () { commit(state); });
-      var rejectBtn = h('button', { class: 'pf-cc-btn pf-cc-btn--equal', type: 'button', text: 'Alle ablehnen' });
+      var rejectBtn = h('button', { class: 'pf-cc-btn pf-cc-btn--equal', type: 'button', text: T.reject });
       rejectBtn.addEventListener('click', function () { commit({ statistik: false, marketing: false }); });
-      var acceptBtn = h('button', { class: 'pf-cc-btn pf-cc-btn--equal', type: 'button', text: 'Alle akzeptieren' });
+      var acceptBtn = h('button', { class: 'pf-cc-btn pf-cc-btn--equal', type: 'button', text: T.accept });
       acceptBtn.addEventListener('click', function () { commit({ statistik: true, marketing: true }); });
       foot.appendChild(rejectBtn); foot.appendChild(acceptBtn);
       panel.appendChild(foot);
@@ -169,9 +230,9 @@
         var top = h('div', { class: 'pf-cc-cat-top' });
         top.appendChild(h('h3', { class: 'pf-cc-cat-name', text: name }));
         if (locked) {
-          top.appendChild(h('span', { class: 'pf-cc-lock', text: 'Immer aktiv' }));
+          top.appendChild(h('span', { class: 'pf-cc-lock', text: T.always }));
         } else {
-          var sw = h('button', { class: 'pf-cc-sw', type: 'button', role: 'switch', 'aria-checked': checked ? 'true' : 'false', 'aria-label': name + ' erlauben' });
+          var sw = h('button', { class: 'pf-cc-sw', type: 'button', role: 'switch', 'aria-checked': checked ? 'true' : 'false', 'aria-label': T.allow(name) });
           sw.addEventListener('click', function () {
             state[cat] = !state[cat];
             sw.setAttribute('aria-checked', state[cat] ? 'true' : 'false');
@@ -183,16 +244,16 @@
         return row;
       }
     } else {
-      panel.appendChild(h('p', { class: 'pf-cc-eyebrow', text: 'Datenschutz' }));
-      panel.appendChild(h('h2', { class: 'pf-cc-title', id: 'pf-cc-title', text: 'Wir fragen zuerst.' }));
-      panel.appendChild(h('p', { class: 'pf-cc-text', html: 'Notwendige Cookies halten Warenkorb und Kasse am Laufen. Für Statistik oder Marketing setzen wir nichts, bevor du zustimmst. Du entscheidest — und kannst es jederzeit ändern. Mehr in der <a href="Cookies.html">Cookie-Erklärung</a> und <a href="Datenschutz.html">Datenschutzerklärung</a>.' }));
+      panel.appendChild(h('p', { class: 'pf-cc-eyebrow', text: T.eyebrow }));
+      panel.appendChild(h('h2', { class: 'pf-cc-title', id: 'pf-cc-title', text: T.b_title }));
+      panel.appendChild(h('p', { class: 'pf-cc-text', html: ccText(t, 'b_text') }));
 
       var actions = h('div', { class: 'pf-cc-actions' });
-      var reject = h('button', { class: 'pf-cc-btn pf-cc-btn--equal', type: 'button', text: 'Alle ablehnen' });
+      var reject = h('button', { class: 'pf-cc-btn pf-cc-btn--equal', type: 'button', text: T.reject });
       reject.addEventListener('click', function () { commit({ statistik: false, marketing: false }); });
-      var accept = h('button', { class: 'pf-cc-btn pf-cc-btn--equal', type: 'button', text: 'Alle akzeptieren' });
+      var accept = h('button', { class: 'pf-cc-btn pf-cc-btn--equal', type: 'button', text: T.accept });
       accept.addEventListener('click', function () { commit({ statistik: true, marketing: true }); });
-      var settings = h('button', { class: 'pf-cc-btn pf-cc-btn--ghost', type: 'button', text: 'Einstellungen' });
+      var settings = h('button', { class: 'pf-cc-btn pf-cc-btn--ghost', type: 'button', text: T.settings });
       settings.addEventListener('click', function () { open('settings'); });
       // Order: reject first, accept second — identical styling, equal prominence
       actions.appendChild(reject); actions.appendChild(accept); actions.appendChild(settings);

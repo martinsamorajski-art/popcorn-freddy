@@ -554,6 +554,47 @@
     }).catch(function () { return null; });
   }
 
+  // A stable fingerprint of the local basket: handle×qty×personalisation.
+  // Two chapters, or a changed name, produce a different signature.
+  function basketSig(items) {
+    return (items || []).map(function (it) {
+      var a = it.attrs || {};
+      return (it.handle || it.n) + 'x' + (it.qty || 1) + ':' +
+        Object.keys(a).sort().map(function (k) { return k + '=' + a[k]; }).join(',');
+    }).join('|');
+  }
+
+  // ── BUG 2 — empty the basket once an order really went through ────
+  // The visitor pays on Shopify's own domain, so the site never sees the order.
+  // Before handing off we flag the handoff; on the next visit, if that cart is
+  // gone from Shopify, the order was placed (or the cart expired) and the local
+  // mirror is cleared. Without the flag we never touch a basket.
+  var HANDOFF_KEY = 'pf-checkout-handoff-v1';
+  function markHandoff() {
+    try { localStorage.setItem(HANDOFF_KEY, String(Date.now())); } catch (e) {}
+  }
+  function clearLocalBasket() {
+    try {
+      localStorage.removeItem('pf-cart-v1');
+      localStorage.removeItem(HANDOFF_KEY);
+      localStorage.removeItem('pf-checkout-state-v1');
+    } catch (e) {}
+    writeCartRef({});
+    try { window.dispatchEvent(new Event('rd-cart-changed')); } catch (e) {}
+    emitChange();
+  }
+  function reconcileAfterCheckout() {
+    var pending;
+    try { pending = localStorage.getItem(HANDOFF_KEY); } catch (e) { return Promise.resolve(false); }
+    if (!pending) return Promise.resolve(false);
+    if (!readCartRef().id) { clearLocalBasket(); return Promise.resolve(true); }
+    return getCart().then(function (c) {
+      // getCart() already wipes the ref when Shopify no longer knows the cart.
+      if (!c || !readCartRef().id) { clearLocalBasket(); return true; }
+      return false;
+    }).catch(function () { return false; });
+  }
+
   function ensureCart() {
     var ref = readCartRef();
     if (ref.id) return Promise.resolve(ref.id);
@@ -703,9 +744,12 @@
     if (!addr) return Promise.resolve(null);
     return detect().then(function (ok) {
       if (!ok) return null;
-      if (readCartRef().id) return setDeliveryAddress(addr);
-      var items = (itemsOverride && itemsOverride.length) ? itemsOverride : localCartItems();
+      var items = localCartItems();
       if (!items.length) return null;
+      // Rate the cart only when it still mirrors the basket exactly.
+      var ref = readCartRef();
+      if (ref.id && ref.sig === basketSig(items)) return setDeliveryAddress(addr);
+      writeCartRef({});
       return Promise.all(items.map(function (it) {
         var handle = it.handle || (typeof it.n === 'string' ? it.n : null);
         var vp = it.variantId ? Promise.resolve(it.variantId) : resolveVariant(handle);
@@ -715,7 +759,12 @@
       })).then(function (lines) {
         lines = lines.filter(Boolean);
         if (!lines.length) return null;
-        return cartCreate(lines).then(function (c) { return c ? setDeliveryAddress(addr) : null; });
+        return cartCreate(lines).then(function (c) {
+          if (!c) return null;
+          var r = readCartRef();
+          writeCartRef({ id: r.id, checkoutUrl: r.checkoutUrl, sig: basketSig(items) });
+          return setDeliveryAddress(addr);
+        });
       });
     }).catch(function () { return null; });
   }
@@ -763,7 +812,7 @@
       var items = (itemsOverride && itemsOverride.length) ? itemsOverride : localCartItems();
       if (!items.length) {
         return getCart().then(function (c) {
-          if (c && c.checkoutUrl) { window.location.href = checkoutUrlWithPrefill(c.checkoutUrl, buyer); return true; }
+          if (c && c.checkoutUrl) { markHandoff(); window.location.href = checkoutUrlWithPrefill(c.checkoutUrl, buyer); return true; }
           return false;
         });
       }
@@ -780,7 +829,7 @@
         // Fresh cart that mirrors the current basket exactly.
         writeCartRef({});
         return cartCreate(lines, buyer).then(function (cart) {
-          if (cart && cart.checkoutUrl) { window.location.href = checkoutUrlWithPrefill(cart.checkoutUrl, buyer); return true; }
+          if (cart && cart.checkoutUrl) { markHandoff(); window.location.href = checkoutUrlWithPrefill(cart.checkoutUrl, buyer); return true; }
           gotoCheckoutPage();
           return false;
         });
@@ -872,7 +921,15 @@
     setDeliveryAddress: setDeliveryAddress,
     rateShipping: rateShipping,
     checkout: checkout,
+    reconcileAfterCheckout: reconcileAfterCheckout,
     // geo
     suggestCountry: suggestCountry,
   };
+
+  // A returning visitor who paid on Shopify must not find a full basket.
+  try {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', function () { reconcileAfterCheckout(); });
+    } else { reconcileAfterCheckout(); }
+  } catch (e) {}
 })();
