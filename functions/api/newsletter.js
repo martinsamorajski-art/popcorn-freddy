@@ -45,6 +45,12 @@ async function handle({ request, env }) {
   let body;
   try { body = await request.json(); } catch (e) { return json({ ok: false, error: 'bad_json' }, 400); }
 
+  // Diagnostic path: answers WITHOUT touching Klaviyo. If this works but a
+  // real signup 502s, the upstream call is the culprit — not our code.
+  if (body && body.debug === 'ping') {
+    return json({ ok: true, pong: true, saw_key: Boolean(key), revision: revision });
+  }
+
   const email = String((body && body.email) || '').trim().toLowerCase();
   if (!EMAIL_RX.test(email) || email.length > 254) return json({ ok: false, error: 'bad_email' }, 400);
   // Honeypot: a real person never fills a hidden field. Answer 200 so a bot
@@ -94,7 +100,7 @@ async function handle({ request, env }) {
   // Hard timeout: without it a hanging upstream call kills the whole worker
   // and Cloudflare answers with an unreadable 502 page.
   const abort = new AbortController();
-  const timer = setTimeout(function () { abort.abort(); }, 8000);
+  const timer = setTimeout(function () { abort.abort(); }, 5000);
 
   try {
     const upstream = await fetch('https://a.klaviyo.com/api/profile-subscription-bulk-create-jobs/', {
