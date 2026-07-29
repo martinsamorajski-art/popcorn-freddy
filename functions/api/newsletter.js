@@ -28,7 +28,17 @@ const json = (body, status) => new Response(JSON.stringify(body), { status: stat
 // Deliberately permissive: the confirmation email is the real validator.
 const EMAIL_RX = /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i;
 
-export async function onRequestPost({ request, env }) {
+// Nothing may escape this handler: an uncaught throw makes Cloudflare serve
+// its own 502 HTML page, which the frontend cannot read.
+export async function onRequestPost(ctx) {
+  try {
+    return await handle(ctx);
+  } catch (e) {
+    return json({ ok: false, error: 'function_crashed', detail: String((e && e.stack) || e).slice(0, 400) }, 500);
+  }
+}
+
+async function handle({ request, env }) {
   const key = env.KLAVIYO_PRIVATE_KEY;
   const revision = env.KLAVIYO_REVISION || '2024-10-15';
 
@@ -81,6 +91,11 @@ export async function onRequestPost({ request, env }) {
     },
   };
 
+  // Hard timeout: without it a hanging upstream call kills the whole worker
+  // and Cloudflare answers with an unreadable 502 page.
+  const abort = new AbortController();
+  const timer = setTimeout(function () { abort.abort(); }, 8000);
+
   try {
     const upstream = await fetch('https://a.klaviyo.com/api/profile-subscription-bulk-create-jobs/', {
       method: 'POST',
@@ -91,16 +106,32 @@ export async function onRequestPost({ request, env }) {
         accept: 'application/json',
       },
       body: JSON.stringify(payload),
+      signal: abort.signal,
     });
+    clearTimeout(timer);
     // Klaviyo answers 202 with an empty body on success.
     if (upstream.status === 202 || upstream.ok) return json({ ok: true, language: language });
     const detail = await upstream.text();
     return json({ ok: false, error: 'klaviyo_' + upstream.status, detail: detail.slice(0, 500) }, 502);
   } catch (e) {
-    return json({ ok: false, error: 'upstream_failed', detail: String(e).slice(0, 300) }, 502);
+    clearTimeout(timer);
+    const aborted = e && (e.name === 'AbortError' || /abort/i.test(String(e)));
+    return json({ ok: false, error: aborted ? 'upstream_timeout' : 'upstream_failed', detail: String(e).slice(0, 300) }, 502);
   }
 }
 
-export async function onRequest() {
-  return json({ ok: false, error: 'use_post' }, 405);
+// GET /api/newsletter → harmless status check. Reports WHETHER the variables
+// exist, never their values.
+export async function onRequest({ env }) {
+  return json({
+    ok: false,
+    error: 'use_post',
+    configured: {
+      key: Boolean(env.KLAVIYO_PRIVATE_KEY),
+      key_looks_private: String(env.KLAVIYO_PRIVATE_KEY || '').startsWith('pk_'),
+      list_de: Boolean(env.KLAVIYO_LIST_DE),
+      list_en: Boolean(env.KLAVIYO_LIST_EN),
+      revision: env.KLAVIYO_REVISION || '2024-10-15',
+    },
+  }, 405);
 }
