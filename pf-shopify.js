@@ -334,10 +334,14 @@
     var k = storeKey();
     if (k !== _storeKey) { _store = {}; _catalogCache = {}; _chaptersCache = {}; _storeKey = k; }
   }
-  function storePut(p) {
+  function storePut(p, alias) {
     if (!p || !p.handle) return;
     storeCheck();
     _store[p.handle] = p;
+    // Handles are language-specific in Shopify. When a product was requested
+    // under one language's handle but resolved under another's, register it
+    // under BOTH so peek() finds it either way (cart survives a language switch).
+    if (alias && alias !== p.handle) _store[alias] = p;
   }
   function emitCatalog() {
     try { window.dispatchEvent(new Event('pf-catalog-changed')); } catch (e) {}
@@ -359,7 +363,10 @@
       // Handle belongs to another language (see productsByHandleSearchQuery).
       return gql(productsByHandleSearchQuery([handle])).then(function (d2) {
         var n = d2 && !d2._notConfigured && d2.q0 && d2.q0.nodes && d2.q0.nodes[0];
-        return n ? normalizeProduct(n, lang) : null;
+        if (!n) return null;
+        var np = normalizeProduct(n, lang);
+        storePut(np, handle);
+        return np;
       }).catch(function () { return null; });
     });
   }
@@ -386,7 +393,7 @@
         if (!d2 || d2._notConfigured) return out;
         misses.forEach(function (h, i) {
           var n = d2['q' + i] && d2['q' + i].nodes && d2['q' + i].nodes[0];
-          if (n) out[h] = normalizeProduct(n, lang);
+          if (n) { var np = normalizeProduct(n, lang); out[h] = np; storePut(np, h); }
         });
         return out;
       }).catch(function () { return out; });
