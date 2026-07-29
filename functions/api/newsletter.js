@@ -22,6 +22,9 @@
 //   KLAVIYO_REVISION      optional API revision, defaults below
 // ────────────────────────────────────────────────────────────────
 
+// NOTE: never answer with a 5xx status. Cloudflare replaces any 5xx coming
+// from a Pages Function with its own "Bad gateway" HTML page, so the JSON
+// error below would never reach the browser. Failures are 200 + ok:false.
 const HEADERS = { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' };
 const json = (body, status) => new Response(JSON.stringify(body), { status: status || 200, headers: HEADERS });
 
@@ -34,7 +37,7 @@ export async function onRequestPost(ctx) {
   try {
     return await handle(ctx);
   } catch (e) {
-    return json({ ok: false, error: 'function_crashed', detail: String((e && e.stack) || e).slice(0, 400) }, 500);
+    return json({ ok: false, error: 'function_crashed', detail: String((e && e.stack) || e).slice(0, 400) });
   }
 }
 
@@ -76,7 +79,33 @@ async function handle({ request, env }) {
 
   // Not configured yet → the form says "thanks" in preview instead of erroring,
   // but the response says clearly that nothing was stored.
-  if (!key || !listId) return json({ ok: false, error: 'not_configured' }, 501);
+  if (!key || !listId) return json({ ok: false, error: 'not_configured' });
+
+  // Isolates the real subscribe call: same endpoint, same shape, fixed data,
+  // reports only the status. Used to tell a data problem from a network one.
+  if (body && body.debug === 'sub') {
+    const probe = await race(fetch('https://a.klaviyo.com/api/profile-subscription-bulk-create-jobs/', {
+      method: 'POST',
+      headers: {
+        Authorization: 'Klaviyo-API-Key ' + key,
+        revision: revision,
+        'Content-Type': 'application/json',
+        accept: 'application/json',
+      },
+      body: JSON.stringify({
+        data: {
+          type: 'profile-subscription-bulk-create-job',
+          attributes: {
+            profiles: { data: [{ type: 'profile', attributes: { email: 'debug-probe@example.com' } }] },
+            historical_import: false,
+          },
+          relationships: { list: { data: { type: 'list', id: listId } } },
+        },
+      }),
+    }).then(async function (r) { return { status: r.status, body: (await r.text()).slice(0, 400) }; }),
+    function (e) { return { failed: String(e).slice(0, 200) }; });
+    return json({ ok: true, list_used: language, probe: probe });
+  }
 
   const payload = {
     data: {
@@ -121,10 +150,10 @@ async function handle({ request, env }) {
     return { status: r.status, ok: r.ok, text: r.status === 202 ? '' : (await r.text()).slice(0, 500) };
   }), function (e) { return { failed: String(e).slice(0, 300) }; });
 
-  if (result.timeout) return json({ ok: false, error: 'upstream_timeout' }, 502);
-  if (result.failed) return json({ ok: false, error: 'upstream_failed', detail: result.failed }, 502);
+  if (result.timeout) return json({ ok: false, error: 'upstream_timeout' });
+  if (result.failed) return json({ ok: false, error: 'upstream_failed', detail: result.failed });
   if (result.status === 202 || result.ok) return json({ ok: true, language: language });
-  return json({ ok: false, error: 'klaviyo_' + result.status, detail: result.text }, 502);
+  return json({ ok: false, error: 'klaviyo_' + result.status, detail: result.text });
 }
 
 // Resolves with the promise's value, {timeout:true} after 6s, or onError(e).
