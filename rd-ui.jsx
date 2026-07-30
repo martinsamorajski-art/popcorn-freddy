@@ -652,7 +652,7 @@ function RdCountrySuggest({ lang }) {
   };
   const other = () => { dismiss(); window.dispatchEvent(new Event('pf-open-locale')); };
   return (
-    <div className="rd-bsug" role="dialog" aria-live="polite">
+    <div className="rd-suggest" role="dialog" aria-live="polite">
       <button className="rd-suggest-x" aria-label={T.close} onClick={dismiss}><RdIcon name="close" size={15} /></button>
       <div className="rd-suggest-row"><RdFlag c={sug} size={20} /><span className="rd-suggest-line">{T.line(Tb.country[sug], rdCurrencyFor(sug))}</span></div>
       <div className="rd-suggest-actions">
@@ -708,7 +708,7 @@ function RdLangSuggest() {
     if (pre) setTimeout(() => PFLocale.switchTo(pre), 40);
   };
   return (
-    <div className="rd-bsug" role="dialog" aria-live="polite">
+    <div className="rd-suggest" role="dialog" aria-live="polite">
       <button className="rd-suggest-x" aria-label={T.close} onClick={dismiss}><RdIcon name="close" size={15} /></button>
       <div className="rd-suggest-row"><RdFlag c="OTHER" size={20} /><span className="rd-suggest-line">{T.line}</span></div>
       <div className="rd-suggest-actions">

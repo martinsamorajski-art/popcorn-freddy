@@ -728,6 +728,37 @@ function RdLangSuggest() {
   );
 }
 
+// Empty basket → offer the obvious next step instead of a dead end: chapter 1,
+// priced live from Shopify. It never writes to the basket itself (the host page
+// owns cart state, so an add from in here could not re-render this panel and led
+// to silent double counts) — it links to the product page, where quantity and
+// the child's name are handled. Shopify is the ONLY source: with no live
+// product there is no card, just the empty note.
+function RdCartSuggest({ lang }) {
+  const handle = 'kapitel-1-fluesterwald';
+  const p = usePFProduct(handle, lang);
+  const img = p && p.images && p.images[0] && (p.images[0].src || p.images[0]);
+  return (
+    <div className="rd-cart-empty">
+      <div className="r-it" style={{ fontSize: 17, color: 'var(--rd-ink-soft)' }}>{lang === 'de' ? 'Noch leer — Zeit für ein Abenteuer ✦' : 'Empty — time for an adventure ✦'}</div>
+      {p && p.title && (
+        <React.Fragment>
+          <div className="r-caps" style={{ marginTop: 18, color: 'var(--rd-ink-mute)' }}>{lang === 'de' ? 'Hier fängt alles an' : 'Where it all begins'}</div>
+          <a className="rd-bsug" href={'/produkt/' + handle}>
+            {img && <img src={img} alt="" />}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div className="rd-bsug-title">{p.title}</div>
+              {p.priceFormatted && <div className="r-it" style={{ fontSize: 14, color: 'var(--rd-ink-soft)', marginTop: 2 }}>{p.priceFormatted}</div>}
+              <span className="rd-bsug-cta">{lang === 'de' ? 'Kapitel ansehen' : 'View chapter'} <RdIcon name="arrow" size={15} /></span>
+            </div>
+          </a>
+        </React.Fragment>
+      )}
+      <a className="rd-cart-continue" style={{ display: 'block', textAlign: 'center' }} href="/Alle Kapitel.html">{lang === 'de' ? 'Alle Kapitel ansehen' : 'See all chapters'}</a>
+    </div>
+  );
+}
+
 function RdCart({ open, cart, onClose, lang, onQty, onRemove, justAdded }) {
   const lines = usePFCartLines(cart, lang);
   useEffect(() => {
@@ -760,7 +791,7 @@ function RdCart({ open, cart, onClose, lang, onQty, onRemove, justAdded }) {
         )}
 
         <div className="rd-cart-items">
-          {cart.length === 0 && <div className="r-it" style={{ fontSize: 17, color: 'var(--rd-ink-soft)', padding: '8px 2px' }}>{lang === 'de' ? 'Noch leer — Zeit für ein Abenteuer ✦' : 'Empty — time for an adventure ✦'}</div>}
+          {cart.length === 0 && <RdCartSuggest lang={lang} />}
           {lines.map((c) => (
             <div key={c.n} className={'rd-cart-line' + (justAdded === c.n ? ' is-added' : '')}>
               {c.img
@@ -808,6 +839,13 @@ function RdCart({ open, cart, onClose, lang, onQty, onRemove, justAdded }) {
         .rd-ship-text svg { color: var(--rd-terra); flex-shrink: 0; }
         .rd-ship-track { margin-top: 9px; height: 6px; border-radius: 4px; background: color-mix(in srgb, var(--rd-ink) 12%, transparent); overflow: hidden; }
         .rd-ship-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--rd-terra), var(--rd-gold)); transition: width .5s cubic-bezier(.22,.61,.36,1); }
+        .rd-cart-empty { padding: 8px 2px; }
+        .rd-bsug { margin-top: 10px; display: flex; align-items: center; gap: 13px; padding: 12px; background: var(--rd-paper-soft); border-radius: 11px; border: 1px solid color-mix(in srgb, var(--rd-gold) 32%, transparent); text-decoration: none; transition: border-color .2s, background .2s; }
+        .rd-bsug:hover { border-color: var(--rd-gold); background: color-mix(in srgb, var(--rd-gold) 8%, var(--rd-paper-soft)); }
+        .rd-bsug-cta { display: inline-flex; align-items: center; gap: 6px; margin-top: 9px; font-family: var(--f-sans); font-weight: 700; font-size: 13px; color: var(--rd-terra); }
+        .rd-bsug img { width: 64px; height: 80px; border-radius: 8px; object-fit: cover; flex-shrink: 0; }
+        .rd-bsug-title { font-family: var(--f-sans); font-weight: 600; font-size: 14.5px; color: var(--rd-ink); line-height: 1.3; }
+        .rd-bsug-link { font-family: var(--f-sans); font-size: 13.5px; color: var(--rd-ink-mute); text-decoration: underline; }
         .rd-cart-items { margin-top: 12px; flex: 1; display: grid; gap: 10px; align-content: start; }
         .rd-cart-line { display: flex; align-items: flex-start; gap: 12px; padding: 10px; background: var(--rd-paper-soft); border-radius: 11px; border: 1px solid transparent; transition: border-color .3s, background .3s; }
         .rd-cart-line.is-added { border-color: var(--rd-gold); animation: rdAdded .7s ease; }
@@ -853,4 +891,4 @@ function RdCartButtons({ label, cartCount, onOpenCart }) {
   );
 }
 
-Object.assign(window, { usePFChapters, usePFProduct, usePFCartLines, RdIcon, RdOrnament, RdSquiggle, RdCompass, RdLeaves, RdFireflies, RdPines, RdHeading, RdLogo, rdCartLoad, rdCartSave, RD_CART_KEY, RD_CRAFT, RdCraftNote, RdTrustRow, RdCarousel, RdPeekCarousel, RdFlag, RdLocaleControl, RdTrail, RdPaws, rdMoney, rdCheckout, RdCountrySuggest, RdLangSuggest, RdCart, RdCartButtons });
+Object.assign(window, { RD_PREFIXES, rdPrefixMeta, rdCurrencyFor, RdCartSuggest, usePFChapters, usePFProduct, usePFCartLines, RdIcon, RdOrnament, RdSquiggle, RdCompass, RdLeaves, RdFireflies, RdPines, RdHeading, RdLogo, rdCartLoad, rdCartSave, RD_CART_KEY, RD_CRAFT, RdCraftNote, RdTrustRow, RdCarousel, RdPeekCarousel, RdFlag, RdLocaleControl, RdTrail, RdPaws, rdMoney, rdCheckout, RdCountrySuggest, RdLangSuggest, RdCart, RdCartButtons });
