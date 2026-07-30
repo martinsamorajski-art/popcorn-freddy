@@ -42,6 +42,21 @@ export async function onRequestGet({ request, env }) {
   const base = 'https://judge.me/api/v1';
   const auth = `api_token=${encodeURIComponent(token)}&shop_domain=${encodeURIComponent(shop)}`;
 
+  // TEMP DEBUG: /api/reviews?debug=1 → confirm what we send + Judge.me's reply.
+  if (url.searchParams.get('debug') === '1') {
+    const probe = await fetch(`${base}/products?${auth}&per_page=1`);
+    let bodyText = '';
+    try { bodyText = (await probe.text()).slice(0, 400); } catch (e) { bodyText = String(e); }
+    return json({
+      debug: true,
+      shop_domain_sent: shop,
+      token_len: token.length,
+      token_preview: token.slice(0, 4) + '…' + token.slice(-2),
+      judgeme_status: probe.status,
+      judgeme_body: bodyText,
+    });
+  }
+
   try {
     let query;
     if (externalId) {
