@@ -27,6 +27,22 @@ function pfProductHandle() {
 }
 
 // Static UI microcopy that isn't product data (labels, not content)
+// Second trust row on this page. The buy box already carries the shipping /
+// safety / packaging trio, so these are DIFFERENT arguments — never a repeat.
+const PS_TRUST = {
+  de: [
+    { icon: 'pen', t: 'Der Name eures Kindes', d: 'In die Geschichte gedruckt — kein Aufkleber, kein Zusatzpreis' },
+    { icon: 'book', t: 'Kein Abo, keine Bindung', d: 'Ein Kapitel kaufen, jederzeit aufhören' },
+    { icon: 'build', t: 'Ein Abend ohne Bildschirm', d: '60–90 Minuten lesen, bauen und suchen — gemeinsam' },
+    { icon: 'user', t: 'Aus unserer kleinen Werkstatt', d: 'Jede Box wird von Hand gepackt und geprüft' },
+  ],
+  en: [
+    { icon: 'pen', t: "Your child's name inside", d: 'Printed into the story — no sticker, no surcharge' },
+    { icon: 'book', t: 'No subscription, no lock-in', d: 'Buy one chapter, stop whenever you like' },
+    { icon: 'build', t: 'One screen-free evening', d: '60–90 minutes of reading, building and searching — together' },
+    { icon: 'user', t: 'From our small workshop', d: 'Every box packed and checked by hand' },
+  ],
+};
 const PF_UI = {
   de: { added: 'Liegt im Korb', checkout: 'Zur Kasse', add: 'In den Warenkorb', price_note: 'inkl. MwSt.',
     readmore: 'Die ganze Geschichte lesen', rating_count: function (n) { return 'aus ' + n + ' Bewertungen'; },
@@ -486,7 +502,7 @@ function PSBody({ p, lang }) {
   return (
     <React.Fragment>
       <PSShopHero p={p} ui={ui} x={x} lang={lang} intensity={intensity} inCart={inCart} qty={qty} onAdd={onAdd} onQty={changeQty} />
-      {typeof Ch1TrustBadges === 'function' && <Ch1TrustBadges x={x} pay={false} />}
+      {typeof Ch1TrustBadges === 'function' && <Ch1TrustBadges x={x} pay={false} items={PS_TRUST[lang] || PS_TRUST.de} />}
       <PSReviews p={p} ui={ui} lang={lang} />
       <PSInside p={p} ui={ui} />
       <PSPages p={p} ui={ui} />

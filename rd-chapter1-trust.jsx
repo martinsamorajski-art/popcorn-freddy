@@ -218,12 +218,15 @@ function Ch1Benefits({ x }) {
 
 // Trust badges + payment providers. `pay` hides the payment row where the page
 // already shows it (the product buy box does) so it never appears twice.
-function Ch1TrustBadges({ x, pay = true }) {
+// `items` overrides the badge set for pages whose buy box already makes the
+// default arguments — the row then adds new reasons instead of repeating them.
+function Ch1TrustBadges({ x, pay = true, items }) {
+  const badges = items || x.badges;
   return (
     <section data-rd data-screen-label="Vertrauen" style={{ padding: '64px 0 68px', background: 'var(--rd-paper)', borderTop: '1px solid color-mix(in srgb, var(--rd-ink) 8%, transparent)' }}>
       <div className="rwrap" style={{ position: 'relative', zIndex: 2 }}>
         <div className="ch1-badges">
-          {x.badges.map((b, i) => (
+          {badges.map((b, i) => (
             <div key={i} className="ch1-badge r-rev">
               <span style={{ color: 'var(--rd-moss)', display: 'inline-flex' }}><RdIcon name={b.icon} size={22} /></span>
               <div>

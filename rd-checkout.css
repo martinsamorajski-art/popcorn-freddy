@@ -141,9 +141,15 @@ html[data-anim="off"] .rc-seal-badge { animation: none; }
   .rc-item-right { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; }
 }
 
-/* Delivery country — fixed by the shop the visitor is in, so it reads as a fact */
+/* Delivery country = the shop, preselected and read-only; the switch line below
+   opens the locale control, which re-prices the basket in the new market */
+.rc-country-wrap { position: relative; display: flex; align-items: center; }
+.rc-country-wrap > svg, .rc-country-wrap > img { position: absolute; left: 14px; pointer-events: none; border-radius: 2px; }
+.rc-country-sel { padding-left: 42px; }
 .rc-input-locked { background: color-mix(in srgb, var(--rd-ink) 5%, var(--rd-paper)); color: var(--rd-ink-soft); cursor: default; }
 .rc-input-locked:focus { border-color: color-mix(in srgb, var(--rd-ink) 22%, transparent); box-shadow: none; }
+.rc-shop-switch { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 16px; }
+.rc-shop-switch > .r-it { font-size: 14.5px; color: var(--rd-ink-mute); }
 
 /* Required child's name — flagged when the visitor tries to continue without it */
 .rc-input-bad { border-color: #b0623c; background: #fdf6f2; }

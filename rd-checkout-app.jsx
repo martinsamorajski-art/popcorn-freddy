@@ -137,6 +137,11 @@ function RcStepCart({ rc, lang, cur, cart, setQty, removeItem, units, personal, 
 function RcStepShip({ rc, lang, form, setForm, onBack, onNext }) {
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
   const country = rcLocaleCountry(lang);
+  // The delivery country is the shop's country — preselected and not editable
+  // here. Changing it means changing shop (currency + delivery profile), which
+  // the locale control below does: it re-points the Shopify cart at the new
+  // market and routes to the same checkout, basket intact.
+  const cc = (function () { try { return window.PFLocale ? PFLocale.current().country : 'AT'; } catch (e) { return 'AT'; } })();
   return (
     <form onSubmit={(e) => { e.preventDefault(); onNext(); }}>
       <div className="rc-card r-rev">
@@ -160,16 +165,19 @@ function RcStepShip({ rc, lang, form, setForm, onBack, onNext }) {
           </div>
           <div className="rc-field">
             <label className="rc-label" htmlFor="f-country">{rc.ship.f_country}</label>
-            <input id="f-country" className="rc-input rc-input-locked" value={country} readOnly tabIndex={-1} aria-readonly="true" />
+            <div className="rc-country-wrap">
+              {typeof RdFlag === 'function' && <RdFlag c={cc} size={17} />}
+              <input id="f-country" className="rc-input rc-input-locked rc-country-sel" value={country} readOnly tabIndex={-1} aria-readonly="true" />
+            </div>
           </div>
           <div className="rc-field">
             <label className="rc-label" htmlFor="f-email">{rc.ship.f_email}</label>
             <input id="f-email" type="email" className="rc-input" required value={form.email || ''} onChange={set('email')} autoComplete="email" />
           </div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 14, color: 'var(--rd-ink-mute)' }}>
-          <RcIcon name="lock" size={15} />
-          <span className="r-it" style={{ fontSize: 14.5 }}>{(rc.ship.locked || '').replace('{c}', country)}</span>
+        <div className="rc-shop-switch">
+          <span className="r-it">{rc.ship.locked}</span>
+          {typeof RdLocaleControl === 'function' && <RdLocaleControl lang={lang} />}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 12, color: 'var(--rd-moss)' }}>
           <RdIcon name="truck" size={18} />

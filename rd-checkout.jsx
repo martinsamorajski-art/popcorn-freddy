@@ -41,9 +41,9 @@ const RC_COPY = {
     },
     ship: {
       title: 'Wohin reist die Box?',
-      f_name: 'Vor- & Nachname', f_street: 'Straße & Hausnummer', f_zip: 'PLZ', f_city: 'Ort', f_country: 'Land', f_email: 'E-Mail für die Reisepost',
+      f_name: 'Vor- & Nachname', f_street: 'Straße & Hausnummer', f_zip: 'PLZ', f_city: 'Ort', f_country: 'Land', f_email: 'E-Mail',
       countries: ['Deutschland', 'Österreich', 'Schweiz'],
-      locked: 'Dieser Shop liefert nur nach {c}. Anderes Land? Wechsle oben den Shop.',
+      locked: 'Anderes Land? Shop hier wechseln:',
       note: 'In 3–5 Werktagen bei dir. Die Versandkosten werden nach Eingabe deiner Lieferadresse berechnet.',
       back: 'Zurück',
       next: 'Weiter zur Zahlung',
@@ -155,9 +155,9 @@ const RC_COPY = {
     },
     ship: {
       title: 'Where is the box travelling?',
-      f_name: 'First & last name', f_street: 'Street & number', f_zip: 'Postcode', f_city: 'City', f_country: 'Country', f_email: 'Email for the travel post',
+      f_name: 'First & last name', f_street: 'Street & number', f_zip: 'Postcode', f_city: 'City', f_country: 'Country', f_email: 'Email',
       countries: ['Germany', 'Austria', 'Switzerland'],
-      locked: 'This shop delivers to {c} only. Different country? Switch shop above.',
+      locked: 'Different country? Switch shop here:',
       note: 'With you in 3–5 business days. Shipping is calculated once you enter your delivery address.',
       back: 'Back',
       next: 'Continue to payment',
@@ -516,7 +516,7 @@ function RcSummary({ rc, t, lang, cur, cart, addons, totals, gift, disc }) {
       </div>
 
       {/* what's in the box */}
-      <details className="rc-card rc-contents" open>
+      <details className="rc-card rc-contents">
         <summary>
           <h3 className="rc-card-title"><span className="rc-title-ico"><RdIcon name="gift" size={19} /></span>{rc.sum.contents}</h3>
           <span className="rc-chev"><RcIcon name="chev" size={18} /></span>

@@ -652,7 +652,7 @@ function RdCountrySuggest({ lang }) {
   };
   const other = () => { dismiss(); window.dispatchEvent(new Event('pf-open-locale')); };
   return (
-    <div className="rd-suggest" role="dialog" aria-live="polite">
+    <div className="rd-bsug" role="dialog" aria-live="polite">
       <button className="rd-suggest-x" aria-label={T.close} onClick={dismiss}><RdIcon name="close" size={15} /></button>
       <div className="rd-suggest-row"><RdFlag c={sug} size={20} /><span className="rd-suggest-line">{T.line(Tb.country[sug], rdCurrencyFor(sug))}</span></div>
       <div className="rd-suggest-actions">
@@ -708,7 +708,7 @@ function RdLangSuggest() {
     if (pre) setTimeout(() => PFLocale.switchTo(pre), 40);
   };
   return (
-    <div className="rd-suggest" role="dialog" aria-live="polite">
+    <div className="rd-bsug" role="dialog" aria-live="polite">
       <button className="rd-suggest-x" aria-label={T.close} onClick={dismiss}><RdIcon name="close" size={15} /></button>
       <div className="rd-suggest-row"><RdFlag c="OTHER" size={20} /><span className="rd-suggest-line">{T.line}</span></div>
       <div className="rd-suggest-actions">
@@ -734,6 +734,10 @@ function RdLangSuggest() {
 function RdCartSuggest({ lang }) {
   const handle = 'kapitel-1-fluesterwald';
   const p = usePFProduct(handle, lang);
+  // Shopify is the source for cover + price, but it can be slow or unreachable
+  // (preview, blocked proxy). Never leave a pulsing skeleton behind: fall back to
+  // the local cover, and simply omit the price until the live one arrives.
+  const img = (p && p.images && p.images[0] && (p.images[0].src || p.images[0])) || 'assets/chapter-1-cover.png';
   const add = () => {
     const cart = rdCartLoad();
     const i = cart.findIndex((it) => it.n === handle);
@@ -749,16 +753,14 @@ function RdCartSuggest({ lang }) {
     <div className="rd-cart-empty">
       <div className="r-it" style={{ fontSize: 17, color: 'var(--rd-ink-soft)' }}>{lang === 'de' ? 'Noch leer — Zeit für ein Abenteuer ✦' : 'Empty — time for an adventure ✦'}</div>
       <div className="r-caps" style={{ marginTop: 18, color: 'var(--rd-ink-mute)' }}>{lang === 'de' ? 'Hier fängt alles an' : 'Where it all begins'}</div>
-      <div className="rd-suggest">
-        {p && p.images && p.images[0]
-          ? <img src={p.images[0].src || p.images[0]} alt="" />
-          : <div className="rd-skel" style={{ width: 64, height: 80, borderRadius: 8, flexShrink: 0 }} aria-hidden="true" />}
+      <div className="rd-bsug">
+        <img src={img} alt="" onError={(e) => { e.currentTarget.src = 'assets/chapter-1-cover.png'; }} />
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div className="rd-suggest-title">{(p && p.title) || (lang === 'de' ? 'Kapitel 1 — Der Flüsterwald' : 'Chapter 1 — The Whispering Woods')}</div>
-          <div className="r-it" style={{ fontSize: 14, color: 'var(--rd-ink-soft)', marginTop: 1 }}>{(p && p.priceFormatted) || ''}</div>
+          <div className="rd-bsug-title">{(p && p.title) || (lang === 'de' ? 'Kapitel 1 — Der Flüsterwald' : 'Chapter 1 — The Whispering Woods')}</div>
+          <div className="r-it" style={{ fontSize: 14, color: 'var(--rd-ink-soft)', marginTop: 1 }}>{(p && p.priceFormatted) || '\u00a0'}</div>
           <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginTop: 10, flexWrap: 'wrap' }}>
             <button className="rbtn rbtn-primary" style={{ fontSize: 14, padding: '9px 16px' }} onClick={add}>{lang === 'de' ? 'In den Korb' : 'Add to basket'}</button>
-            <a className="rd-suggest-link" href="/produkt/kapitel-1-fluesterwald">{lang === 'de' ? 'Ansehen' : 'View'}</a>
+            <a className="rd-bsug-link" href="/produkt/kapitel-1-fluesterwald">{lang === 'de' ? 'Ansehen' : 'View'}</a>
           </div>
         </div>
       </div>
@@ -848,11 +850,11 @@ function RdCart({ open, cart, onClose, lang, onQty, onRemove, justAdded }) {
         .rd-ship-track { margin-top: 9px; height: 6px; border-radius: 4px; background: color-mix(in srgb, var(--rd-ink) 12%, transparent); overflow: hidden; }
         .rd-ship-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--rd-terra), var(--rd-gold)); transition: width .5s cubic-bezier(.22,.61,.36,1); }
         .rd-cart-empty { padding: 8px 2px; }
-        .rd-suggest { margin-top: 10px; display: flex; align-items: flex-start; gap: 13px; padding: 12px; background: var(--rd-paper-soft); border-radius: 11px; border: 1px solid color-mix(in srgb, var(--rd-gold) 32%, transparent); }
-        .rd-suggest img { width: 64px; height: 80px; border-radius: 8px; object-fit: cover; flex-shrink: 0; }
-        .rd-suggest-title { font-family: var(--f-sans); font-weight: 600; font-size: 14.5px; color: var(--rd-ink); line-height: 1.3; }
-        .rd-suggest-link { font-family: var(--f-sans); font-size: 13.5px; color: var(--rd-ink-mute); text-decoration: underline; }
-        .rd-suggest-link:hover { color: var(--rd-terra); }
+        .rd-bsug { margin-top: 10px; display: flex; align-items: flex-start; gap: 13px; padding: 12px; background: var(--rd-paper-soft); border-radius: 11px; border: 1px solid color-mix(in srgb, var(--rd-gold) 32%, transparent); }
+        .rd-bsug img { width: 64px; height: 80px; border-radius: 8px; object-fit: cover; flex-shrink: 0; }
+        .rd-bsug-title { font-family: var(--f-sans); font-weight: 600; font-size: 14.5px; color: var(--rd-ink); line-height: 1.3; }
+        .rd-bsug-link { font-family: var(--f-sans); font-size: 13.5px; color: var(--rd-ink-mute); text-decoration: underline; }
+        .rd-bsug-link:hover { color: var(--rd-terra); }
         .rd-cart-items { margin-top: 12px; flex: 1; display: grid; gap: 10px; align-content: start; }
         .rd-cart-line { display: flex; align-items: flex-start; gap: 12px; padding: 10px; background: var(--rd-paper-soft); border-radius: 11px; border: 1px solid transparent; transition: border-color .3s, background .3s; }
         .rd-cart-line.is-added { border-color: var(--rd-gold); animation: rdAdded .7s ease; }
@@ -898,4 +900,4 @@ function RdCartButtons({ label, cartCount, onOpenCart }) {
   );
 }
 
-Object.assign(window, { RdCartSuggest, usePFChapters, usePFProduct, usePFCartLines, RdIcon, RdOrnament, RdSquiggle, RdCompass, RdLeaves, RdFireflies, RdPines, RdHeading, RdLogo, rdCartLoad, rdCartSave, RD_CART_KEY, RD_CRAFT, RdCraftNote, RdTrustRow, RdCarousel, RdPeekCarousel, RdFlag, RdLocaleControl, RdTrail, RdPaws, rdMoney, rdCheckout, RdCountrySuggest, RdLangSuggest, RdCart, RdCartButtons });
+Object.assign(window, { RD_PREFIXES, rdPrefixMeta, rdCurrencyFor, RdCartSuggest, usePFChapters, usePFProduct, usePFCartLines, RdIcon, RdOrnament, RdSquiggle, RdCompass, RdLeaves, RdFireflies, RdPines, RdHeading, RdLogo, rdCartLoad, rdCartSave, RD_CART_KEY, RD_CRAFT, RdCraftNote, RdTrustRow, RdCarousel, RdPeekCarousel, RdFlag, RdLocaleControl, RdTrail, RdPaws, rdMoney, rdCheckout, RdCountrySuggest, RdLangSuggest, RdCart, RdCartButtons });
