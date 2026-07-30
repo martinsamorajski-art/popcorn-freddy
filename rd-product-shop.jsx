@@ -48,6 +48,8 @@ const PF_UI = {
     readmore: 'Die ganze Geschichte lesen', rating_count: function (n) { return 'aus ' + n + ' Bewertungen'; },
     name_hint: '— erscheint gedruckt in der Geschichte', name_ph: 'z. B. Mia', emotion_k: 'Gefühl',
     reviews_eyebrow: 'Stimmen von Familien', reviews_title: 'Was Eltern nach der ersten Box sagen.', verified: 'Verifizierter Kauf',
+    reviews_empty: 'Die ersten Bewertungen sammeln wir gerade — sie erscheinen hier, sobald Familien ihr Kapitel erlebt haben.',
+    pages_empty: 'Seitenvorschau folgt in Kürze.',
     pages_eyebrow: 'Blick ins Buch', pages_title: 'Die ersten Seiten dieses Kapitels.',
     pages_note: 'Ein kleiner Vorgeschmack — gedruckt auf feinem Papier, in A5.',
     others_eyebrow: 'Die Reise geht weiter', others_title: 'Die anderen Kapitel.',
@@ -60,6 +62,8 @@ const PF_UI = {
     readmore: 'Read the full story', rating_count: function (n) { return 'from ' + n + ' reviews'; },
     name_hint: '— appears printed in the story', name_ph: 'e.g. Mia', emotion_k: 'Emotion',
     reviews_eyebrow: 'Voices from families', reviews_title: 'What parents say after the first box.', verified: 'Verified purchase',
+    reviews_empty: "We're collecting the first reviews — they appear here once families have lived their chapter.",
+    pages_empty: 'Page preview coming soon.',
     pages_eyebrow: 'A look inside', pages_title: 'The first pages of this chapter.',
     pages_note: 'A little taste — printed on fine paper, in A5.',
     others_eyebrow: 'The journey continues', others_title: 'The other chapters.',
@@ -166,6 +170,9 @@ function PSBuyBox({ p, ui, x, lang, inCart, qty, onAdd, onQty }) {
         {/* The VAT line lives ONLY in GpsrPriceNote (which also carries the
             required shipping-cost link) — never twice next to the price. */}
         {typeof GpsrPriceNote === 'function' && <GpsrPriceNote lang={lang} />}
+        <div className="shop-pay">
+          {(x.badges_pay || []).map((pay, i) => <span key={i}>{pay}</span>)}
+        </div>
       </div>
 
       <div style={{ marginTop: 18, display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -202,9 +209,6 @@ function PSBuyBox({ p, ui, x, lang, inCart, qty, onAdd, onQty }) {
 
       {typeof Ch1Included === 'function' && <Ch1Included x={x} />}
 
-      <div className="shop-pay">
-        {(x.badges_pay || []).map((pay, i) => <span key={i}>{pay}</span>)}
-      </div>
       {p.guarantee && (
         <p style={{ marginTop: 12, fontSize: 13.5, color: 'var(--rd-ink-mute)', display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center' }}>
           <span style={{ color: 'var(--rd-moss)', display: 'inline-flex' }}><RdIcon name="heart" size={15} /></span>{p.guarantee}
@@ -281,7 +285,6 @@ function usePSReviews(p) {
 
 function PSReviews({ p, ui, lang }) {
   const reviews = usePSReviews(p);
-  if (!reviews.length) return null;
   const score = p.rating ? String(p.rating).replace('.', lang === 'de' ? ',' : '.') + '/5' : null;
   return (
     <section id="reviews" data-rd data-screen-label="Bewertungen" style={{ padding: '118px 0 118px', background: 'var(--rd-cream)', borderTop: '1px solid color-mix(in srgb, var(--rd-ink) 8%, transparent)' }}>
@@ -295,6 +298,7 @@ function PSReviews({ p, ui, lang }) {
           </div>
         )}
         <div className="r-rev" style={{ marginTop: 40 }}>
+          {reviews.length ? (
           <RdPeekCarousel ariaLabel={ui.reviews_eyebrow}>
             {reviews.map((r, i) => (
               <div key={i} className="shop-review">
@@ -308,6 +312,14 @@ function PSReviews({ p, ui, lang }) {
               </div>
             ))}
           </RdPeekCarousel>
+          ) : (
+            /* No review-app data yet — hold the slot so the page keeps its rhythm.
+               Judge.me quotes drop straight in here once the app is connected. */
+            <div className="shop-slot">
+              <span className="shop-slot-ico"><RdIcon name="pen" size={20} /></span>
+              <p className="r-serif">{ui.reviews_empty}</p>
+            </div>
+          )}
         </div>
       </div>
     </section>
@@ -319,13 +331,13 @@ function PSReviews({ p, ui, lang }) {
 // (custom.page_previews). Empty → the section hides itself.
 function PSPages({ p, ui }) {
   const pages = p.pagePreviews || [];
-  if (!pages.length) return null;
   return (
     <section id="pages" data-rd data-screen-label="Blick ins Buch" style={{ padding: '124px 0 128px', background: 'var(--rd-paper)', borderTop: '1px solid color-mix(in srgb, var(--rd-ink) 10%, transparent)' }}>
       <div className="rwrap" style={{ position: 'relative', zIndex: 2 }}>
         <RdHeading eyebrow={ui.pages_eyebrow} title={ui.pages_title} max={760} />
         <p className="r-it r-rev" style={{ textAlign: 'center', fontSize: 16.5, color: 'var(--rd-ink-soft)', marginTop: 14 }}>{ui.pages_note}</p>
         <div className="r-rev" style={{ marginTop: 46 }}>
+          {pages.length ? (
           <RdPeekCarousel ariaLabel={ui.pages_eyebrow}>
             {pages.map((g, i) => (
               <figure key={g.src + i} className="shop-page">
@@ -333,6 +345,15 @@ function PSPages({ p, ui }) {
               </figure>
             ))}
           </RdPeekCarousel>
+          ) : (
+            /* Sample pages are a Shopify file-list metafield; until it is filled
+               the carousel shows its empty frames rather than vanishing. */
+            <div className="rd-peek"><div className="rd-peek-track">
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="rd-peek-item"><div className="shop-page shop-page-empty"><span className="r-it">{ui.pages_empty}</span></div></div>
+              ))}
+            </div></div>
+          )}
         </div>
       </div>
     </section>
@@ -346,17 +367,18 @@ function PSInside({ p, ui }) {
     <section id="inside" data-rd data-screen-label="In der Box" style={{ padding: '124px 0 128px', background: 'var(--rd-cream)', borderTop: '1px solid color-mix(in srgb, var(--rd-ink) 10%, transparent)' }}>
       <div className="rwrap" style={{ position: 'relative', zIndex: 2 }}>
         <RdHeading eyebrow={ui.inside_eyebrow} title={ui.inside_title} max={760} />
-        <div className="rd-info-grid-3" style={{ marginTop: 60, display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24 }}>
-          {p.inside_items.map((it, i) => (
-            <div key={i} className={`r-rev r-rev-${(i % 3) + 1}`} style={{ background: 'var(--rd-paper)', border: '1px solid color-mix(in srgb, var(--rd-ink) 11%, transparent)', borderRadius: 14, padding: '30px 28px', boxShadow: '0 26px 55px -40px color-mix(in srgb, var(--rd-ink) 45%, transparent)' }}>
-              <span style={{ display: 'inline-grid', placeItems: 'center', width: 48, height: 48, borderRadius: '50%', border: '1px solid color-mix(in srgb, var(--rd-gold) 55%, transparent)', color: 'var(--rd-gold)', background: 'color-mix(in srgb, var(--rd-gold-soft) 12%, transparent)', marginBottom: 18 }}><RdIcon name={it.icon || 'star'} size={21} /></span>
-              <h3 className="r-serif" style={{ fontWeight: 600, fontSize: 19.5, color: 'var(--rd-ink)', lineHeight: 1.3 }}>{it.t}</h3>
-              <p style={{ fontSize: 15.5, color: 'var(--rd-ink-soft)', marginTop: 10, lineHeight: 1.65, textWrap: 'pretty' }}>{it.d}</p>
-            </div>
-          ))}
+        <div className="r-rev" style={{ marginTop: 60 }}>
+          <RdPeekCarousel ariaLabel={ui.inside_eyebrow}>
+            {p.inside_items.map((it, i) => (
+              <div key={i} className="shop-inside-card">
+                <span className="shop-inside-ico"><RdIcon name={it.icon || 'star'} size={21} /></span>
+                <h3 className="r-serif" style={{ fontWeight: 600, fontSize: 19.5, color: 'var(--rd-ink)', lineHeight: 1.3 }}>{it.t}</h3>
+                <p style={{ fontSize: 15.5, color: 'var(--rd-ink-soft)', marginTop: 10, lineHeight: 1.65, textWrap: 'pretty' }}>{it.d}</p>
+              </div>
+            ))}
+          </RdPeekCarousel>
         </div>
       </div>
-      <style>{`@media (max-width: 980px) { #inside .rd-info-grid-3 { grid-template-columns: minmax(0, 1fr) !important; max-width: 480px; margin-inline: auto; } }`}</style>
     </section>
   );
 }
@@ -504,12 +526,12 @@ function PSBody({ p, lang }) {
       <PSShopHero p={p} ui={ui} x={x} lang={lang} intensity={intensity} inCart={inCart} qty={qty} onAdd={onAdd} onQty={changeQty} />
       {typeof Ch1TrustBadges === 'function' && <Ch1TrustBadges x={x} pay={false} items={PS_TRUST[lang] || PS_TRUST.de} />}
       <PSReviews p={p} ui={ui} lang={lang} />
-      <PSInside p={p} ui={ui} />
-      <PSPages p={p} ui={ui} />
-      {typeof Ch1Benefits === 'function' && <Ch1Benefits x={x} />}
       <PSStory p={p} ui={ui} />
       {/* Shared with the home page — the same steps for every chapter. */}
       {typeof RdHow === 'function' && t.how && <RdHow t={t} />}
+      <PSInside p={p} ui={ui} />
+      <PSPages p={p} ui={ui} />
+      {typeof Ch1Benefits === 'function' && <Ch1Benefits x={x} carousel />}
       <PSDetails p={p} ui={ui} />
       {typeof GpsrCompliance === 'function' && <GpsrCompliance lang={lang} />}
       {typeof Ch1Faq === 'function' && <Ch1Faq x={x} />}
@@ -683,6 +705,16 @@ const PS_SHOP_CSS = `
   .shop-reassure-item { display: flex; align-items: center; gap: 8px; font-family: var(--f-sans); font-weight: 600; font-size: 13.5px; color: var(--rd-ink-soft); }
   .shop-gift { display: flex; align-items: center; gap: 12px; margin-top: 20px; background: color-mix(in srgb, var(--rd-gold-soft) 14%, transparent); border: 1px solid color-mix(in srgb, var(--rd-gold) 34%, transparent); border-radius: 12px; padding: 14px 16px; }
   .shop-pay { display: flex; justify-content: center; align-items: center; gap: 20px 22px; flex-wrap: wrap; margin-top: 24px; padding-top: 22px; border-top: 1px solid color-mix(in srgb, var(--rd-ink) 10%, transparent); font-family: var(--f-sans); font-weight: 700; font-size: 12px; letter-spacing: 0.07em; color: var(--rd-ink-mute); }
+  .shop-inside-card { height: 100%; background: var(--rd-paper); border: 1px solid color-mix(in srgb, var(--rd-ink) 11%, transparent); border-radius: 14px; padding: 30px 28px; box-shadow: 0 26px 55px -40px color-mix(in srgb, var(--rd-ink) 45%, transparent); }
+  .shop-inside-ico { display: inline-grid; place-items: center; width: 48px; height: 48px; border-radius: 50%; border: 1px solid color-mix(in srgb, var(--rd-gold) 55%, transparent); color: var(--rd-gold); background: color-mix(in srgb, var(--rd-gold-soft) 12%, transparent); margin-bottom: 18px; }
+  .shop-slot { display: flex; align-items: center; gap: 16px; max-width: 620px; margin: 0 auto; padding: 26px 28px; background: var(--rd-paper); border: 1px dashed color-mix(in srgb, var(--rd-ink) 26%, transparent); border-radius: 14px; }
+  .shop-slot-ico { flex: none; display: inline-grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; border: 1px solid color-mix(in srgb, var(--rd-gold) 50%, transparent); color: var(--rd-gold); }
+  .shop-slot p { font-size: 16.5px; line-height: 1.6; color: var(--rd-ink-soft); text-wrap: pretty; }
+  .shop-page-empty { display: grid; place-items: center; aspect-ratio: 1 / 1.414; background: var(--rd-cream); border: 1px dashed color-mix(in srgb, var(--rd-ink) 26%, transparent); border-radius: 10px; }
+  .shop-page-empty span { font-size: 15px; color: var(--rd-ink-mute); }
+  @media (min-width: 901px) {
+    #inside .rd-peek-item, #ch1-ben .rd-peek-item, #pages .rd-peek-item { flex: 0 0 calc((100% - 56px) / 3); }
+  }
   .shop-review { height: 100%; display: flex; flex-direction: column; background: var(--rd-paper); border: 1px solid color-mix(in srgb, var(--rd-ink) 11%, transparent); border-radius: 14px; padding: 26px 26px 24px; box-shadow: 0 1px 3px color-mix(in srgb, var(--rd-ink) 6%, transparent), 0 22px 44px -34px color-mix(in srgb, var(--rd-ink) 30%, transparent); }
   .shop-verified { display: inline-flex; align-items: center; gap: 6px; margin-top: 12px; font-family: var(--f-sans); font-weight: 700; font-size: 11.5px; letter-spacing: 0.04em; color: var(--rd-moss); }
   .shop-sticky { position: fixed; left: 0; right: 0; bottom: 0; z-index: 45; background: color-mix(in srgb, var(--rd-paper) 94%, transparent); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-top: 1px solid color-mix(in srgb, var(--rd-ink) 14%, transparent); box-shadow: 0 -14px 40px -24px color-mix(in srgb, var(--rd-ink) 45%, transparent); transform: translateY(110%); transition: transform 0.4s var(--ease); }

@@ -190,24 +190,29 @@ function Ch1Reviews({ x }) {
 }
 
 // Benefits — why parents love it
-function Ch1Benefits({ x }) {
+function Ch1Benefits({ x, carousel }) {
+  const cards = x.benefits.map((b, i) => (
+    <div key={i} className={carousel ? 'ch1-ben' : `r-rev r-rev-${(i % 3) + 1} ch1-ben`}>
+      <span className="ch1-ben-ico"><RdIcon name={b.icon} size={22} /></span>
+      <h3 className="r-serif" style={{ fontWeight: 600, fontSize: 19.5, color: 'var(--rd-ink)', lineHeight: 1.3 }}>{b.t}</h3>
+      <p style={{ fontSize: 15, color: 'var(--rd-ink-soft)', marginTop: 9, lineHeight: 1.62, textWrap: 'pretty' }}>{b.d}</p>
+    </div>
+  ));
   return (
-    <section data-rd data-screen-label="Warum Eltern es lieben" style={{ padding: '130px 0 140px', background: 'var(--rd-paper)' }}>
+    <section id="ch1-ben" data-rd data-screen-label="Warum Eltern es lieben" style={{ padding: '130px 0 140px', background: 'var(--rd-paper)' }}>
       <div className="rwrap" style={{ position: 'relative', zIndex: 2 }}>
         <RdHeading eyebrow={x.ben_eyebrow} title={x.ben_title} max={760} />
-        <div className="ch1-ben-grid" style={{ marginTop: 60 }}>
-          {x.benefits.map((b, i) => (
-            <div key={i} className={`r-rev r-rev-${(i % 3) + 1} ch1-ben`}>
-              <span className="ch1-ben-ico"><RdIcon name={b.icon} size={22} /></span>
-              <h3 className="r-serif" style={{ fontWeight: 600, fontSize: 19.5, color: 'var(--rd-ink)', lineHeight: 1.3 }}>{b.t}</h3>
-              <p style={{ fontSize: 15, color: 'var(--rd-ink-soft)', marginTop: 9, lineHeight: 1.62, textWrap: 'pretty' }}>{b.d}</p>
-            </div>
-          ))}
-        </div>
+        {carousel ? (
+          <div className="r-rev" style={{ marginTop: 60 }}>
+            <RdPeekCarousel ariaLabel={x.ben_eyebrow}>{cards}</RdPeekCarousel>
+          </div>
+        ) : (
+          <div className="ch1-ben-grid" style={{ marginTop: 60 }}>{cards}</div>
+        )}
       </div>
       <style>{`
         .ch1-ben-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
-        .ch1-ben { background: var(--rd-cream); border: 1px solid color-mix(in srgb, var(--rd-ink) 10%, transparent); border-radius: 14px; padding: 28px 26px; }
+        .ch1-ben { background: var(--rd-cream); border: 1px solid color-mix(in srgb, var(--rd-ink) 10%, transparent); border-radius: 14px; padding: 28px 26px; height: 100%; }
         .ch1-ben-ico { display: inline-grid; place-items: center; width: 48px; height: 48px; border-radius: 50%; border: 1px solid color-mix(in srgb, var(--rd-gold) 55%, transparent); color: var(--rd-gold); background: color-mix(in srgb, var(--rd-gold-soft) 12%, transparent); margin-bottom: 16px; }
         @media (max-width: 980px) { .ch1-ben-grid { grid-template-columns: repeat(2, 1fr); } }
         @media (max-width: 620px) { .ch1-ben-grid { grid-template-columns: minmax(0, 1fr); max-width: 460px; margin-inline: auto; } }
