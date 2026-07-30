@@ -62,7 +62,7 @@ export async function onRequestGet({ request, env }) {
       // result is edge-cached, so the fan-out is cheap.
       const pRes = await fetch(`${base}/products?${auth}&per_page=100`);
       if (!pRes.ok) {
-        return json({ configured: true, reviews: [], error: 'judge.me products ' + pRes.status }, 502);
+        return json({ configured: true, reviews: [], error: 'judge.me products ' + pRes.status });
       }
       const pJson = await pRes.json();
       const ids = (pJson.products || []).map((p) => p && p.id).filter(Boolean);
@@ -79,12 +79,12 @@ export async function onRequestGet({ request, env }) {
     }
     const rRes = await fetch(query);
     if (!rRes.ok) {
-      return json({ configured: true, reviews: [], error: 'judge.me ' + rRes.status }, 502);
+      return json({ configured: true, reviews: [], error: 'judge.me ' + rRes.status });
     }
     const data = await rRes.json();
     return finish(data.reviews || [], perPage);
   } catch (e) {
-    return json({ configured: true, reviews: [], error: String(e && e.message || e) }, 502);
+    return json({ configured: true, reviews: [], error: String(e && e.message || e) });
   }
 }
 
