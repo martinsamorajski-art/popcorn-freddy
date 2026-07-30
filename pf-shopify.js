@@ -577,7 +577,7 @@
     try {
       localStorage.removeItem('pf-cart-v1');
       localStorage.removeItem(HANDOFF_KEY);
-      localStorage.removeItem('pf-checkout-state-v1');
+      localStorage.removeItem('pf-checkout-v1');
     } catch (e) {}
     writeCartRef({});
     try { window.dispatchEvent(new Event('rd-cart-changed')); } catch (e) {}

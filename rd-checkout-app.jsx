@@ -15,7 +15,7 @@ function rcStateSave(s) {
 }
 
 // ─── STEP 1 — cart, personalisation, add-ons ─────────────────
-function RcStepCart({ rc, lang, cur, cart, setQty, removeItem, units, personal, setPersonalField, addons, toggleAddon, onNext }) {
+function RcStepCart({ rc, lang, cur, cart, setQty, removeItem, units, personal, setPersonalField, addons, toggleAddon, onNext, missing }) {
   const multi = units.length > 1;
   return (
     <React.Fragment>
@@ -73,7 +73,14 @@ function RcStepCart({ rc, lang, cur, cart, setQty, removeItem, units, personal, 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 22, alignItems: 'center' }} className="rc-personal-grid">
                 <div className="rc-field">
                   <label className="rc-label" htmlFor={'rc-name-' + u.key}>{rc.cart.name_label}</label>
-                  <input id={'rc-name-' + u.key} className="rc-input" value={p.name} maxLength={18} onChange={(e) => setPersonalField(u.key, 'name', e.target.value)} placeholder={rc.cart.name_ph} />
+                  <input id={'rc-name-' + u.key} className={'rc-input' + (missing && missing[u.key] ? ' rc-input-bad' : '')}
+                    value={p.name} maxLength={18} required aria-required="true"
+                    aria-invalid={missing && missing[u.key] ? 'true' : 'false'}
+                    aria-describedby={missing && missing[u.key] ? 'rc-name-err-' + u.key : undefined}
+                    onChange={(e) => setPersonalField(u.key, 'name', e.target.value)} placeholder={rc.cart.name_ph} />
+                  {missing && missing[u.key] && (
+                    <div id={'rc-name-err-' + u.key} role="alert" className="rc-name-err">{rc.cart.name_req}</div>
+                  )}
                 </div>
                 <RcEngrave rc={rc} name={(p.name || '').trim()} />
               </div>
@@ -364,7 +371,12 @@ function RcApp() {
     lines.forEach((c) => { const q = Math.max(1, c.qty || 1); for (let i = 0; i < q; i++) out.push({ key: c.n + ':' + i, chapter: c.chapterNo != null ? c.chapterNo : c.n, cover: c.img, title: c.title }); });
     return out;
   }, [lines, lang]);
-  const setPersonalField = (key, field, value) => setPersonal((p) => ({ ...p, [key]: { name: '', lang: 'de', ...(p[key] || {}), [field]: value } }));
+  const setPersonalField = (key, field, value) => {
+    setPersonal((p) => ({ ...p, [key]: { name: '', lang: 'de', ...(p[key] || {}), [field]: value } }));
+    if (field === 'name' && String(value).trim()) {
+      setMissingNames((m) => (m[key] ? Object.assign({}, m, { [key]: false }) : m));
+    }
+  };
   const primaryName = (() => { const k = units[0] && units[0].key; const p = k && personal[k]; return ((p && p.name) || '').trim(); })();
 
   // ─ shipping: rated by Shopify, never by this page ─
@@ -480,6 +492,25 @@ function RcApp() {
 
   const scrollTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });  const goTo = (s) => { setStep(s); scrollTop(); };
 
+  // The child's name is printed and engraved, so it cannot be optional: every
+  // box in the basket needs one before the delivery step opens.
+  const [missingNames, setMissingNames] = useState({});
+  const leaveCart = () => {
+    const bad = {};
+    units.forEach((u) => {
+      const p = personal[u.key] || {};
+      if (!(p.name || '').trim()) bad[u.key] = true;
+    });
+    setMissingNames(bad);
+    const first = Object.keys(bad)[0];
+    if (first) {
+      const el = document.getElementById('rc-name-' + first);
+      if (el) { el.focus({ preventScroll: false }); }
+      return;
+    }
+    goTo(1);
+  };
+
   // Option B: from the delivery step, hand off to Shopify's hosted checkout
   // PRE-FILLED with the name/email/address collected here. Payment happens on
   // Shopify (secure/PCI). If the store isn't live (preview), fall back to the
@@ -571,7 +602,7 @@ function RcApp() {
             <RcSteps rc={rc} step={step} />
             <div className="rc-grid">
               <div className="rc-main">
-                {step === 0 && <RcStepCart rc={rc} lang={lang} cur={cur} cart={lines} setQty={setQty} removeItem={removeItem} units={units} personal={personal} setPersonalField={setPersonalField} addons={addons} toggleAddon={toggleAddon} onNext={() => goTo(1)} />}
+                {step === 0 && <RcStepCart rc={rc} lang={lang} cur={cur} cart={lines} setQty={setQty} removeItem={removeItem} units={units} personal={personal} setPersonalField={setPersonalField} addons={addons} toggleAddon={toggleAddon} onNext={leaveCart} missing={missingNames} />}
                 {step === 1 && <RcStepShip rc={rc} form={form} setForm={setForm} onBack={() => goTo(0)} onNext={goToPayment} />}
                 {step === 2 && <RcStepPay rc={rc} lang={lang} cur={cur} pay={pay} setPay={setPay} sealing={sealing} onBack={() => goTo(1)} onOrder={placeOrder} totals={totals} />}
               </div>

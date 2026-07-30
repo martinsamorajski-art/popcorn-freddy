@@ -140,3 +140,8 @@ html[data-anim="off"] .rc-seal-badge { animation: none; }
   .rc-item img { width: 56px; height: 70px; }
   .rc-item-right { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; }
 }
+
+/* Required child's name — flagged when the visitor tries to continue without it */
+.rc-input-bad { border-color: #b0623c; background: #fdf6f2; }
+.rc-input-bad:focus-visible { outline: 2px solid #b0623c; outline-offset: 1px; }
+.rc-name-err { margin-top: 6px; font-family: var(--f-sans); font-size: 12.5px; line-height: 1.4; color: #b0623c; }
