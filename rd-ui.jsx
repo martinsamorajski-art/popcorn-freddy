@@ -729,41 +729,31 @@ function RdLangSuggest() {
 }
 
 // Empty basket → offer the obvious next step instead of a dead end: chapter 1,
-// priced live from Shopify. Adds straight into the local mirror (the same shape
-// every add uses) so the panel fills in place.
+// priced live from Shopify. It never writes to the basket itself (the host page
+// owns cart state, so an add from in here could not re-render this panel and led
+// to silent double counts) — it links to the product page, where quantity and
+// the child's name are handled. Shopify is the ONLY source: with no live
+// product there is no card, just the empty note.
 function RdCartSuggest({ lang }) {
   const handle = 'kapitel-1-fluesterwald';
   const p = usePFProduct(handle, lang);
-  // Shopify is the source for cover + price, but it can be slow or unreachable
-  // (preview, blocked proxy). Never leave a pulsing skeleton behind: fall back to
-  // the local cover, and simply omit the price until the live one arrives.
-  const img = (p && p.images && p.images[0] && (p.images[0].src || p.images[0])) || 'assets/chapter-1-cover.png';
-  const add = () => {
-    const cart = rdCartLoad();
-    const i = cart.findIndex((it) => it.n === handle);
-    if (i >= 0) cart[i] = { ...cart[i], qty: (cart[i].qty || 1) + 1 };
-    else cart.push({ n: handle, handle: handle, variantId: p && p.variantId, qty: 1, ...(p && p.quantityAvailable != null ? { max: p.quantityAvailable } : {}), attrs: {} });
-    rdCartSave(cart);
-    window.dispatchEvent(new Event('rd-cart-changed'));
-    if (window.PFShop && PFShop.enabled && p && p.variantId) {
-      PFShop.addLine(p.variantId, 1, {}).catch(function (e) { console.warn('[Shop] add failed', e); });
-    }
-  };
+  const img = p && p.images && p.images[0] && (p.images[0].src || p.images[0]);
   return (
     <div className="rd-cart-empty">
       <div className="r-it" style={{ fontSize: 17, color: 'var(--rd-ink-soft)' }}>{lang === 'de' ? 'Noch leer — Zeit für ein Abenteuer ✦' : 'Empty — time for an adventure ✦'}</div>
-      <div className="r-caps" style={{ marginTop: 18, color: 'var(--rd-ink-mute)' }}>{lang === 'de' ? 'Hier fängt alles an' : 'Where it all begins'}</div>
-      <div className="rd-bsug">
-        <img src={img} alt="" onError={(e) => { e.currentTarget.src = 'assets/chapter-1-cover.png'; }} />
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div className="rd-bsug-title">{(p && p.title) || (lang === 'de' ? 'Kapitel 1 — Der Flüsterwald' : 'Chapter 1 — The Whispering Woods')}</div>
-          <div className="r-it" style={{ fontSize: 14, color: 'var(--rd-ink-soft)', marginTop: 1 }}>{(p && p.priceFormatted) || '\u00a0'}</div>
-          <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginTop: 10, flexWrap: 'wrap' }}>
-            <button className="rbtn rbtn-primary" style={{ fontSize: 14, padding: '9px 16px' }} onClick={add}>{lang === 'de' ? 'In den Korb' : 'Add to basket'}</button>
-            <a className="rd-bsug-link" href="/produkt/kapitel-1-fluesterwald">{lang === 'de' ? 'Ansehen' : 'View'}</a>
-          </div>
-        </div>
-      </div>
+      {p && p.title && (
+        <React.Fragment>
+          <div className="r-caps" style={{ marginTop: 18, color: 'var(--rd-ink-mute)' }}>{lang === 'de' ? 'Hier fängt alles an' : 'Where it all begins'}</div>
+          <a className="rd-bsug" href={'/produkt/' + handle}>
+            {img && <img src={img} alt="" />}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div className="rd-bsug-title">{p.title}</div>
+              {p.priceFormatted && <div className="r-it" style={{ fontSize: 14, color: 'var(--rd-ink-soft)', marginTop: 2 }}>{p.priceFormatted}</div>}
+              <span className="rd-bsug-cta">{lang === 'de' ? 'Kapitel ansehen' : 'View chapter'} <RdIcon name="arrow" size={15} /></span>
+            </div>
+          </a>
+        </React.Fragment>
+      )}
       <a className="rd-cart-continue" style={{ display: 'block', textAlign: 'center' }} href="/Alle Kapitel.html">{lang === 'de' ? 'Alle Kapitel ansehen' : 'See all chapters'}</a>
     </div>
   );
@@ -850,11 +840,12 @@ function RdCart({ open, cart, onClose, lang, onQty, onRemove, justAdded }) {
         .rd-ship-track { margin-top: 9px; height: 6px; border-radius: 4px; background: color-mix(in srgb, var(--rd-ink) 12%, transparent); overflow: hidden; }
         .rd-ship-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--rd-terra), var(--rd-gold)); transition: width .5s cubic-bezier(.22,.61,.36,1); }
         .rd-cart-empty { padding: 8px 2px; }
-        .rd-bsug { margin-top: 10px; display: flex; align-items: flex-start; gap: 13px; padding: 12px; background: var(--rd-paper-soft); border-radius: 11px; border: 1px solid color-mix(in srgb, var(--rd-gold) 32%, transparent); }
+        .rd-bsug { margin-top: 10px; display: flex; align-items: center; gap: 13px; padding: 12px; background: var(--rd-paper-soft); border-radius: 11px; border: 1px solid color-mix(in srgb, var(--rd-gold) 32%, transparent); text-decoration: none; transition: border-color .2s, background .2s; }
+        .rd-bsug:hover { border-color: var(--rd-gold); background: color-mix(in srgb, var(--rd-gold) 8%, var(--rd-paper-soft)); }
+        .rd-bsug-cta { display: inline-flex; align-items: center; gap: 6px; margin-top: 9px; font-family: var(--f-sans); font-weight: 700; font-size: 13px; color: var(--rd-terra); }
         .rd-bsug img { width: 64px; height: 80px; border-radius: 8px; object-fit: cover; flex-shrink: 0; }
         .rd-bsug-title { font-family: var(--f-sans); font-weight: 600; font-size: 14.5px; color: var(--rd-ink); line-height: 1.3; }
         .rd-bsug-link { font-family: var(--f-sans); font-size: 13.5px; color: var(--rd-ink-mute); text-decoration: underline; }
-        .rd-bsug-link:hover { color: var(--rd-terra); }
         .rd-cart-items { margin-top: 12px; flex: 1; display: grid; gap: 10px; align-content: start; }
         .rd-cart-line { display: flex; align-items: flex-start; gap: 12px; padding: 10px; background: var(--rd-paper-soft); border-radius: 11px; border: 1px solid transparent; transition: border-color .3s, background .3s; }
         .rd-cart-line.is-added { border-color: var(--rd-gold); animation: rdAdded .7s ease; }
