@@ -101,7 +101,7 @@ function PSGallery({ images }) {
 }
 
 // ─── BUY BOX ─────────────────────────────────────────────────
-function PSBuyBox({ p, ui, x, lang, inCart, onAdd }) {
+function PSBuyBox({ p, ui, x, lang, inCart, qty, onAdd, onQty }) {
   const ratingCount = p.rating_count || 0;
   const lede = pfStripTags(p.descriptionHtml) || '';
   const soldOut = p.available === false;
@@ -146,8 +146,9 @@ function PSBuyBox({ p, ui, x, lang, inCart, onAdd }) {
       <div style={{ marginTop: 26 }}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 12 }}>
           <span className="r-display" style={{ fontSize: 40, color: 'var(--rd-ink)' }}>{p.priceFormatted}</span>
-          <span className="r-it" style={{ fontSize: 14.5, color: 'var(--rd-ink-mute)' }}>{ui.price_note}</span>
         </div>
+        {/* The VAT line lives ONLY in GpsrPriceNote (which also carries the
+            required shipping-cost link) — never twice next to the price. */}
         {typeof GpsrPriceNote === 'function' && <GpsrPriceNote lang={lang} />}
       </div>
 
@@ -157,9 +158,14 @@ function PSBuyBox({ p, ui, x, lang, inCart, onAdd }) {
         ) : !inCart ? (
           <button className="rbtn rbtn-primary rbtn-xl shop-cta" onClick={() => onAdd()}>{ui.add} · {p.priceFormatted} <RdIcon name="arrow" size={17} /></button>
         ) : (
-          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-            <span className="rbtn rbtn-ghost rbtn-xl" style={{ cursor: 'default', color: 'var(--rd-moss)', borderColor: 'color-mix(in srgb, var(--rd-moss) 50%, transparent)', flex: '1 1 auto', justifyContent: 'center' }}><RdIcon name="check" size={17} /> {ui.added}</span>
-            <button className="rbtn rbtn-primary rbtn-xl" style={{ flex: '1 1 auto', justifyContent: 'center' }} onClick={() => rdCheckout()}>{ui.checkout} <RdIcon name="arrow" size={17} /></button>
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'stretch' }}>
+            <div className="shop-stepper" aria-label={lang === 'de' ? 'Anzahl' : 'Quantity'}>
+              <button type="button" aria-label={lang === 'de' ? 'Eine weniger' : 'One less'} onClick={() => onQty(-1)}>–</button>
+              <span>{qty}</span>
+              <button type="button" aria-label={lang === 'de' ? 'Eine mehr' : 'One more'} disabled={p.quantityAvailable != null && qty >= p.quantityAvailable} onClick={() => onQty(1)}>+</button>
+            </div>
+            <button className="rbtn rbtn-primary rbtn-xl" style={{ flex: '1 1 200px', justifyContent: 'center' }} onClick={() => rdCheckout()}>{ui.checkout} <RdIcon name="arrow" size={17} /></button>
+            <div className="shop-incart-note"><RdIcon name="check" size={15} /> {ui.added}</div>
           </div>
         )}
         {p.scarcity && <div className="shop-scarcity"><span className="shop-dot" aria-hidden="true"></span>{p.scarcity}</div>}
@@ -193,14 +199,14 @@ function PSBuyBox({ p, ui, x, lang, inCart, onAdd }) {
 }
 
 // ─── HERO ────────────────────────────────────────────────────
-function PSShopHero({ p, ui, x, lang, intensity, inCart, onAdd }) {
+function PSShopHero({ p, ui, x, lang, intensity, inCart, qty, onAdd, onQty }) {
   return (
     <section className="rh" data-screen-label="Produkt" style={{ overflow: 'hidden', background: 'radial-gradient(ellipse 55% 45% at 92% 6%, color-mix(in srgb, var(--rd-gold-soft) 22%, transparent) 0%, transparent 62%), radial-gradient(ellipse 45% 40% at 2% 92%, color-mix(in srgb, var(--rd-sage) 26%, transparent) 0%, transparent 58%), var(--rd-paper)' }}>
       <RdLeaves intensity={intensity} />
       <div className="rwrap" style={{ position: 'relative', zIndex: 2 }}>
         <div className="shop-hero-grid">
           <PSGallery images={p.images} />
-          <PSBuyBox p={p} ui={ui} x={x} lang={lang} inCart={inCart} onAdd={onAdd} />
+          <PSBuyBox p={p} ui={ui} x={x} lang={lang} inCart={inCart} qty={qty} onAdd={onAdd} onQty={onQty} />
         </div>
       </div>
     </section>
@@ -417,10 +423,12 @@ function PSBody({ p, lang }) {
   const t = (window.COPY && (window.COPY[lang] || window.COPY.de)) || {};
   const x = (window.CH1_TRUST && (CH1_TRUST[lang] || CH1_TRUST.de)) || { badges: [], badges_pay: [] };
   const intensity = 5;
-  const [inCart, setInCart] = useState(() => rdCartLoad().some((it) => it.n === p.handle));
+  const qtyOf = () => { const it = rdCartLoad().find((x2) => x2.n === p.handle); return it ? (it.qty || 1) : 0; };
+  const [qty, setQty] = useState(qtyOf);
+  const inCart = qty > 0;
 
   useEffect(() => {
-    const sync = () => setInCart(rdCartLoad().some((it) => it.n === p.handle));
+    const sync = () => setQty(qtyOf());
     window.addEventListener('rd-cart-changed', sync);
     window.addEventListener('pf-shop-cart-changed', sync);
     return () => { window.removeEventListener('rd-cart-changed', sync); window.removeEventListener('pf-shop-cart-changed', sync); };
@@ -436,11 +444,26 @@ function PSBody({ p, lang }) {
     else cart.push({ n: p.handle, handle: p.handle, variantId: p.variantId, qty: 1, ...(p.quantityAvailable != null ? { max: p.quantityAvailable } : {}), attrs: attrs });
     rdCartSave(cart);
     window.dispatchEvent(new Event('rd-cart-changed'));
-    setInCart(true);
+    setQty(qtyOf());
     // Real Shopify line (when the store is connected).
     if (window.PFShop && PFShop.enabled && p.variantId) {
       PFShop.addLine(p.variantId, 1, attrs).catch(function (e) { console.warn('[Shop] add failed', e); });
     }
+  };
+
+  // Quantity stepper next to the CTA once the box is in the basket — the same
+  // local-mirror update the cart flyout does, so both stay in step. Going below
+  // one removes the line (the CTA then reads "add" again).
+  const changeQty = (d) => {
+    const cart = rdCartLoad();
+    const i = cart.findIndex((it) => it.n === p.handle);
+    if (i < 0) { if (d > 0) onAdd(); return; }
+    const next = (cart[i].qty || 1) + d;
+    if (next < 1) cart.splice(i, 1);
+    else cart[i] = { ...cart[i], qty: next };
+    rdCartSave(cart);
+    window.dispatchEvent(new Event('rd-cart-changed'));
+    setQty(next < 1 ? 0 : next);
   };
 
   // Add ANOTHER chapter. The cards in the "other chapters" carousel call their
@@ -462,8 +485,8 @@ function PSBody({ p, lang }) {
 
   return (
     <React.Fragment>
-      <PSShopHero p={p} ui={ui} x={x} lang={lang} intensity={intensity} inCart={inCart} onAdd={onAdd} />
-      {typeof Ch1TrustBadges === 'function' && <Ch1TrustBadges x={x} />}
+      <PSShopHero p={p} ui={ui} x={x} lang={lang} intensity={intensity} inCart={inCart} qty={qty} onAdd={onAdd} onQty={changeQty} />
+      {typeof Ch1TrustBadges === 'function' && <Ch1TrustBadges x={x} pay={false} />}
       <PSReviews p={p} ui={ui} lang={lang} />
       <PSInside p={p} ui={ui} />
       <PSPages p={p} ui={ui} />
@@ -631,13 +654,19 @@ const PS_SHOP_CSS = `
   .shop-meta-row { display: flex; align-items: center; gap: 11px; font-family: var(--f-sans); font-weight: 500; font-size: 14.5px; color: var(--rd-ink-soft); }
   .shop-meta-ico { flex: none; display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; border: 1px solid color-mix(in srgb, var(--rd-gold) 45%, transparent); color: var(--rd-gold); background: color-mix(in srgb, var(--rd-gold-soft) 10%, transparent); }
   .shop-cta { width: 100%; justify-content: center; font-size: 16.5px; }
+  .shop-stepper { flex: 0 0 auto; display: flex; align-items: center; gap: 2px; border: 1px solid color-mix(in srgb, var(--rd-ink) 22%, transparent); background: var(--rd-cream); border-radius: 10px; padding: 4px; }
+  .shop-stepper > button { width: 46px; height: 46px; border: none; background: none; border-radius: 8px; font-size: 21px; line-height: 1; color: var(--rd-ink); display: grid; place-items: center; cursor: pointer; transition: background .15s; }
+  .shop-stepper > button:hover { background: color-mix(in srgb, var(--rd-terra) 14%, var(--rd-cream)); }
+  .shop-stepper > button:disabled { opacity: .35; cursor: not-allowed; background: none; }
+  .shop-stepper > span { min-width: 30px; text-align: center; font-family: var(--f-sans); font-weight: 700; font-size: 16px; color: var(--rd-ink); }
+  .shop-incart-note { flex: 1 1 100%; display: flex; align-items: center; justify-content: center; gap: 7px; font-family: var(--f-sans); font-size: 13.5px; color: var(--rd-moss); }
   .shop-scarcity { display: flex; align-items: center; gap: 9px; font-family: var(--f-sans); font-weight: 600; font-size: 13.5px; color: var(--rd-terra); }
   .shop-dot { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--rd-terra); box-shadow: 0 0 0 0 color-mix(in srgb, var(--rd-terra) 60%, transparent); animation: shop-pulse 2s infinite; }
   @keyframes shop-pulse { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--rd-terra) 55%, transparent); } 70% { box-shadow: 0 0 0 7px transparent; } 100% { box-shadow: 0 0 0 0 transparent; } }
   .shop-reassure { display: flex; flex-wrap: wrap; gap: 10px 22px; margin-top: 22px; padding: 16px 0; border-top: 1px solid color-mix(in srgb, var(--rd-ink) 12%, transparent); border-bottom: 1px solid color-mix(in srgb, var(--rd-ink) 12%, transparent); }
   .shop-reassure-item { display: flex; align-items: center; gap: 8px; font-family: var(--f-sans); font-weight: 600; font-size: 13.5px; color: var(--rd-ink-soft); }
   .shop-gift { display: flex; align-items: center; gap: 12px; margin-top: 20px; background: color-mix(in srgb, var(--rd-gold-soft) 14%, transparent); border: 1px solid color-mix(in srgb, var(--rd-gold) 34%, transparent); border-radius: 12px; padding: 14px 16px; }
-  .shop-pay { display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; margin-top: 26px; font-family: var(--f-sans); font-weight: 700; font-size: 12px; letter-spacing: 0.07em; color: var(--rd-ink-mute); }
+  .shop-pay { display: flex; justify-content: center; align-items: center; gap: 20px 22px; flex-wrap: wrap; margin-top: 24px; padding-top: 22px; border-top: 1px solid color-mix(in srgb, var(--rd-ink) 10%, transparent); font-family: var(--f-sans); font-weight: 700; font-size: 12px; letter-spacing: 0.07em; color: var(--rd-ink-mute); }
   .shop-review { height: 100%; display: flex; flex-direction: column; background: var(--rd-paper); border: 1px solid color-mix(in srgb, var(--rd-ink) 11%, transparent); border-radius: 14px; padding: 26px 26px 24px; box-shadow: 0 1px 3px color-mix(in srgb, var(--rd-ink) 6%, transparent), 0 22px 44px -34px color-mix(in srgb, var(--rd-ink) 30%, transparent); }
   .shop-verified { display: inline-flex; align-items: center; gap: 6px; margin-top: 12px; font-family: var(--f-sans); font-weight: 700; font-size: 11.5px; letter-spacing: 0.04em; color: var(--rd-moss); }
   .shop-sticky { position: fixed; left: 0; right: 0; bottom: 0; z-index: 45; background: color-mix(in srgb, var(--rd-paper) 94%, transparent); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-top: 1px solid color-mix(in srgb, var(--rd-ink) 14%, transparent); box-shadow: 0 -14px 40px -24px color-mix(in srgb, var(--rd-ink) 45%, transparent); transform: translateY(110%); transition: transform 0.4s var(--ease); }

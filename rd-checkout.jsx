@@ -43,6 +43,7 @@ const RC_COPY = {
       title: 'Wohin reist die Box?',
       f_name: 'Vor- & Nachname', f_street: 'Straße & Hausnummer', f_zip: 'PLZ', f_city: 'Ort', f_country: 'Land', f_email: 'E-Mail für die Reisepost',
       countries: ['Deutschland', 'Österreich', 'Schweiz'],
+      locked: 'Dieser Shop liefert nur nach {c}. Anderes Land? Wechsle oben den Shop.',
       note: 'In 3–5 Werktagen bei dir. Die Versandkosten werden nach Eingabe deiner Lieferadresse berechnet.',
       back: 'Zurück',
       next: 'Weiter zur Zahlung',
@@ -156,6 +157,7 @@ const RC_COPY = {
       title: 'Where is the box travelling?',
       f_name: 'First & last name', f_street: 'Street & number', f_zip: 'Postcode', f_city: 'City', f_country: 'Country', f_email: 'Email for the travel post',
       countries: ['Germany', 'Austria', 'Switzerland'],
+      locked: 'This shop delivers to {c} only. Different country? Switch shop above.',
       note: 'With you in 3–5 business days. Shipping is calculated once you enter your delivery address.',
       back: 'Back',
       next: 'Continue to payment',
@@ -238,6 +240,19 @@ const RC_PRICE = 39.9;
 // Shipping is NOT defined here any more — Shopify's delivery options are the
 // only source (PFShop.setDeliveryAddress → cart.deliveryGroups). This maps the
 // country label shown in the form to the ISO code Shopify needs.
+// The delivery country is NOT a choice: each shop (/at, /de, /ch, /us) ships to
+// its own market only, because currency + Shopify delivery profile are bound to
+// it. This is the one label the locked field shows.
+const RC_COUNTRY_LABEL = {
+  de: { DE: 'Deutschland', AT: 'Österreich', CH: 'Schweiz', US: 'USA' },
+  en: { DE: 'Germany', AT: 'Austria', CH: 'Switzerland', US: 'United States' },
+};
+function rcLocaleCountry(lang) {
+  const t = RC_COUNTRY_LABEL[lang] || RC_COUNTRY_LABEL.de;
+  let cc = 'AT';
+  try { if (window.PFLocale) cc = PFLocale.current().country; } catch (e) {}
+  return t[cc] || t.AT;
+}
 function rcCountryCode(label) {
   const c = (label || '').toLowerCase();
   if (c.indexOf('öster') >= 0 || c.indexOf('oster') >= 0 || c.indexOf('austria') >= 0) return 'AT';
@@ -531,4 +546,4 @@ function RcSummary({ rc, t, lang, cur, cart, addons, totals, gift, disc }) {
   );
 }
 
-Object.assign(window, { RC_COPY, RC_PRICE, RC_CUR, rcFmt, rcDetectCur, rcCountryCode, RcIcon, RcSeal, RcTopBar, RcCurrency, RcSteps, RcEngrave, RcSummary, RcGift, RcDiscount });
+Object.assign(window, { RC_COPY, RC_PRICE, RC_CUR, rcFmt, rcDetectCur, rcCountryCode, rcLocaleCountry, RC_COUNTRY_LABEL, RcIcon, RcSeal, RcTopBar, RcCurrency, RcSteps, RcEngrave, RcSummary, RcGift, RcDiscount });

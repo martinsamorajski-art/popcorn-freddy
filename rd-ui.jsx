@@ -728,6 +728,45 @@ function RdLangSuggest() {
   );
 }
 
+// Empty basket → offer the obvious next step instead of a dead end: chapter 1,
+// priced live from Shopify. Adds straight into the local mirror (the same shape
+// every add uses) so the panel fills in place.
+function RdCartSuggest({ lang }) {
+  const handle = 'kapitel-1-fluesterwald';
+  const p = usePFProduct(handle, lang);
+  const add = () => {
+    const cart = rdCartLoad();
+    const i = cart.findIndex((it) => it.n === handle);
+    if (i >= 0) cart[i] = { ...cart[i], qty: (cart[i].qty || 1) + 1 };
+    else cart.push({ n: handle, handle: handle, variantId: p && p.variantId, qty: 1, ...(p && p.quantityAvailable != null ? { max: p.quantityAvailable } : {}), attrs: {} });
+    rdCartSave(cart);
+    window.dispatchEvent(new Event('rd-cart-changed'));
+    if (window.PFShop && PFShop.enabled && p && p.variantId) {
+      PFShop.addLine(p.variantId, 1, {}).catch(function (e) { console.warn('[Shop] add failed', e); });
+    }
+  };
+  return (
+    <div className="rd-cart-empty">
+      <div className="r-it" style={{ fontSize: 17, color: 'var(--rd-ink-soft)' }}>{lang === 'de' ? 'Noch leer — Zeit für ein Abenteuer ✦' : 'Empty — time for an adventure ✦'}</div>
+      <div className="r-caps" style={{ marginTop: 18, color: 'var(--rd-ink-mute)' }}>{lang === 'de' ? 'Hier fängt alles an' : 'Where it all begins'}</div>
+      <div className="rd-suggest">
+        {p && p.images && p.images[0]
+          ? <img src={p.images[0].src || p.images[0]} alt="" />
+          : <div className="rd-skel" style={{ width: 64, height: 80, borderRadius: 8, flexShrink: 0 }} aria-hidden="true" />}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div className="rd-suggest-title">{(p && p.title) || (lang === 'de' ? 'Kapitel 1 — Der Flüsterwald' : 'Chapter 1 — The Whispering Woods')}</div>
+          <div className="r-it" style={{ fontSize: 14, color: 'var(--rd-ink-soft)', marginTop: 1 }}>{(p && p.priceFormatted) || ''}</div>
+          <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginTop: 10, flexWrap: 'wrap' }}>
+            <button className="rbtn rbtn-primary" style={{ fontSize: 14, padding: '9px 16px' }} onClick={add}>{lang === 'de' ? 'In den Korb' : 'Add to basket'}</button>
+            <a className="rd-suggest-link" href="/produkt/kapitel-1-fluesterwald">{lang === 'de' ? 'Ansehen' : 'View'}</a>
+          </div>
+        </div>
+      </div>
+      <a className="rd-cart-continue" style={{ display: 'block', textAlign: 'center' }} href="/Alle Kapitel.html">{lang === 'de' ? 'Alle Kapitel ansehen' : 'See all chapters'}</a>
+    </div>
+  );
+}
+
 function RdCart({ open, cart, onClose, lang, onQty, onRemove, justAdded }) {
   const lines = usePFCartLines(cart, lang);
   useEffect(() => {
@@ -760,7 +799,7 @@ function RdCart({ open, cart, onClose, lang, onQty, onRemove, justAdded }) {
         )}
 
         <div className="rd-cart-items">
-          {cart.length === 0 && <div className="r-it" style={{ fontSize: 17, color: 'var(--rd-ink-soft)', padding: '8px 2px' }}>{lang === 'de' ? 'Noch leer — Zeit für ein Abenteuer ✦' : 'Empty — time for an adventure ✦'}</div>}
+          {cart.length === 0 && <RdCartSuggest lang={lang} />}
           {lines.map((c) => (
             <div key={c.n} className={'rd-cart-line' + (justAdded === c.n ? ' is-added' : '')}>
               {c.img
@@ -808,6 +847,12 @@ function RdCart({ open, cart, onClose, lang, onQty, onRemove, justAdded }) {
         .rd-ship-text svg { color: var(--rd-terra); flex-shrink: 0; }
         .rd-ship-track { margin-top: 9px; height: 6px; border-radius: 4px; background: color-mix(in srgb, var(--rd-ink) 12%, transparent); overflow: hidden; }
         .rd-ship-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--rd-terra), var(--rd-gold)); transition: width .5s cubic-bezier(.22,.61,.36,1); }
+        .rd-cart-empty { padding: 8px 2px; }
+        .rd-suggest { margin-top: 10px; display: flex; align-items: flex-start; gap: 13px; padding: 12px; background: var(--rd-paper-soft); border-radius: 11px; border: 1px solid color-mix(in srgb, var(--rd-gold) 32%, transparent); }
+        .rd-suggest img { width: 64px; height: 80px; border-radius: 8px; object-fit: cover; flex-shrink: 0; }
+        .rd-suggest-title { font-family: var(--f-sans); font-weight: 600; font-size: 14.5px; color: var(--rd-ink); line-height: 1.3; }
+        .rd-suggest-link { font-family: var(--f-sans); font-size: 13.5px; color: var(--rd-ink-mute); text-decoration: underline; }
+        .rd-suggest-link:hover { color: var(--rd-terra); }
         .rd-cart-items { margin-top: 12px; flex: 1; display: grid; gap: 10px; align-content: start; }
         .rd-cart-line { display: flex; align-items: flex-start; gap: 12px; padding: 10px; background: var(--rd-paper-soft); border-radius: 11px; border: 1px solid transparent; transition: border-color .3s, background .3s; }
         .rd-cart-line.is-added { border-color: var(--rd-gold); animation: rdAdded .7s ease; }
@@ -853,4 +898,4 @@ function RdCartButtons({ label, cartCount, onOpenCart }) {
   );
 }
 
-Object.assign(window, { usePFChapters, usePFProduct, usePFCartLines, RdIcon, RdOrnament, RdSquiggle, RdCompass, RdLeaves, RdFireflies, RdPines, RdHeading, RdLogo, rdCartLoad, rdCartSave, RD_CART_KEY, RD_CRAFT, RdCraftNote, RdTrustRow, RdCarousel, RdPeekCarousel, RdFlag, RdLocaleControl, RdTrail, RdPaws, rdMoney, rdCheckout, RdCountrySuggest, RdLangSuggest, RdCart, RdCartButtons });
+Object.assign(window, { RdCartSuggest, usePFChapters, usePFProduct, usePFCartLines, RdIcon, RdOrnament, RdSquiggle, RdCompass, RdLeaves, RdFireflies, RdPines, RdHeading, RdLogo, rdCartLoad, rdCartSave, RD_CART_KEY, RD_CRAFT, RdCraftNote, RdTrustRow, RdCarousel, RdPeekCarousel, RdFlag, RdLocaleControl, RdTrail, RdPaws, rdMoney, rdCheckout, RdCountrySuggest, RdLangSuggest, RdCart, RdCartButtons });

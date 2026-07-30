@@ -141,6 +141,10 @@ html[data-anim="off"] .rc-seal-badge { animation: none; }
   .rc-item-right { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; }
 }
 
+/* Delivery country — fixed by the shop the visitor is in, so it reads as a fact */
+.rc-input-locked { background: color-mix(in srgb, var(--rd-ink) 5%, var(--rd-paper)); color: var(--rd-ink-soft); cursor: default; }
+.rc-input-locked:focus { border-color: color-mix(in srgb, var(--rd-ink) 22%, transparent); box-shadow: none; }
+
 /* Required child's name — flagged when the visitor tries to continue without it */
 .rc-input-bad { border-color: #b0623c; background: #fdf6f2; }
 .rc-input-bad:focus-visible { outline: 2px solid #b0623c; outline-offset: 1px; }
