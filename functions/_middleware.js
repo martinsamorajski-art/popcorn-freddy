@@ -35,7 +35,7 @@ export async function onRequest(context) {
         status: 303,
         headers: {
           'Location': url.searchParams.get('to') || '/',
-          'Set-Cookie': `${COOKIE}=${token}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${MAX_AGE}`,
+          'Set-Cookie': `${COOKIE}=${token}; Path=/; HttpOnly; Secure; SameSite=None; Max-Age=${MAX_AGE}`,
         },
       });
     }
