@@ -16,6 +16,9 @@
 // falls back to the `custom.reviews` metafield, so nothing breaks.
 //
 //   GET /api/reviews?product_id=<shopify numeric id>&per_page=12
+//   GET /api/reviews?per_page=24            ← ALL shop reviews (no product_id)
+// The product page asks for the whole shop, so every chapter shows the same
+// pooled wall of reviews rather than its own handful.
 // ────────────────────────────────────────────────────────────────
 
 const JSON_HEADERS = {
@@ -28,55 +31,80 @@ const JSON_HEADERS = {
 export async function onRequestGet({ request, env }) {
   const url = new URL(request.url);
   const externalId = (url.searchParams.get('product_id') || '').replace(/\D/g, '');
-  const perPage = Math.min(Number(url.searchParams.get('per_page')) || 12, 50);
+  const perPage = Math.min(Number(url.searchParams.get('per_page')) || 24, 50);
 
   const token = env.JUDGEME_API_TOKEN;
   const shop = env.JUDGEME_SHOP_DOMAIN || env.SHOPIFY_STORE_DOMAIN;
   if (!token || !shop) {
     return json({ configured: false, reviews: [] });
   }
-  if (!externalId) {
-    return json({ configured: true, reviews: [], error: 'product_id required' }, 400);
-  }
 
   const base = 'https://judge.me/api/v1';
   const auth = `api_token=${encodeURIComponent(token)}&shop_domain=${encodeURIComponent(shop)}`;
 
   try {
-    // Judge.me keys reviews by ITS OWN product id, so resolve the Shopify id first.
-    let jmProductId = null;
-    const pRes = await fetch(`${base}/products/-1?${auth}&external_id=${externalId}`);
-    if (pRes.ok) {
+    let query;
+    if (externalId) {
+      // One product: Judge.me keys reviews by ITS OWN id, so resolve first.
+      let jmProductId = null;
+      const pRes = await fetch(`${base}/products/-1?${auth}&external_id=${externalId}`);
+      if (pRes.ok) {
+        const pJson = await pRes.json();
+        jmProductId = pJson && pJson.product && pJson.product.id;
+      }
+      query = jmProductId
+        ? `${base}/reviews?${auth}&product_id=${jmProductId}&per_page=${perPage}`
+        : `${base}/reviews?${auth}&external_product_id=${externalId}&per_page=${perPage}`;
+    } else {
+      // No product_id → Judge.me's /reviews index REQUIRES a product_id, so we
+      // can't ask for "everything" in one call. Instead: list the shop's
+      // products, pull each one's reviews, then merge. Chapters are few, the
+      // result is edge-cached, so the fan-out is cheap.
+      const pRes = await fetch(`${base}/products?${auth}&per_page=100`);
+      if (!pRes.ok) {
+        return json({ configured: true, reviews: [], error: 'judge.me products ' + pRes.status }, 502);
+      }
       const pJson = await pRes.json();
-      jmProductId = pJson && pJson.product && pJson.product.id;
+      const ids = (pJson.products || []).map((p) => p && p.id).filter(Boolean);
+      const per = Math.max(3, Math.ceil(perPage / Math.max(ids.length, 1)) + 3);
+      const lists = await Promise.all(ids.map((id) =>
+        fetch(`${base}/reviews?${auth}&product_id=${id}&per_page=${per}`)
+          .then((r) => (r.ok ? r.json() : { reviews: [] }))
+          .then((d) => d.reviews || [])
+          .catch(() => [])
+      ));
+      const merged = [].concat.apply([], lists)
+        .sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+      return finish(merged, perPage);
     }
-
-    const query = jmProductId
-      ? `${base}/reviews?${auth}&product_id=${jmProductId}&per_page=${perPage}`
-      : `${base}/reviews?${auth}&external_product_id=${externalId}&per_page=${perPage}`;
     const rRes = await fetch(query);
     if (!rRes.ok) {
       return json({ configured: true, reviews: [], error: 'judge.me ' + rRes.status }, 502);
     }
     const data = await rRes.json();
-
-    // Normalize to the shape the reviews section already renders:
-    //   q = quote · n = name · m = meta line · stars · verified
-    const reviews = (data.reviews || [])
-      .filter((r) => r && (r.body || '').trim() && (r.rating || 0) >= 3)
-      .map((r) => ({
-        q: String(r.body).trim(),
-        n: (r.reviewer && (r.reviewer.name || r.reviewer.email || '').split('@')[0]) || 'Anonym',
-        m: r.product_title || '',
-        stars: Number(r.rating) || 5,
-        verified: !!r.verified && r.verified !== 'unverified',
-        date: r.created_at || null,
-      }));
-
-    return json({ configured: true, reviews });
+    return finish(data.reviews || [], perPage);
   } catch (e) {
     return json({ configured: true, reviews: [], error: String(e && e.message || e) }, 502);
   }
+}
+
+// Shape Judge.me rows into what the reviews section renders, and compute the
+// aggregate over the rated rows.
+function finish(rawReviews, perPage) {
+  const reviews = rawReviews
+    .filter((r) => r && (r.body || '').trim() && (r.rating || 0) >= 3)
+    .slice(0, perPage)
+    .map((r) => ({
+      q: String(r.body).trim(),
+      n: (r.reviewer && (r.reviewer.name || r.reviewer.email || '').split('@')[0]) || 'Anonym',
+      m: r.product_title || '',
+      stars: Number(r.rating) || 5,
+      verified: !!r.verified && r.verified !== 'unverified',
+      date: r.created_at || null,
+    }));
+  const rated = rawReviews.filter((r) => r && (r.rating || 0) > 0);
+  const avg = rated.length ? rated.reduce((s, r) => s + Number(r.rating), 0) / rated.length : null;
+  return json({ configured: true, reviews, count: rated.length, average: avg });
 }
 
 function json(body, status = 200) {
