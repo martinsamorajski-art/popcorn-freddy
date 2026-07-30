@@ -32,7 +32,7 @@ const RD_NEWSPOP_T = {
     title: 'Das Abenteuer kommt zu euch!',
     body: 'Trag dich in die Reisepost ein und wir schicken dir deinen persönlichen Rabattcode — dazu neue Kapitel und kleine Bastel-Ideen.',
     // illustrated card
-    art_consent: 'Ja, ich möchte die Reisepost erhalten — Abmeldung jederzeit möglich.',
+    art_consent: 'Ja, ich möchte die Reisepost erhalten — Abmeldung jederzeit möglich. Mehr in der',
     off: 'Rabatt',
     off_sub: 'auf die erste Box',
     strip: 'Mit Sorgfalt gefertigt · Versand in 3–5 Werktagen',
@@ -43,7 +43,7 @@ const RD_NEWSPOP_T = {
     caps: 'Join our adventure',
     title: 'Let the adventure come to you!',
     body: 'Join the travel post and we’ll send you your personal discount code — plus new chapters and little crafting ideas.',
-    art_consent: 'Yes, send me the travel post — unsubscribe any time.',
+    art_consent: 'Yes, send me the travel post — unsubscribe any time. More in our',
     off: 'off',
     off_sub: 'your first box',
     strip: 'Made with care · shipped in 3–5 business days',
