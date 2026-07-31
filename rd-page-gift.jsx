@@ -1,5 +1,6 @@
 // ────────────────────────────────────────────────────────────────
-// Geschenkkarten — gift card page (sold by chapters, email only)
+// Abenteuer verschenken — gift card page
+// Sold by chapters · digital · direct Shopify checkout (no address step)
 // ────────────────────────────────────────────────────────────────
 
 const GIFT_COPY = {
@@ -22,8 +23,20 @@ const GIFT_COPY = {
     msg_max: 300,
     msg_default: 'Ein Abenteuer wartet auf dich!',
     remaining: (n) => `${n} Zeichen verbleibend`,
-    mail_note: 'Zustellung per E-Mail — sofort nach dem Kauf, als liebevoll gestalteter Gutschein.',
-    cta: 'Geschenkkarte bestellen',
+    deliver_t: 'So kommt sie an',
+    to_recipient: 'An den Beschenkten',
+    to_me: 'An mich',
+    email_l: 'E-Mail des Beschenkten',
+    email_ph: 'name@beispiel.de',
+    email_err: 'Bitte gib eine gültige E-Mail-Adresse ein.',
+    when_l: 'Wann soll sie ankommen?',
+    when_now: 'Sofort',
+    when_date: 'Zum Wunschtermin',
+    rec_note: 'Wir senden den Gutschein per E-Mail direkt an den Beschenkten — sofort oder zum gewählten Datum.',
+    me_note: 'Du erhältst den Gutschein per E-Mail und kannst ihn selbst weitergeben.',
+    ship_note: 'Rein digital — keine Lieferadresse nötig. Der Versand der Kapitel wird erst beim Einlösen berechnet.',
+    cta: 'Jetzt verschenken',
+    cta_busy: 'Weiter zur Kasse …',
     done_t: 'Die Geschenkkarte ist unterwegs.',
     done_d: 'Wir haben alles vorbereitet. Sobald sie eingelöst wird, beginnt die Schatzsuche.',
     again: 'Noch eine verschenken',
@@ -31,7 +44,7 @@ const GIFT_COPY = {
     card_worth: 'gültig für',
     notes_t: 'Gut zu wissen',
     notes: [
-      'Zustellung per E-Mail — sofort nach dem Kauf',
+      'Zustellung per E-Mail — direkt nach dem Kauf an dich',
       'Gültig für die gewählte Anzahl an Kapiteln',
       'Der Versand wird beim Einlösen berechnet und ist nicht im Gutschein enthalten',
       'Die Familie personalisiert jedes Kapitel selbst beim Einlösen',
@@ -56,8 +69,20 @@ const GIFT_COPY = {
     msg_max: 300,
     msg_default: 'An adventure is waiting for you!',
     remaining: (n) => `${n} characters remaining`,
-    mail_note: 'Delivered by email — instantly after purchase, as a beautifully designed gift card.',
-    cta: 'Order gift card',
+    deliver_t: 'How it arrives',
+    to_recipient: 'To the recipient',
+    to_me: 'To me',
+    email_l: "Recipient's email",
+    email_ph: 'name@example.com',
+    email_err: 'Please enter a valid email address.',
+    when_l: 'When should it arrive?',
+    when_now: 'Right away',
+    when_date: 'On a chosen date',
+    rec_note: 'We email the gift card straight to the recipient — instantly or on your chosen date.',
+    me_note: 'You receive the gift card by email and can pass it on yourself.',
+    ship_note: 'Fully digital — no delivery address needed. Shipping for the chapters is only charged when redeemed.',
+    cta: 'Give it now',
+    cta_busy: 'Continuing to checkout …',
     done_t: 'The gift card is on its way.',
     done_d: 'Everything is prepared. As soon as it is redeemed, the treasure hunt begins.',
     again: 'Give another one',
@@ -65,7 +90,7 @@ const GIFT_COPY = {
     card_worth: 'valid for',
     notes_t: 'Good to know',
     notes: [
-      'Delivered by email — instantly after purchase',
+      'Delivered by email — to you, right after purchase',
       'Valid for the chosen number of chapters',
       'Shipping is calculated when redeemed and is not included in the card',
       'The family personalises each chapter themselves at redemption',
@@ -78,12 +103,11 @@ function giftFmt(v, lang) {
 }
 
 // ── Shopify: name the NATIVE gift-card product THIS handle in Shopify admin,
-// and give it ONE variant per chapter count — e.g. "1 Kapitel", "2 Kapitel" …
-// "8 Kapitel" — each priced at count × chapter price. The page reads those
-// variants and drives the stepper + total from them. Until the product exists,
-// it falls back to the display math below so the page still works.
+// with ONE variant per chapter count ("1 Kapitel" … "8 Kapitel"), each priced
+// at count × chapter price. Enable the gift-card RECIPIENT feature on the
+// product so Shopify emails the code to the recipient (Send on = scheduled).
 const GIFT_HANDLE = 'geschenkkarte';
-const GIFT_UNIT_FALLBACK = 39.9;   // per-chapter fallback price (pre-launch only)
+const GIFT_UNIT_FALLBACK = 39.9;
 const GIFT_MAX_CHAPTERS = 8;
 
 function useGiftChapters(prod, lang) {
@@ -106,7 +130,6 @@ function useGiftChapters(prod, lang) {
   return { list, money, real: false };
 }
 
-// The card itself — a cream plate with gold frame, like the map plaque
 function GiftCardPreview({ g, lang, chapterLabel, priceText, to, from, msg }) {
   return (
     <div style={{ position: 'relative', background: 'var(--rd-cream)', borderRadius: 16, padding: '38px 40px 34px', boxShadow: '0 40px 80px -36px color-mix(in srgb, var(--rd-ink) 55%, transparent)', border: '1px solid color-mix(in srgb, var(--rd-ink) 12%, transparent)', overflow: 'hidden' }}>
@@ -143,6 +166,7 @@ function GiftBody({ lang }) {
   const [to, setTo] = useState('');
   const [from, setFrom] = useState('');
   const [msg, setMsg] = useState('');
+  const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
 
   const sel = list.find((x) => x.count === count) || list[0];
@@ -159,16 +183,16 @@ function GiftBody({ lang }) {
     if (to.trim()) attrs[L ? 'Für' : 'To'] = to.trim();
     if (from.trim()) attrs[L ? 'Von' : 'From'] = from.trim();
     if (msg.trim()) attrs[L ? 'Botschaft' : 'Message'] = msg.trim();
-    attrs[L ? 'Zustellung' : 'Delivery'] = L ? 'E-Mail' : 'Email';
-    if (real && prod && sel && sel.id && window.PFShop && PFShop.enabled) {
-      const n = GIFT_HANDLE + ':' + sel.id;
-      const cart = rdCartLoad();
-      const i = cart.findIndex((it) => it.n === n);
-      if (i >= 0) cart[i] = { ...cart[i], qty: (cart[i].qty || 1) + 1, attrs };
-      else cart.push({ n, handle: GIFT_HANDLE, variantId: sel.id, qty: 1, attrs, unitPrice: sel.v, unitCurrency: sel.cc || 'EUR', unitTitle: (prod.title || g.card_caps) + ' · ' + chapterLabel });
-      rdCartSave(cart);
-      window.dispatchEvent(new Event('rd-cart-changed'));
-      PFShop.addLine(sel.id, 1, attrs).catch((e) => console.warn('[Gift] add failed', e));
+
+    // Digital gift card → own DIRECT hand-off to Shopify's hosted checkout.
+    // Fresh cart with just this line, so none of the site's physical steps
+    // (child name, add-ons, address) apply and Shopify skips shipping. The
+    // code is emailed to the buyer, who passes it on.
+    if (real && prod && sel && sel.id && window.PFShop && PFShop.checkout) {
+      setBusy(true);
+      PFShop.checkout({}, [{ handle: GIFT_HANDLE, variantId: sel.id, qty: 1, attrs }])
+        .then((ok) => { if (!ok) { setBusy(false); setSent(true); window.scrollTo({ top: 0, behavior: 'smooth' }); } })
+        .catch(() => { setBusy(false); setSent(true); window.scrollTo({ top: 0, behavior: 'smooth' }); });
     } else {
       setSent(true);
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -181,9 +205,9 @@ function GiftBody({ lang }) {
       <section data-rd style={{ padding: '30px 0 130px', background: 'var(--rd-paper)' }}>
         <div className="rwrap" style={{ position: 'relative', zIndex: 2 }}>
           <div className="rd-gift-grid">
-            {/* left: configurator */}
             {!sent ? (
               <div style={{ display: 'grid', gap: 24, alignContent: 'start' }}>
+                {/* chapters */}
                 <RdInfoCard className="r-rev" title={g.amount_t} icon="gift">
                   <p className="r-it" style={{ fontSize: 14.5, color: 'var(--rd-ink-mute)', marginTop: 2, lineHeight: 1.5 }}>{g.chapters_hint}</p>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 18, marginTop: 18, padding: '16px 20px', borderRadius: 12, border: '1px solid color-mix(in srgb, var(--rd-gold) 40%, transparent)', background: 'color-mix(in srgb, var(--rd-gold-soft) 12%, transparent)' }}>
@@ -208,6 +232,7 @@ function GiftBody({ lang }) {
                   </div>
                 </RdInfoCard>
 
+                {/* personalise */}
                 <RdInfoCard className="r-rev r-rev-1" title={g.personal_t} icon="heart">
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginTop: 6 }} className="rd-gift-names">
                     <div>
@@ -224,12 +249,20 @@ function GiftBody({ lang }) {
                     <textarea id="g-msg" className="rd-page-input" style={{ minHeight: 120, lineHeight: 1.6 }} value={msg} maxLength={g.msg_max} onChange={(e) => setMsg(e.target.value)} placeholder={g.msg_ph}></textarea>
                     <div className="r-it" style={{ textAlign: 'right', fontSize: 13, color: remaining <= 20 ? 'var(--rd-terra)' : 'var(--rd-ink-mute)', marginTop: 6 }}>{g.remaining(remaining)}</div>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 14, color: 'var(--rd-moss, var(--rd-ink-soft))' }}>
-                    <RdIcon name="mail" size={18} />
-                    <span className="r-it" style={{ fontSize: 14.5, lineHeight: 1.45 }}>{g.mail_note}</span>
+                </RdInfoCard>
+
+                {/* delivery — digital, emailed to the buyer */}
+                <RdInfoCard className="r-rev r-rev-2" title={g.deliver_t} icon="mail">
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginTop: 6, color: 'var(--rd-ink-soft)' }}>
+                    <span style={{ color: 'var(--rd-gold)', flexShrink: 0, marginTop: 1 }}><RdIcon name="mail" size={17} /></span>
+                    <span className="r-it" style={{ fontSize: 14.5, lineHeight: 1.5 }}>{g.me_note}</span>
                   </div>
-                  <button className="rbtn rbtn-primary rbtn-xl" style={{ width: '100%', marginTop: 22 }} onClick={buy}>
-                    {g.cta} · {priceText}
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginTop: 10, color: 'var(--rd-ink-mute)' }}>
+                    <span style={{ flexShrink: 0, marginTop: 1 }}><RdIcon name="check" size={17} /></span>
+                    <span className="r-it" style={{ fontSize: 14, lineHeight: 1.5 }}>{g.ship_note}</span>
+                  </div>
+                  <button className="rbtn rbtn-primary rbtn-xl" style={{ width: '100%', marginTop: 22, opacity: busy ? 0.85 : 1 }} onClick={buy} disabled={busy}>
+                    {busy ? g.cta_busy : <React.Fragment>{g.cta} · {priceText}</React.Fragment>}
                   </button>
                 </RdInfoCard>
               </div>
