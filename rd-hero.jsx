@@ -36,7 +36,7 @@ function RdTopBar({ t, lang, cartCount, onOpenCart, onStartAdventure }) {
           </a>
           <nav style={{ display: 'flex', alignItems: 'center', gap: 26 }}>
             <div className="rd-nav-links" style={{ display: 'flex', alignItems: 'center', gap: 28 }}>
-              {[['#story', t.nav.story], ['#how', t.nav.how], ['#chapters', t.nav.chapters], ['#brand', t.nav.workshop], ['#faq', t.nav.faq], ['Kontakt.html', t.nav.contact]].map(([href, label], i) => (
+              {[['#story', t.nav.story], ['#how', t.nav.how], ['#chapters', t.nav.chapters], ['Geschenkkarten.html', t.footer.l_gift], ['#brand', t.nav.workshop], ['#faq', t.nav.faq], ['Kontakt.html', t.nav.contact]].map(([href, label], i) => (
                 <a key={i} href={href} className="rd-nav-link">{label}</a>
               ))}
             </div>
@@ -65,7 +65,7 @@ function RdTopBar({ t, lang, cartCount, onOpenCart, onStartAdventure }) {
               )}
             </button>
             <RdMobileNav
-              links={[['#story', t.nav.story], ['#how', t.nav.how], ['#chapters', t.nav.chapters], ['#brand', t.nav.workshop], ['#faq', t.nav.faq], ['Kontakt.html', t.nav.contact]]}
+              links={[['#story', t.nav.story], ['#how', t.nav.how], ['#chapters', t.nav.chapters], ['Geschenkkarten.html', t.footer.l_gift], ['#brand', t.nav.workshop], ['#faq', t.nav.faq], ['Kontakt.html', t.nav.contact]]}
               ctaLabel={t.nav.mobile_cta} onCta={onStartAdventure}
               extra={<div style={{ padding: '4px 0 10px', borderTop: '1px solid color-mix(in srgb, var(--rd-ink) 10%, transparent)', marginTop: 6, paddingTop: 14 }}><RdLocaleControl lang={lang} /></div>}
             />

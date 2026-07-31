@@ -62,7 +62,7 @@ function RdPageTopBar({ t, lang }) {
   const changeQty = (n, d) => persist(cart.map((x) => x.n === n ? { ...x, qty: Math.max(1, (x.qty || 1) + d) } : x));
   const removeItem = (n) => persist(cart.filter((x) => x.n !== n));
 
-  const links = [[RD_PAGES.home + '#story', t.nav.story], [RD_PAGES.home + '#chapters', t.nav.chapters], [RD_PAGES.home + '#inside', t.nav.folder], [RD_PAGES.home + '#faq', t.nav.faq]];
+  const links = [[RD_PAGES.home + '#story', t.nav.story], [RD_PAGES.home + '#chapters', t.nav.chapters], [RD_PAGES.gift, t.footer.l_gift], [RD_PAGES.home + '#inside', t.nav.folder], [RD_PAGES.home + '#faq', t.nav.faq]];
   return (
     <header style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50 }}>
       <div className="rd-announce">✦ {t.announce} ✦</div>

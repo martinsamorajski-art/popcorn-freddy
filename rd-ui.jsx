@@ -18,11 +18,18 @@ function rdCartLoad() {
       const handle = it.handle || (typeof it.n === 'string' ? it.n : null);
       if (!handle) return null;
       return {
-        n: handle, handle, qty: it.qty || 1,
+        // Gift-card lines carry a custom `n` (handle+variant) so different
+        // denominations stay separate; everything else keys by handle.
+        n: (it.n && it.variantId) ? it.n : handle, handle, qty: it.qty || 1,
         ...(it.variantId ? { variantId: it.variantId } : {}),
         ...(it.max != null ? { max: it.max } : {}),
         ...(it.attrs ? { attrs: it.attrs } : {}),
         ...(it.gift ? { gift: it.gift } : {}),
+        // Per-line overrides — only the gift card sets these (the buyer PICKS the
+        // value, so it is a real chosen amount, not stored catalog data).
+        ...(it.unitPrice != null ? { unitPrice: it.unitPrice } : {}),
+        ...(it.unitTitle ? { unitTitle: it.unitTitle } : {}),
+        ...(it.unitCurrency ? { unitCurrency: it.unitCurrency } : {}),
       };
     }).filter(Boolean);
     if (JSON.stringify(clean) !== JSON.stringify(c)) rdCartSave(clean);
@@ -84,12 +91,14 @@ function usePFCartLines(cart, lang) {
     const p = (window.PFShop && PFShop.peek) ? PFShop.peek(handle) : null;
     return {
       ...c,
-      title: p ? p.title : null,
+      title: c.unitTitle || (p ? p.title : null),
       chapterNo: p ? p.chapterNo : null,
       img: p && p.images[0] ? p.images[0].src : null,
-      price: p ? p.price : null,
-      currency: p ? p.currencyCode : null,
-      priceFormatted: p ? p.priceFormatted : null,
+      price: c.unitPrice != null ? c.unitPrice : (p ? p.price : null),
+      currency: c.unitCurrency || (p ? p.currencyCode : null),
+      priceFormatted: c.unitPrice != null
+        ? ((window.PFShop && PFShop.money) ? PFShop.money(c.unitPrice, c.unitCurrency || 'EUR', lang) : null)
+        : (p ? p.priceFormatted : null),
       max: p && p.quantityAvailable != null ? p.quantityAvailable : null,
       ready: !!p,
     };
@@ -755,6 +764,7 @@ function RdCartSuggest({ lang }) {
         </React.Fragment>
       )}
       <a className="rd-cart-continue" style={{ display: 'block', textAlign: 'center' }} href="/Alle Kapitel.html">{lang === 'de' ? 'Alle Kapitel ansehen' : 'See all chapters'}</a>
+      <a className="rd-cart-continue" style={{ display: 'block', textAlign: 'center', marginTop: 8 }} href="/Geschenkkarten.html">{lang === 'de' ? 'Geschenkkarte verschenken' : 'Give a gift card'}</a>
     </div>
   );
 }

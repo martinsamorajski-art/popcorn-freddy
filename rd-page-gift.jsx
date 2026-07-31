@@ -21,7 +21,7 @@ const GIFT_COPY = {
     msg_default: 'Ein Abenteuer wartet auf dich!',
     deliver_t: 'Wie soll sie ankommen?',
     d_mail: { t: 'Per E-Mail', d: 'Sofort oder zum Wunschtermin — als liebevoll gestaltetes PDF zum Ausdrucken.' },
-    d_post: { t: 'Per Post', d: 'Gedruckt auf feinem Papier, mit Wachssiegel und Tannenzweig. Versand in 2–3 Werktagen.' },
+    d_post: { t: 'Per Post', d: 'Gedruckt auf feinem Papier, mit Wachssiegel und Tannenzweig. Versand in 3–5 Werktagen.' },
     cta: 'Geschenkkarte bestellen',
     done_t: 'Die Geschenkkarte ist unterwegs.',
     done_d: 'Wir haben alles vorbereitet. Sobald sie eingelöst wird, beginnt die Schatzsuche.',
@@ -54,7 +54,7 @@ const GIFT_COPY = {
     msg_default: 'An adventure is waiting for you!',
     deliver_t: 'How should it arrive?',
     d_mail: { t: 'By email', d: 'Instantly or on a chosen date — as a lovingly designed printable PDF.' },
-    d_post: { t: 'By post', d: 'Printed on fine paper, with wax seal and a sprig of pine. Ships in 2–3 business days.' },
+    d_post: { t: 'By post', d: 'Printed on fine paper, with wax seal and a sprig of pine. Ships in 3–5 business days.' },
     cta: 'Order gift card',
     done_t: 'The gift card is on its way.',
     done_d: 'Everything is prepared. As soon as it is redeemed, the treasure hunt begins.',
@@ -75,8 +75,32 @@ function giftFmt(v, lang) {
   return lang === 'de' ? v.toFixed(2).replace('.', ',') + ' €' : '€' + v.toFixed(2);
 }
 
+// ── Shopify: name the NATIVE gift-card product THIS handle in Shopify admin.
+// Once it exists, its variant denominations drive the values below and the CTA
+// adds the real gift card to the cart → Shopify checkout. Until then, the page
+// falls back to the display values in GIFT_COPY so it still looks right.
+const GIFT_HANDLE = 'geschenkkarte';
+
+function useGiftAmounts(prod, g, lang) {
+  const money = (v, cc) => (window.PFShop && PFShop.money)
+    ? PFShop.money(v, cc || (prod && prod.currencyCode) || 'EUR', lang)
+    : giftFmt(v, lang);
+  const variants = (prod && prod.variants) || [];
+  const real = variants
+    .filter((v) => v && v.availableForSale !== false && Number(v.price && v.price.amount) > 0)
+    .map((v) => {
+      const amt = Number(v.price.amount);
+      const titleNum = parseFloat(String(v.title || '').replace(/[^\d.,]/g, '').replace(',', '.'));
+      const label = (v.title && v.title !== 'Default Title' && !(Math.abs(titleNum - amt) < 0.01)) ? v.title : g.card_caps;
+      return { v: amt, cc: v.price.currencyCode, id: v.id, l: label, d: '' };
+    })
+    .sort((a, b) => a.v - b.v);
+  if (real.length) return { list: real, money, real: true };
+  return { list: g.amounts.map((a) => ({ ...a, cc: null, id: null })), money, real: false };
+}
+
 // The card itself — a cream plate with gold frame, like the map plaque
-function GiftCardPreview({ g, lang, amount, to, from, msg }) {
+function GiftCardPreview({ g, lang, amountText, to, from, msg }) {
   return (
     <div style={{ position: 'relative', background: 'var(--rd-cream)', borderRadius: 16, padding: '38px 40px 34px', boxShadow: '0 40px 80px -36px color-mix(in srgb, var(--rd-ink) 55%, transparent)', border: '1px solid color-mix(in srgb, var(--rd-ink) 12%, transparent)', overflow: 'hidden' }}>
       <div aria-hidden="true" style={{ position: 'absolute', inset: 10, border: '1px solid color-mix(in srgb, var(--rd-gold) 45%, transparent)', borderRadius: 10, pointerEvents: 'none' }}></div>
@@ -85,7 +109,7 @@ function GiftCardPreview({ g, lang, amount, to, from, msg }) {
         <div style={{ display: 'flex', justifyContent: 'center' }}><RdLogo size={21} /></div>
         <div className="r-caps" style={{ marginTop: 18, letterSpacing: '0.32em' }}>{g.card_caps}</div>
         <div className="r-it" style={{ marginTop: 14, fontSize: 15.5, color: 'var(--rd-ink-mute)' }}>{g.card_worth}</div>
-        <div className="r-display" style={{ fontSize: 52, color: 'var(--rd-ink)', marginTop: 4 }}>{giftFmt(amount, lang)}</div>
+        <div className="r-display" style={{ fontSize: 52, color: 'var(--rd-ink)', marginTop: 4 }}>{amountText}</div>
         <div style={{ margin: '18px auto 0', maxWidth: 300 }}><RdOrnament width={140} /></div>
         <p className="r-hand" style={{ marginTop: 16, fontSize: 24, lineHeight: 1.35, color: 'var(--rd-walnut)', minHeight: 32 }}>{msg || g.msg_default}</p>
         <div className="r-it" style={{ marginTop: 16, fontSize: 15.5, color: 'var(--rd-ink-soft)', display: 'flex', justifyContent: 'center', gap: 24, flexWrap: 'wrap' }}>
@@ -104,12 +128,41 @@ function GiftPage(t, lang) {
 
 function GiftBody({ lang }) {
   const g = GIFT_COPY[lang] || GIFT_COPY.de;
+  const prod = usePFProduct(GIFT_HANDLE, lang);
+  const { list: amounts, money, real } = useGiftAmounts(prod, g, lang);
   const [amount, setAmount] = useState(1);
   const [to, setTo] = useState('');
   const [from, setFrom] = useState('');
   const [msg, setMsg] = useState('');
   const [deliver, setDeliver] = useState(0);
   const [sent, setSent] = useState(false);
+  const idx = Math.min(amount, amounts.length - 1);
+  const sel = amounts[idx];
+
+  const buy = () => {
+    const L = lang === 'de';
+    const attrs = {};
+    if (to.trim()) attrs[L ? 'Für' : 'To'] = to.trim();
+    if (from.trim()) attrs[L ? 'Von' : 'From'] = from.trim();
+    if (msg.trim()) attrs[L ? 'Botschaft' : 'Message'] = msg.trim();
+    attrs[L ? 'Zustellung' : 'Delivery'] = deliver === 0 ? (L ? 'E-Mail' : 'Email') : 'Post';
+    // Real Shopify gift card: add the chosen variant to the cart, then let the
+    // shared sidecart (it opens on rd-cart-changed) carry it to Shopify checkout.
+    if (real && prod && sel && sel.id && window.PFShop && PFShop.enabled) {
+      const n = GIFT_HANDLE + ':' + sel.id;
+      const cart = rdCartLoad();
+      const i = cart.findIndex((it) => it.n === n);
+      if (i >= 0) cart[i] = { ...cart[i], qty: (cart[i].qty || 1) + 1, attrs };
+      else cart.push({ n, handle: GIFT_HANDLE, variantId: sel.id, qty: 1, attrs, unitPrice: sel.v, unitCurrency: sel.cc || 'EUR', unitTitle: prod.title || g.card_caps });
+      rdCartSave(cart);
+      window.dispatchEvent(new Event('rd-cart-changed'));
+      PFShop.addLine(sel.id, 1, attrs).catch((e) => console.warn('[Gift] add failed', e));
+    } else {
+      // Pre-launch / preview (no Shopify product yet): show the confirmation.
+      setSent(true);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
 
   return (
     <React.Fragment>
@@ -122,19 +175,19 @@ function GiftBody({ lang }) {
               <div style={{ display: 'grid', gap: 24, alignContent: 'start' }}>
                 <RdInfoCard className="r-rev" title={g.amount_t} icon="gift">
                   <div style={{ display: 'grid', gap: 10, marginTop: 6 }}>
-                    {g.amounts.map((a, i) => (
-                      <button key={i} onClick={() => setAmount(i)} className="rd-gift-amt" aria-pressed={amount === i} style={{
+                    {amounts.map((a, i) => (
+                      <button key={i} onClick={() => setAmount(i)} className="rd-gift-amt" aria-pressed={idx === i} style={{
                         display: 'grid', gridTemplateColumns: '1fr auto', gap: 12, alignItems: 'center', textAlign: 'left',
                         padding: '15px 18px', borderRadius: 10,
-                        border: amount === i ? '1.5px solid var(--rd-gold)' : '1px solid color-mix(in srgb, var(--rd-ink) 16%, transparent)',
-                        background: amount === i ? 'color-mix(in srgb, var(--rd-gold-soft) 14%, transparent)' : 'transparent',
+                        border: idx === i ? '1.5px solid var(--rd-gold)' : '1px solid color-mix(in srgb, var(--rd-ink) 16%, transparent)',
+                        background: idx === i ? 'color-mix(in srgb, var(--rd-gold-soft) 14%, transparent)' : 'transparent',
                         transition: 'border-color 0.25s, background 0.25s',
                       }}>
                         <span>
                           <span style={{ display: 'block', fontFamily: 'var(--f-sans)', fontWeight: 700, fontSize: 15.5, color: 'var(--rd-ink)' }}>{a.l}</span>
-                          <span className="r-it" style={{ display: 'block', fontSize: 14.5, color: 'var(--rd-ink-mute)', marginTop: 2 }}>{a.d}</span>
+                          {a.d && <span className="r-it" style={{ display: 'block', fontSize: 14.5, color: 'var(--rd-ink-mute)', marginTop: 2 }}>{a.d}</span>}
                         </span>
-                        <span className="r-display" style={{ fontSize: 22, color: amount === i ? 'var(--rd-gold)' : 'var(--rd-ink-soft)' }}>{giftFmt(a.v, lang)}</span>
+                        <span className="r-display" style={{ fontSize: 22, color: idx === i ? 'var(--rd-gold)' : 'var(--rd-ink-soft)' }}>{money(a.v, a.cc)}</span>
                       </button>
                     ))}
                   </div>
@@ -175,8 +228,8 @@ function GiftBody({ lang }) {
                       </button>
                     ))}
                   </div>
-                  <button className="rbtn rbtn-primary rbtn-xl" style={{ width: '100%', marginTop: 22 }} onClick={() => { setSent(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
-                    {g.cta} · {giftFmt(g.amounts[amount].v, lang)}
+                  <button className="rbtn rbtn-primary rbtn-xl" style={{ width: '100%', marginTop: 22 }} onClick={buy}>
+                    {g.cta} · {money(sel.v, sel.cc)}
                   </button>
                 </RdInfoCard>
               </div>
@@ -195,7 +248,7 @@ function GiftBody({ lang }) {
             {/* right: live preview + notes */}
             <div style={{ display: 'grid', gap: 24, alignContent: 'start', position: 'sticky', top: 130 }} className="rd-gift-side">
               <div className="r-rev r-rev-1">
-                <GiftCardPreview g={g} lang={lang} amount={g.amounts[amount].v} to={to.trim()} from={from.trim()} msg={msg.trim()} />
+                <GiftCardPreview g={g} lang={lang} amountText={money(sel.v, sel.cc)} to={to.trim()} from={from.trim()} msg={msg.trim()} />
               </div>
               <div className="r-rev r-rev-2">
                 <div className="r-caps" style={{ marginBottom: 6 }}>{g.notes_t}</div>
