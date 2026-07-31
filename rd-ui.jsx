@@ -764,7 +764,7 @@ function RdCartSuggest({ lang }) {
         </React.Fragment>
       )}
       <a className="rd-cart-continue" style={{ display: 'block', textAlign: 'center' }} href="/Alle Kapitel.html">{lang === 'de' ? 'Alle Kapitel ansehen' : 'See all chapters'}</a>
-      <a className="rd-cart-continue" style={{ display: 'block', textAlign: 'center', marginTop: 8 }} href="/Geschenkkarten.html">{lang === 'de' ? 'Geschenkkarte verschenken' : 'Give a gift card'}</a>
+      <a className="rd-cart-continue" style={{ display: 'block', textAlign: 'center', marginTop: 8 }} href="/Geschenkkarten.html">{lang === 'de' ? 'Abenteuer verschenken' : 'Give an adventure'}</a>
     </div>
   );
 }
