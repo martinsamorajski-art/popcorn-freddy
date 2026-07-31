@@ -7,7 +7,7 @@ const GIFT_COPY = {
     label: 'Geschenkkarten',
     eyebrow: 'Verschenke ein Abenteuer',
     title: 'Die Geschenkkarte',
-    lede: 'Manchmal weiß man den Namen des Kindes nicht — oder möchte der Familie die Wahl lassen. Die Geschenkkarte öffnet die Tür zum Flüsterwald, wann immer es passt.',
+    lede: 'Das schönste Geschenk ist gemeinsame Zeit. Mit der Popcorn & Freddy Geschenkkarte schenkst du Vorfreude, leuchtende Kinderaugen und den Start in ein Abenteuer, das die ganze Familie gemeinsam erlebt.',
     amount_t: 'Wähle einen Wert',
     amounts: [
       { v: 39.9, l: 'Ein Kapitel', d: 'Eine Abenteuer-Box inkl. Personalisierung' },

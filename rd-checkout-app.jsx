@@ -14,6 +14,68 @@ function rcStateSave(s) {
   try { localStorage.setItem(RC_STATE_KEY, JSON.stringify(s)); } catch (e) {}
 }
 
+// ─── Widmung — dedication, Kapitel 1 only ────────────────────
+function RcDedication({ rc, name, value, gender, setField }) {
+  const d = rc.cart.ded;
+  const g = gender === 'w' ? 'w' : 'm';
+  const MAX = 500;
+  const example = d.example(name, g);
+  const lastEx = React.useRef(null);
+  React.useEffect(() => {
+    if (!value || value === lastEx.current) {
+      if (value !== example) setField('dedication', example);
+    }
+    lastEx.current = example;
+  }, [example]);
+  const onChange = (e) => {
+    let v = e.target.value;
+    const rows = v.split('\n');
+    if (rows.length > 10) v = rows.slice(0, 10).join('\n');
+    if (v.length > MAX) v = v.slice(0, MAX);
+    setField('dedication', v);
+  };
+  const setG = (val) => {
+    if (!value || value === lastEx.current) { const nx = d.example(name, val); setField('dedication', nx); lastEx.current = nx; }
+    setField('dedGender', val);
+  };
+  const remaining = MAX - (value || '').length;
+  const gBtn = (val, label) => (
+    <button type="button" onClick={() => setG(val)} aria-pressed={g === val} style={{
+      padding: '9px 18px', borderRadius: 9, fontFamily: 'var(--f-sans)', fontWeight: 700, fontSize: 14, cursor: 'pointer',
+      border: g === val ? '1.5px solid var(--rd-gold)' : '1px solid color-mix(in srgb, var(--rd-ink) 20%, transparent)',
+      background: g === val ? 'color-mix(in srgb, var(--rd-gold-soft) 16%, transparent)' : 'transparent',
+      color: 'var(--rd-ink)', transition: 'border-color 0.25s, background 0.25s',
+    }}>{label}</button>
+  );
+  return (
+    <div className="rc-ded" style={{ marginTop: 24, paddingTop: 22, borderTop: '1px dashed color-mix(in srgb, var(--rd-ink) 16%, transparent)' }}>
+      <div style={{ fontFamily: 'var(--f-sans)', fontWeight: 800, fontSize: 15.5, color: 'var(--rd-ink)', display: 'flex', alignItems: 'center', gap: 9 }}>
+        <span style={{ color: 'var(--rd-gold)', display: 'inline-flex' }}><RdIcon name="heart" size={18} /></span>{d.title}
+      </div>
+      <p className="r-it" style={{ fontSize: 14.5, color: 'var(--rd-ink-mute)', marginTop: 8, lineHeight: 1.55 }}>{d.desc}</p>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 16, flexWrap: 'wrap' }}>
+        <span className="rc-label" style={{ margin: 0 }}>{d.gender_label}</span>
+        {gBtn('m', d.boy)}{gBtn('w', d.girl)}
+      </div>
+      <div className="rc-ded-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginTop: 16, alignItems: 'start' }}>
+        <div className="rc-field" style={{ margin: 0 }}>
+          <textarea className="rc-input rc-ded-ta" value={value || ''} onChange={onChange} rows={10} placeholder={d.ph}
+            style={{ minHeight: 230, resize: 'vertical', lineHeight: 1.6 }} />
+          <div className="r-it" style={{ textAlign: 'right', fontSize: 13, color: remaining <= 20 ? 'var(--rd-terra)' : 'var(--rd-ink-mute)', marginTop: 6 }}>{d.remaining(remaining)}</div>
+        </div>
+        <div className="rc-ded-preview">
+          <div className="r-caps" style={{ color: 'var(--rd-gold)', letterSpacing: '0.2em', fontSize: 11 }}>{d.preview_caps}</div>
+          <div style={{ marginTop: 10, padding: '28px 26px', borderRadius: 10, background: 'var(--rd-cream, #fbf6ea)', border: '1px solid color-mix(in srgb, var(--rd-gold) 40%, transparent)', minHeight: 230 }}>
+            <div style={{ fontFamily: 'var(--f-serif, Georgia, serif)', fontSize: 16, lineHeight: 1.75, color: 'var(--rd-walnut, #5b4a36)', whiteSpace: 'pre-wrap', fontStyle: 'italic' }}>{(value || '').trim() || d.example(name, g)}</div>
+          </div>
+        </div>
+      </div>
+      <p className="r-it" style={{ fontSize: 13.5, color: 'var(--rd-ink-mute)', marginTop: 12, lineHeight: 1.5 }}>{d.note}</p>
+      <style>{`@media (max-width: 640px){ .rc-ded-grid{ grid-template-columns: 1fr !important; } }`}</style>
+    </div>
+  );
+}
+
 // ─── STEP 1 — cart, personalisation, add-ons ─────────────────
 function RcStepCart({ rc, lang, cur, cart, setQty, removeItem, units, personal, setPersonalField, addons, toggleAddon, onNext, missing }) {
   const multi = units.length > 1;
@@ -102,6 +164,9 @@ function RcStepCart({ rc, lang, cur, cart, setQty, removeItem, units, personal, 
                   {idx === units.length - 1 && <span className="r-it" style={{ fontSize: 14.5, color: 'var(--rd-ink-mute)' }}>{rc.cart.lang_hint}</span>}
                 </div>
               </div>
+              {u.chapter === 1 && (
+                <RcDedication rc={rc} name={(p.name || '').trim()} value={p.dedication} gender={p.dedGender} setField={(f, v) => setPersonalField(u.key, f, v)} />
+              )}
             </div>
           );
         })}
@@ -134,14 +199,8 @@ function RcStepCart({ rc, lang, cur, cart, setQty, removeItem, units, personal, 
 }
 
 // ─── STEP 2 — delivery ───────────────────────────────────────
-function RcStepShip({ rc, lang, form, setForm, onBack, onNext }) {
+function RcStepShip({ rc, form, setForm, onBack, onNext }) {
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
-  const country = rcLocaleCountry(lang);
-  // The delivery country is the shop's country — preselected and not editable
-  // here. Changing it means changing shop (currency + delivery profile), which
-  // the locale control below does: it re-points the Shopify cart at the new
-  // market and routes to the same checkout, basket intact.
-  const cc = (function () { try { return window.PFLocale ? PFLocale.current().country : 'AT'; } catch (e) { return 'AT'; } })();
   return (
     <form onSubmit={(e) => { e.preventDefault(); onNext(); }}>
       <div className="rc-card r-rev">
@@ -165,21 +224,16 @@ function RcStepShip({ rc, lang, form, setForm, onBack, onNext }) {
           </div>
           <div className="rc-field">
             <label className="rc-label" htmlFor="f-country">{rc.ship.f_country}</label>
-            <div className="rc-country-wrap">
-              {typeof RdFlag === 'function' && <RdFlag c={cc} size={17} />}
-              <input id="f-country" className="rc-input rc-input-locked rc-country-sel" value={country} readOnly tabIndex={-1} aria-readonly="true" />
-            </div>
+            <select id="f-country" className="rc-input" value={form.country || rc.ship.countries[0]} onChange={set('country')}>
+              {rc.ship.countries.map((c) => <option key={c} value={c}>{c}</option>)}
+            </select>
           </div>
           <div className="rc-field">
             <label className="rc-label" htmlFor="f-email">{rc.ship.f_email}</label>
             <input id="f-email" type="email" className="rc-input" required value={form.email || ''} onChange={set('email')} autoComplete="email" />
           </div>
         </div>
-        <div className="rc-shop-switch">
-          <span className="r-it">{rc.ship.locked}</span>
-          {typeof RdLocaleControl === 'function' && <RdLocaleControl lang={lang} />}
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 12, color: 'var(--rd-moss)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 22, color: 'var(--rd-moss)' }}>
           <RdIcon name="truck" size={18} />
           <span className="r-it" style={{ fontSize: 15.5 }}>{rc.ship.note}</span>
         </div>
@@ -339,14 +393,19 @@ function RcApp() {
   useEffect(() => { rdCartSave(cart); }, [cart]);
   useEffect(() => { rcStateSave({ step, personal, addons, form, pay, orderNo, placed }); }, [step, personal, addons, form, pay, orderNo, placed]);
 
-  // The delivery country is the shop's country — not a field the customer can
-  // change (currency and Shopify's delivery profile are bound to the market).
-  // Kept in sync on every render pass so a country stored by an older session,
-  // or a shop switch mid-checkout, can never leave a stale label behind.
+  // Seed the delivery country from the visitor's chosen locale (welcome strip),
+  // so the shipping-country select is pre-filled. Shipping stays "zzgl. Versand"
+  // until a full address (zip + city) is entered.
   useEffect(() => {
-    const label = rcLocaleCountry(lang);
-    if (form.country !== label) setForm((f) => ({ ...f, country: label }));
-  }, [lang, form.country]);
+    if (form.country) return;
+    try {
+      const code = rdCurrentCountry();
+      const map = { DE: 0, AT: 1, CH: 2 };
+      const idx = map[code];
+      const rcx = RC_COPY[lang] || RC_COPY.de;
+      if (idx != null && rcx.ship.countries[idx]) setForm((f) => ({ ...f, country: rcx.ship.countries[idx] }));
+    } catch (e) {}
+  }, []);
 
   const t = (window.COPY && window.COPY[lang]) || window.COPY.de;
   const rc = RC_COPY[lang] || RC_COPY.de;
@@ -521,7 +580,7 @@ function RcApp() {
   // PRE-FILLED with the name/email/address collected here. Payment happens on
   // Shopify (secure/PCI). If the store isn't live (preview), fall back to the
   // built-in mock payment step so the design still works.
-  const COUNTRY_CC = { 'Deutschland': 'DE', 'Germany': 'DE', 'Österreich': 'AT', 'Osterreich': 'AT', 'Austria': 'AT', 'Schweiz': 'CH', 'Switzerland': 'CH', 'USA': 'US', 'United States': 'US' };
+  const COUNTRY_CC = { 'Deutschland': 'DE', 'Germany': 'DE', 'Österreich': 'AT', 'Osterreich': 'AT', 'Austria': 'AT', 'Schweiz': 'CH', 'Switzerland': 'CH' };
   // One Shopify line per box so every child's name reaches the order.
   // Keys stay German on purpose — the order always reads the same for you.
   const checkoutLines = () => {
@@ -534,6 +593,8 @@ function RcApp() {
         const childName = (p.name || '').trim();
         if (childName) attrs['Name des Kindes'] = childName;
         attrs['Sprache'] = String(p.lang || 'de').toUpperCase();
+        const ded = (p.dedication || '').trim();
+        if (ded && c.chapterNo === 1) attrs['Widmung'] = ded;
         out.push({ n: c.n, handle: c.handle || c.n, variantId: c.variantId, qty: 1, attrs: attrs });
       }
     });
@@ -548,7 +609,7 @@ function RcApp() {
         address1: (form.street || '').trim(),
         city: (form.city || '').trim(),
         zip: (form.zip || '').trim(),
-        countryCode: COUNTRY_CC[(form.country || '').trim()] || rcCountryCode(form.country),
+        countryCode: COUNTRY_CC[(form.country || '').trim()] || 'DE',
         firstName: nm.split(/\s+/)[0] || undefined,
         lastName: nm.split(/\s+/).slice(1).join(' ') || undefined,
       },
@@ -609,7 +670,7 @@ function RcApp() {
             <div className="rc-grid">
               <div className="rc-main">
                 {step === 0 && <RcStepCart rc={rc} lang={lang} cur={cur} cart={lines} setQty={setQty} removeItem={removeItem} units={units} personal={personal} setPersonalField={setPersonalField} addons={addons} toggleAddon={toggleAddon} onNext={leaveCart} missing={missingNames} />}
-                {step === 1 && <RcStepShip rc={rc} lang={lang} form={form} setForm={setForm} onBack={() => goTo(0)} onNext={goToPayment} />}
+                {step === 1 && <RcStepShip rc={rc} form={form} setForm={setForm} onBack={() => goTo(0)} onNext={goToPayment} />}
                 {step === 2 && <RcStepPay rc={rc} lang={lang} cur={cur} pay={pay} setPay={setPay} sealing={sealing} onBack={() => goTo(1)} onOrder={placeOrder} totals={totals} />}
               </div>
               <RcSummary rc={rc} t={t} lang={lang} cur={cur} cart={lines} addons={addons} totals={totals} gift={null} disc={null} />

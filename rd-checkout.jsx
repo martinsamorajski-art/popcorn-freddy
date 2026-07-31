@@ -26,6 +26,18 @@ const RC_COPY = {
       box_hint: 'Jede Box wird einzeln personalisiert.',
       lang_label: 'Sprache des Buches',
       lang_hint: 'Weitere Sprachen folgen bald.',
+      ded: {
+        title: 'Deine persönliche Widmung',
+        desc: 'Mache dieses Abenteuer noch persönlicher und hinterlasse eine liebe Botschaft auf der ersten Seite des Buches. Deine Widmung wird mitgedruckt und begleitet das Kind auf seiner Reise durch alle acht Kapitel.',
+        note: 'Hinweis: Deine Nachricht kann bis zu 10 Zeilen lang sein. Bitte überprüfe sie vor dem Bestellen – sie wird genau so gedruckt, wie du sie eingibst.',
+        gender_label: 'Anrede',
+        boy: 'Junge',
+        girl: 'Mädchen',
+        ph: 'Schreibe hier deine Widmung …',
+        preview_caps: 'Vorschau',
+        remaining: (n) => `${n} Zeichen verbleibend`,
+        example: (name, g) => `${g === 'w' ? 'Liebe' : 'Lieber'} ${(name || 'Alex')},\n\ndie schönsten Abenteuer beginnen mit einer großen Portion Neugier. Hab ganz viel Spaß mit Popcorn & Freddy und vergiss nie: Gemeinsam schafft man alles!\n\nIn Liebe,\nMama & Papa`,
+      },
       langs: [{ id: 'de', l: 'Deutsch' }, { id: 'en', l: 'English' }],
       engrave_caps: 'Die Abenteuer von',
       engrave_empty: 'deinem Kind',
@@ -41,9 +53,8 @@ const RC_COPY = {
     },
     ship: {
       title: 'Wohin reist die Box?',
-      f_name: 'Vor- & Nachname', f_street: 'Straße & Hausnummer', f_zip: 'PLZ', f_city: 'Ort', f_country: 'Land', f_email: 'E-Mail',
+      f_name: 'Vor- & Nachname', f_street: 'Straße & Hausnummer', f_zip: 'PLZ', f_city: 'Ort', f_country: 'Land', f_email: 'E-Mail für die Reisepost',
       countries: ['Deutschland', 'Österreich', 'Schweiz'],
-      locked: 'Anderes Land? Shop hier wechseln:',
       note: 'In 3–5 Werktagen bei dir. Die Versandkosten werden nach Eingabe deiner Lieferadresse berechnet.',
       back: 'Zurück',
       next: 'Weiter zur Zahlung',
@@ -140,6 +151,18 @@ const RC_COPY = {
       box_hint: 'Each box is personalised individually.',
       lang_label: 'Language of the book',
       lang_hint: 'More languages coming soon.',
+      ded: {
+        title: 'Your personal dedication',
+        desc: 'Make this adventure even more personal and leave a loving message on the first page of the book. Your dedication is printed inside and travels with the child through all eight chapters.',
+        note: 'Note: your message can be up to 10 lines long. Please double-check it before ordering – it is printed exactly as you enter it.',
+        gender_label: 'Greeting',
+        boy: 'Boy',
+        girl: 'Girl',
+        ph: 'Write your dedication here …',
+        preview_caps: 'Preview',
+        remaining: (n) => `${n} characters remaining`,
+        example: (name, g) => `Dear ${(name || 'Alex')},\n\nthe best adventures begin with a big helping of curiosity. Have lots of fun with Popcorn & Freddy and never forget: together we can do anything!\n\nWith love,\nMum & Dad`,
+      },
       langs: [{ id: 'de', l: 'Deutsch' }, { id: 'en', l: 'English' }],
       engrave_caps: 'The adventures of',
       engrave_empty: 'your child',
@@ -155,9 +178,8 @@ const RC_COPY = {
     },
     ship: {
       title: 'Where is the box travelling?',
-      f_name: 'First & last name', f_street: 'Street & number', f_zip: 'Postcode', f_city: 'City', f_country: 'Country', f_email: 'Email',
+      f_name: 'First & last name', f_street: 'Street & number', f_zip: 'Postcode', f_city: 'City', f_country: 'Country', f_email: 'Email for the travel post',
       countries: ['Germany', 'Austria', 'Switzerland'],
-      locked: 'Different country? Switch shop here:',
       note: 'With you in 3–5 business days. Shipping is calculated once you enter your delivery address.',
       back: 'Back',
       next: 'Continue to payment',
@@ -240,19 +262,6 @@ const RC_PRICE = 39.9;
 // Shipping is NOT defined here any more — Shopify's delivery options are the
 // only source (PFShop.setDeliveryAddress → cart.deliveryGroups). This maps the
 // country label shown in the form to the ISO code Shopify needs.
-// The delivery country is NOT a choice: each shop (/at, /de, /ch, /us) ships to
-// its own market only, because currency + Shopify delivery profile are bound to
-// it. This is the one label the locked field shows.
-const RC_COUNTRY_LABEL = {
-  de: { DE: 'Deutschland', AT: 'Österreich', CH: 'Schweiz', US: 'USA' },
-  en: { DE: 'Germany', AT: 'Austria', CH: 'Switzerland', US: 'United States' },
-};
-function rcLocaleCountry(lang) {
-  const t = RC_COUNTRY_LABEL[lang] || RC_COUNTRY_LABEL.de;
-  let cc = 'AT';
-  try { if (window.PFLocale) cc = PFLocale.current().country; } catch (e) {}
-  return t[cc] || t.AT;
-}
 function rcCountryCode(label) {
   const c = (label || '').toLowerCase();
   if (c.indexOf('öster') >= 0 || c.indexOf('oster') >= 0 || c.indexOf('austria') >= 0) return 'AT';
@@ -516,7 +525,7 @@ function RcSummary({ rc, t, lang, cur, cart, addons, totals, gift, disc }) {
       </div>
 
       {/* what's in the box */}
-      <details className="rc-card rc-contents">
+      <details className="rc-card rc-contents" open>
         <summary>
           <h3 className="rc-card-title"><span className="rc-title-ico"><RdIcon name="gift" size={19} /></span>{rc.sum.contents}</h3>
           <span className="rc-chev"><RcIcon name="chev" size={18} /></span>
@@ -546,4 +555,4 @@ function RcSummary({ rc, t, lang, cur, cart, addons, totals, gift, disc }) {
   );
 }
 
-Object.assign(window, { RC_COPY, RC_PRICE, RC_CUR, rcFmt, rcDetectCur, rcCountryCode, rcLocaleCountry, RC_COUNTRY_LABEL, RcIcon, RcSeal, RcTopBar, RcCurrency, RcSteps, RcEngrave, RcSummary, RcGift, RcDiscount });
+Object.assign(window, { RC_COPY, RC_PRICE, RC_CUR, rcFmt, rcDetectCur, rcCountryCode, RcIcon, RcSeal, RcTopBar, RcCurrency, RcSteps, RcEngrave, RcSummary, RcGift, RcDiscount });
