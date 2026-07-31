@@ -37,6 +37,14 @@ const GIFT_COPY = {
     ship_note: 'Rein digital — keine Lieferadresse nötig. Der Versand der Kapitel wird erst beim Einlösen berechnet.',
     cta: 'Jetzt verschenken',
     cta_busy: 'Weiter zur Kasse …',
+    consent_pre: 'Ich habe die ',
+    consent_agb: 'AGB',
+    consent_sep1: ', die ',
+    consent_wider: 'Widerrufsbelehrung',
+    consent_sep2: ' und die ',
+    consent_privacy: 'Datenschutzerklärung',
+    consent_post: ' gelesen und akzeptiere sie. Mir ist bewusst, dass die Geschenkkarte sofort digital bereitgestellt wird und mein Widerrufsrecht damit erlischt.',
+    consent_err: 'Bitte stimme den Bedingungen zu, um fortzufahren.',
     done_t: 'Die Geschenkkarte ist unterwegs.',
     done_d: 'Wir haben alles vorbereitet. Sobald sie eingelöst wird, beginnt die Schatzsuche.',
     again: 'Noch eine verschenken',
@@ -83,6 +91,14 @@ const GIFT_COPY = {
     ship_note: 'Fully digital — no delivery address needed. Shipping for the chapters is only charged when redeemed.',
     cta: 'Give it now',
     cta_busy: 'Continuing to checkout …',
+    consent_pre: 'I have read and accept the ',
+    consent_agb: 'Terms',
+    consent_sep1: ', the ',
+    consent_wider: 'Right of withdrawal',
+    consent_sep2: ' and the ',
+    consent_privacy: 'Privacy Policy',
+    consent_post: '. I understand that the gift card is delivered digitally at once and my right of withdrawal therefore expires.',
+    consent_err: 'Please accept the terms to continue.',
     done_t: 'The gift card is on its way.',
     done_d: 'Everything is prepared. As soon as it is redeemed, the treasure hunt begins.',
     again: 'Give another one',
@@ -109,6 +125,7 @@ function giftFmt(v, lang) {
 const GIFT_HANDLE = 'geschenkkarte';
 const GIFT_UNIT_FALLBACK = 39.9;
 const GIFT_MAX_CHAPTERS = 8;
+function giftLP(p) { return (window.PFLocale ? window.PFLocale.withLocale(p) : p); }
 
 function useGiftChapters(prod, lang) {
   const money = (v, cc) => (window.PFShop && PFShop.money)
@@ -167,6 +184,8 @@ function GiftBody({ lang }) {
   const [from, setFrom] = useState('');
   const [msg, setMsg] = useState('');
   const [busy, setBusy] = useState(false);
+  const [agree, setAgree] = useState(false);
+  const [agreeErr, setAgreeErr] = useState(false);
   const [sent, setSent] = useState(false);
 
   const sel = list.find((x) => x.count === count) || list[0];
@@ -178,6 +197,8 @@ function GiftBody({ lang }) {
 
   const buy = () => {
     const L = lang === 'de';
+    if (!agree) { setAgreeErr(true); const el = document.getElementById('g-agree'); if (el) el.focus(); return; }
+    setAgreeErr(false);
     const attrs = {};
     attrs[L ? 'Kapitel' : 'Chapters'] = chapterLabel;
     if (to.trim()) attrs[L ? 'Für' : 'To'] = to.trim();
@@ -261,7 +282,18 @@ function GiftBody({ lang }) {
                     <span style={{ flexShrink: 0, marginTop: 1 }}><RdIcon name="check" size={17} /></span>
                     <span className="r-it" style={{ fontSize: 14, lineHeight: 1.5 }}>{g.ship_note}</span>
                   </div>
-                  <button className="rbtn rbtn-primary rbtn-xl" style={{ width: '100%', marginTop: 22, opacity: busy ? 0.85 : 1 }} onClick={buy} disabled={busy}>
+                  <label htmlFor="g-agree" className="rd-gift-consent" style={{ display: 'flex', gap: 10, alignItems: 'flex-start', marginTop: 20, cursor: 'pointer' }}>
+                    <input id="g-agree" type="checkbox" checked={agree} onChange={(e) => { setAgree(e.target.checked); if (agreeErr) setAgreeErr(false); }} style={{ marginTop: 2, width: 18, height: 18, flexShrink: 0, accentColor: 'var(--rd-gold)' }} aria-invalid={agreeErr ? 'true' : 'false'} />
+                    <span className="r-it" style={{ fontSize: 13.5, lineHeight: 1.5, color: 'var(--rd-ink-soft)' }}>
+                      {g.consent_pre}
+                      <a href={giftLP('AGB.html')} target="_blank" rel="noopener" style={{ color: 'var(--rd-terra)', fontWeight: 600 }}>{g.consent_agb}</a>{g.consent_sep1}
+                      <a href={giftLP('Widerruf.html')} target="_blank" rel="noopener" style={{ color: 'var(--rd-terra)', fontWeight: 600 }}>{g.consent_wider}</a>{g.consent_sep2}
+                      <a href={giftLP('Datenschutz.html')} target="_blank" rel="noopener" style={{ color: 'var(--rd-terra)', fontWeight: 600 }}>{g.consent_privacy}</a>
+                      {g.consent_post}
+                    </span>
+                  </label>
+                  {agreeErr && <div role="alert" className="r-it" style={{ fontSize: 13.5, color: 'var(--rd-terra)', marginTop: 8 }}>{g.consent_err}</div>}
+                  <button className="rbtn rbtn-primary rbtn-xl" style={{ width: '100%', marginTop: 16, opacity: busy ? 0.85 : 1 }} onClick={buy} disabled={busy}>
                     {busy ? g.cta_busy : <React.Fragment>{g.cta} · {priceText}</React.Fragment>}
                   </button>
                 </RdInfoCard>

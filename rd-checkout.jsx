@@ -44,6 +44,8 @@ const RC_COPY = {
       folder_t: 'Personalisierte Kunstleder-Mappe',
       folder_d: 'Einmalig zur ersten Box — mit Namensgravur von Popcorn & Freddy.',
       folder_free: 'Geschenkt',
+      folder_summary: 'Was in jeder Box steckt',
+      gift_hint: 'Geschenkkarte? Ihren Code geben Sie im letzten Schritt (Zahlung) ein.',
       addons_title: 'Kleine Extras für die Reise',
       addons: [
         { id: 'wrap', t: 'Magische Geschenkverpackung', d: 'In Packpapier mit Wachssiegel & Tannenzweig.', price: 4.9, icon: 'gift' },
@@ -53,8 +55,9 @@ const RC_COPY = {
     },
     ship: {
       title: 'Wohin reist die Box?',
-      f_name: 'Vor- & Nachname', f_street: 'Straße & Hausnummer', f_zip: 'PLZ', f_city: 'Ort', f_country: 'Land', f_email: 'E-Mail für die Reisepost',
+      f_name: 'Vor- & Nachname', f_street: 'Straße & Hausnummer', f_zip: 'PLZ', f_city: 'Ort', f_country: 'Land', f_email: 'E-Mail',
       countries: ['Deutschland', 'Österreich', 'Schweiz'],
+      locked: 'Anderes Land? Shop hier wechseln:',
       note: 'In 3–5 Werktagen bei dir. Die Versandkosten werden nach Eingabe deiner Lieferadresse berechnet.',
       back: 'Zurück',
       next: 'Weiter zur Zahlung',
@@ -169,6 +172,8 @@ const RC_COPY = {
       folder_t: 'Personalised faux leather folder',
       folder_d: 'One-time with your first box — engraved by Popcorn & Freddy.',
       folder_free: 'On us',
+      folder_summary: "What's inside every box",
+      gift_hint: 'Gift card? Enter your code in the final step (payment).',
       addons_title: 'Little extras for the journey',
       addons: [
         { id: 'wrap', t: 'Magical gift wrapping', d: 'Kraft paper with a wax seal & a sprig of pine.', price: 4.9, icon: 'gift' },
@@ -178,8 +183,9 @@ const RC_COPY = {
     },
     ship: {
       title: 'Where is the box travelling?',
-      f_name: 'First & last name', f_street: 'Street & number', f_zip: 'Postcode', f_city: 'City', f_country: 'Country', f_email: 'Email for the travel post',
+      f_name: 'First & last name', f_street: 'Street & number', f_zip: 'Postcode', f_city: 'City', f_country: 'Country', f_email: 'Email',
       countries: ['Germany', 'Austria', 'Switzerland'],
+      locked: 'Different country? Switch shop here:',
       note: 'With you in 3–5 business days. Shipping is calculated once you enter your delivery address.',
       back: 'Back',
       next: 'Continue to payment',
@@ -262,6 +268,19 @@ const RC_PRICE = 39.9;
 // Shipping is NOT defined here any more — Shopify's delivery options are the
 // only source (PFShop.setDeliveryAddress → cart.deliveryGroups). This maps the
 // country label shown in the form to the ISO code Shopify needs.
+// The delivery country is NOT a choice: each shop (/at, /de, /ch, /us) ships to
+// its own market only, because currency + Shopify delivery profile are bound to
+// it. This is the one label the locked field shows.
+const RC_COUNTRY_LABEL = {
+  de: { DE: 'Deutschland', AT: 'Österreich', CH: 'Schweiz', US: 'USA' },
+  en: { DE: 'Germany', AT: 'Austria', CH: 'Switzerland', US: 'United States' },
+};
+function rcLocaleCountry(lang) {
+  const t = RC_COUNTRY_LABEL[lang] || RC_COUNTRY_LABEL.de;
+  let cc = 'AT';
+  try { if (window.PFLocale) cc = PFLocale.current().country; } catch (e) {}
+  return t[cc] || t.AT;
+}
 function rcCountryCode(label) {
   const c = (label || '').toLowerCase();
   if (c.indexOf('öster') >= 0 || c.indexOf('oster') >= 0 || c.indexOf('austria') >= 0) return 'AT';
@@ -525,7 +544,7 @@ function RcSummary({ rc, t, lang, cur, cart, addons, totals, gift, disc }) {
       </div>
 
       {/* what's in the box */}
-      <details className="rc-card rc-contents" open>
+      <details className="rc-card rc-contents">
         <summary>
           <h3 className="rc-card-title"><span className="rc-title-ico"><RdIcon name="gift" size={19} /></span>{rc.sum.contents}</h3>
           <span className="rc-chev"><RcIcon name="chev" size={18} /></span>
@@ -555,4 +574,4 @@ function RcSummary({ rc, t, lang, cur, cart, addons, totals, gift, disc }) {
   );
 }
 
-Object.assign(window, { RC_COPY, RC_PRICE, RC_CUR, rcFmt, rcDetectCur, rcCountryCode, RcIcon, RcSeal, RcTopBar, RcCurrency, RcSteps, RcEngrave, RcSummary, RcGift, RcDiscount });
+Object.assign(window, { RC_COPY, RC_PRICE, RC_CUR, rcFmt, rcDetectCur, rcCountryCode, rcLocaleCountry, RC_COUNTRY_LABEL, RcIcon, RcSeal, RcTopBar, RcCurrency, RcSteps, RcEngrave, RcSummary, RcGift, RcDiscount });

@@ -107,14 +107,26 @@ function RcStepCart({ rc, lang, cur, cart, setQty, removeItem, units, personal, 
           ))}
         </div>
 
-        {/* included folder */}
-        <div style={{ marginTop: 14, padding: 16, borderRadius: 10, border: '1px dashed color-mix(in srgb, var(--rd-gold) 60%, transparent)', display: 'grid', gridTemplateColumns: '58px 1fr auto', gap: 16, alignItems: 'center', background: 'color-mix(in srgb, var(--rd-gold-soft) 10%, transparent)' }}>
-          <div className="rc-addon-thumb"><img src="assets/wooden-folder.webp" alt="" /></div>
-          <div>
-            <div style={{ fontFamily: 'var(--f-sans)', fontWeight: 700, fontSize: 15, color: 'var(--rd-ink)' }}>{rc.cart.folder_t}</div>
-            <div className="r-it" style={{ fontSize: 14.5, color: 'var(--rd-ink-mute)', marginTop: 2, lineHeight: 1.45 }}>{rc.cart.folder_d}</div>
+        {/* included folder — collapsed by default */}
+        <details className="rc-folder-acc" style={{ marginTop: 14, borderRadius: 10, border: '1px dashed color-mix(in srgb, var(--rd-gold) 60%, transparent)', background: 'color-mix(in srgb, var(--rd-gold-soft) 10%, transparent)', overflow: 'hidden' }}>
+          <summary style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '13px 16px', cursor: 'pointer', listStyle: 'none', fontFamily: 'var(--f-sans)', fontWeight: 700, fontSize: 15, color: 'var(--rd-ink)' }}>
+            <span style={{ color: 'var(--rd-gold)', display: 'inline-flex' }}><RdIcon name="gift" size={18} /></span>
+            <span style={{ flex: 1 }}>{rc.cart.folder_summary}</span>
+            <span className="r-hand" style={{ fontSize: 18, color: 'var(--rd-terra)', transform: 'rotate(-3deg)' }}>{rc.cart.folder_free}</span>
+            <span className="rc-acc-chev" aria-hidden="true" style={{ fontSize: 12, color: 'var(--rd-ink-mute)', transition: 'transform 0.2s', display: 'inline-block' }}>▸</span>
+          </summary>
+          <div style={{ display: 'grid', gridTemplateColumns: '58px 1fr', gap: 16, alignItems: 'center', padding: '4px 16px 16px' }}>
+            <div className="rc-addon-thumb"><img src="assets/wooden-folder.webp" alt="" /></div>
+            <div>
+              <div style={{ fontFamily: 'var(--f-sans)', fontWeight: 700, fontSize: 15, color: 'var(--rd-ink)' }}>{rc.cart.folder_t}</div>
+              <div className="r-it" style={{ fontSize: 14.5, color: 'var(--rd-ink-mute)', marginTop: 2, lineHeight: 1.45 }}>{rc.cart.folder_d}</div>
+            </div>
           </div>
-          <div className="r-hand" style={{ fontSize: 20, color: 'var(--rd-terra)', transform: 'rotate(-3deg)' }}>{rc.cart.folder_free}</div>
+        </details>
+        <style>{`.rc-folder-acc summary::-webkit-details-marker{display:none}.rc-folder-acc[open] .rc-acc-chev{transform:rotate(90deg)}`}</style>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, color: 'var(--rd-ink-mute)' }}>
+          <span style={{ color: 'var(--rd-gold)', display: 'inline-flex', flexShrink: 0 }}><RdIcon name="gift" size={16} /></span>
+          <span className="r-it" style={{ fontSize: 13.5, lineHeight: 1.45 }}>{rc.cart.gift_hint}</span>
         </div>
       </div>
 
@@ -199,8 +211,14 @@ function RcStepCart({ rc, lang, cur, cart, setQty, removeItem, units, personal, 
 }
 
 // ─── STEP 2 — delivery ───────────────────────────────────────
-function RcStepShip({ rc, form, setForm, onBack, onNext }) {
+function RcStepShip({ rc, lang, form, setForm, onBack, onNext }) {
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
+  const country = rcLocaleCountry(lang);
+  // The delivery country is the shop's country — preselected and not editable
+  // here. Changing it means changing shop (currency + delivery profile), which
+  // the locale control below does: it re-points the Shopify cart at the new
+  // market and routes to the same checkout, basket intact.
+  const cc = (function () { try { return window.PFLocale ? PFLocale.current().country : 'AT'; } catch (e) { return 'AT'; } })();
   return (
     <form onSubmit={(e) => { e.preventDefault(); onNext(); }}>
       <div className="rc-card r-rev">
@@ -224,16 +242,21 @@ function RcStepShip({ rc, form, setForm, onBack, onNext }) {
           </div>
           <div className="rc-field">
             <label className="rc-label" htmlFor="f-country">{rc.ship.f_country}</label>
-            <select id="f-country" className="rc-input" value={form.country || rc.ship.countries[0]} onChange={set('country')}>
-              {rc.ship.countries.map((c) => <option key={c} value={c}>{c}</option>)}
-            </select>
+            <div className="rc-country-wrap">
+              {typeof RdFlag === 'function' && <RdFlag c={cc} size={17} />}
+              <input id="f-country" className="rc-input rc-input-locked rc-country-sel" value={country} readOnly tabIndex={-1} aria-readonly="true" />
+            </div>
           </div>
           <div className="rc-field">
             <label className="rc-label" htmlFor="f-email">{rc.ship.f_email}</label>
             <input id="f-email" type="email" className="rc-input" required value={form.email || ''} onChange={set('email')} autoComplete="email" />
           </div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 22, color: 'var(--rd-moss)' }}>
+        <div className="rc-shop-switch">
+          <span className="r-it">{rc.ship.locked}</span>
+          {typeof RdLocaleControl === 'function' && <RdLocaleControl lang={lang} />}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 12, color: 'var(--rd-moss)' }}>
           <RdIcon name="truck" size={18} />
           <span className="r-it" style={{ fontSize: 15.5 }}>{rc.ship.note}</span>
         </div>
@@ -393,19 +416,14 @@ function RcApp() {
   useEffect(() => { rdCartSave(cart); }, [cart]);
   useEffect(() => { rcStateSave({ step, personal, addons, form, pay, orderNo, placed }); }, [step, personal, addons, form, pay, orderNo, placed]);
 
-  // Seed the delivery country from the visitor's chosen locale (welcome strip),
-  // so the shipping-country select is pre-filled. Shipping stays "zzgl. Versand"
-  // until a full address (zip + city) is entered.
+  // The delivery country is the shop's country — not a field the customer can
+  // change (currency and Shopify's delivery profile are bound to the market).
+  // Kept in sync on every render pass so a country stored by an older session,
+  // or a shop switch mid-checkout, can never leave a stale label behind.
   useEffect(() => {
-    if (form.country) return;
-    try {
-      const code = rdCurrentCountry();
-      const map = { DE: 0, AT: 1, CH: 2 };
-      const idx = map[code];
-      const rcx = RC_COPY[lang] || RC_COPY.de;
-      if (idx != null && rcx.ship.countries[idx]) setForm((f) => ({ ...f, country: rcx.ship.countries[idx] }));
-    } catch (e) {}
-  }, []);
+    const label = rcLocaleCountry(lang);
+    if (form.country !== label) setForm((f) => ({ ...f, country: label }));
+  }, [lang, form.country]);
 
   const t = (window.COPY && window.COPY[lang]) || window.COPY.de;
   const rc = RC_COPY[lang] || RC_COPY.de;
@@ -580,7 +598,7 @@ function RcApp() {
   // PRE-FILLED with the name/email/address collected here. Payment happens on
   // Shopify (secure/PCI). If the store isn't live (preview), fall back to the
   // built-in mock payment step so the design still works.
-  const COUNTRY_CC = { 'Deutschland': 'DE', 'Germany': 'DE', 'Österreich': 'AT', 'Osterreich': 'AT', 'Austria': 'AT', 'Schweiz': 'CH', 'Switzerland': 'CH' };
+  const COUNTRY_CC = { 'Deutschland': 'DE', 'Germany': 'DE', 'Österreich': 'AT', 'Osterreich': 'AT', 'Austria': 'AT', 'Schweiz': 'CH', 'Switzerland': 'CH', 'USA': 'US', 'United States': 'US' };
   // One Shopify line per box so every child's name reaches the order.
   // Keys stay German on purpose — the order always reads the same for you.
   const checkoutLines = () => {
@@ -609,7 +627,7 @@ function RcApp() {
         address1: (form.street || '').trim(),
         city: (form.city || '').trim(),
         zip: (form.zip || '').trim(),
-        countryCode: COUNTRY_CC[(form.country || '').trim()] || 'DE',
+        countryCode: COUNTRY_CC[(form.country || '').trim()] || rcCountryCode(form.country),
         firstName: nm.split(/\s+/)[0] || undefined,
         lastName: nm.split(/\s+/).slice(1).join(' ') || undefined,
       },
@@ -670,7 +688,7 @@ function RcApp() {
             <div className="rc-grid">
               <div className="rc-main">
                 {step === 0 && <RcStepCart rc={rc} lang={lang} cur={cur} cart={lines} setQty={setQty} removeItem={removeItem} units={units} personal={personal} setPersonalField={setPersonalField} addons={addons} toggleAddon={toggleAddon} onNext={leaveCart} missing={missingNames} />}
-                {step === 1 && <RcStepShip rc={rc} form={form} setForm={setForm} onBack={() => goTo(0)} onNext={goToPayment} />}
+                {step === 1 && <RcStepShip rc={rc} lang={lang} form={form} setForm={setForm} onBack={() => goTo(0)} onNext={goToPayment} />}
                 {step === 2 && <RcStepPay rc={rc} lang={lang} cur={cur} pay={pay} setPay={setPay} sealing={sealing} onBack={() => goTo(1)} onOrder={placeOrder} totals={totals} />}
               </div>
               <RcSummary rc={rc} t={t} lang={lang} cur={cur} cart={lines} addons={addons} totals={totals} gift={null} disc={null} />
