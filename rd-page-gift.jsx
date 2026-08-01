@@ -50,6 +50,7 @@ const GIFT_COPY = {
     again: 'Noch eine verschenken',
     card_caps: 'Geschenkkarte',
     card_worth: 'gültig für',
+    card_hint: 'Widmung, Für &amp; Von fügst du nach dem Kauf hinzu — per Link in der E-Mail, druckfertig als PDF.',
     notes_t: 'Gut zu wissen',
     notes: [
       'Zustellung per E-Mail — direkt nach dem Kauf an dich',
@@ -104,6 +105,7 @@ const GIFT_COPY = {
     again: 'Give another one',
     card_caps: 'Gift card',
     card_worth: 'valid for',
+    card_hint: 'Add your dedication, To &amp; From after purchase — via the link in the email, print-ready as a PDF.',
     notes_t: 'Good to know',
     notes: [
       'Delivered by email — to you, right after purchase',
@@ -147,7 +149,7 @@ function useGiftChapters(prod, lang) {
   return { list, money, real: false };
 }
 
-function GiftCardPreview({ g, lang, chapterLabel, priceText, to, from, msg }) {
+function GiftCardPreview({ g, lang, chapterLabel, priceText }) {
   return (
     <div style={{ position: 'relative', background: 'var(--rd-cream)', borderRadius: 16, padding: '38px 40px 34px', boxShadow: '0 40px 80px -36px color-mix(in srgb, var(--rd-ink) 55%, transparent)', border: '1px solid color-mix(in srgb, var(--rd-ink) 12%, transparent)', overflow: 'hidden' }}>
       <div aria-hidden="true" style={{ position: 'absolute', inset: 10, border: '1px solid color-mix(in srgb, var(--rd-gold) 45%, transparent)', borderRadius: 10, pointerEvents: 'none' }}></div>
@@ -159,11 +161,7 @@ function GiftCardPreview({ g, lang, chapterLabel, priceText, to, from, msg }) {
         <div className="r-display" style={{ fontSize: 44, color: 'var(--rd-ink)', marginTop: 4, lineHeight: 1.1 }}>{chapterLabel}</div>
         <div style={{ marginTop: 8, fontFamily: 'var(--f-sans)', fontWeight: 800, fontSize: 15, letterSpacing: '0.04em', color: 'var(--rd-gold)' }}>{priceText}</div>
         <div style={{ margin: '18px auto 0', maxWidth: 300 }}><RdOrnament width={140} /></div>
-        <p className="r-hand" style={{ marginTop: 16, fontSize: 22, lineHeight: 1.4, color: 'var(--rd-walnut)', minHeight: 32, whiteSpace: 'pre-wrap' }}>{msg || g.msg_default}</p>
-        <div className="r-it" style={{ marginTop: 16, fontSize: 15.5, color: 'var(--rd-ink-soft)', display: 'flex', justifyContent: 'center', gap: 24, flexWrap: 'wrap' }}>
-          <span>{g.to_l}: <strong style={{ fontStyle: 'normal' }}>{to || '—'}</strong></span>
-          <span>{g.from_l}: <strong style={{ fontStyle: 'normal' }}>{from || '—'}</strong></span>
-        </div>
+        <p className="r-it" style={{ marginTop: 16, fontSize: 14.5, lineHeight: 1.55, color: 'var(--rd-ink-mute)', maxWidth: 300, marginLeft: 'auto', marginRight: 'auto' }} dangerouslySetInnerHTML={{ __html: g.card_hint }}></p>
         <div style={{ marginTop: 20, display: 'inline-block', fontFamily: 'var(--f-sans)', fontWeight: 800, fontSize: 13, letterSpacing: '0.3em', color: 'var(--rd-ink-mute)', border: '1px dashed color-mix(in srgb, var(--rd-ink) 28%, transparent)', borderRadius: 6, padding: '8px 18px' }}>PF-★★★★-★★★★</div>
       </div>
     </div>
@@ -180,9 +178,6 @@ function GiftBody({ lang }) {
   const { list, money, real } = useGiftChapters(prod, lang);
   const maxCount = list.length;
   const [count, setCount] = useState(1);
-  const [to, setTo] = useState('');
-  const [from, setFrom] = useState('');
-  const [msg, setMsg] = useState('');
   const [busy, setBusy] = useState(false);
   const [agree, setAgree] = useState(false);
   const [agreeErr, setAgreeErr] = useState(false);
@@ -192,18 +187,16 @@ function GiftBody({ lang }) {
   const unit = sel && sel.count ? sel.v / sel.count : GIFT_UNIT_FALLBACK;
   const chapterLabel = count === 1 ? g.ch_one : g.ch_range(count);
   const priceText = money(sel.v, sel.cc);
-  const remaining = g.msg_max - msg.length;
   const clampCount = (n) => Math.max(1, Math.min(maxCount, n));
 
   const buy = () => {
     const L = lang === 'de';
     if (!agree) { setAgreeErr(true); const el = document.getElementById('g-agree'); if (el) el.focus(); return; }
     setAgreeErr(false);
+    // Personalisation (Für/Von/Widmung) is added AFTER purchase on the printable
+    // gift-card page — so we only pass the chapter scope to Shopify here.
     const attrs = {};
     attrs[L ? 'Kapitel' : 'Chapters'] = chapterLabel;
-    if (to.trim()) attrs[L ? 'Für' : 'To'] = to.trim();
-    if (from.trim()) attrs[L ? 'Von' : 'From'] = from.trim();
-    if (msg.trim()) attrs[L ? 'Botschaft' : 'Message'] = msg.trim();
 
     // Digital gift card → own DIRECT hand-off to Shopify's hosted checkout.
     // Fresh cart with just this line, so none of the site's physical steps
@@ -253,25 +246,6 @@ function GiftBody({ lang }) {
                   </div>
                 </RdInfoCard>
 
-                {/* personalise */}
-                <RdInfoCard className="r-rev r-rev-1" title={g.personal_t} icon="heart">
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginTop: 6 }} className="rd-gift-names">
-                    <div>
-                      <label className="rd-page-label" htmlFor="g-to">{g.to_l}</label>
-                      <input id="g-to" className="rd-page-input" value={to} maxLength={30} onChange={(e) => setTo(e.target.value)} placeholder={g.to_ph} />
-                    </div>
-                    <div>
-                      <label className="rd-page-label" htmlFor="g-from">{g.from_l}</label>
-                      <input id="g-from" className="rd-page-input" value={from} maxLength={30} onChange={(e) => setFrom(e.target.value)} placeholder={g.from_ph} />
-                    </div>
-                  </div>
-                  <div style={{ marginTop: 16 }}>
-                    <label className="rd-page-label" htmlFor="g-msg">{g.msg_l}</label>
-                    <textarea id="g-msg" className="rd-page-input" style={{ minHeight: 120, lineHeight: 1.6 }} value={msg} maxLength={g.msg_max} onChange={(e) => setMsg(e.target.value)} placeholder={g.msg_ph}></textarea>
-                    <div className="r-it" style={{ textAlign: 'right', fontSize: 13, color: remaining <= 20 ? 'var(--rd-terra)' : 'var(--rd-ink-mute)', marginTop: 6 }}>{g.remaining(remaining)}</div>
-                  </div>
-                </RdInfoCard>
-
                 {/* delivery — digital, emailed to the buyer */}
                 <RdInfoCard className="r-rev r-rev-2" title={g.deliver_t} icon="mail">
                   <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginTop: 6, color: 'var(--rd-ink-soft)' }}>
@@ -313,7 +287,7 @@ function GiftBody({ lang }) {
             {/* right: live preview + notes */}
             <div style={{ display: 'grid', gap: 24, alignContent: 'start', position: 'sticky', top: 130 }} className="rd-gift-side">
               <div className="r-rev r-rev-1">
-                <GiftCardPreview g={g} lang={lang} chapterLabel={chapterLabel} priceText={priceText} to={to.trim()} from={from.trim()} msg={msg.trim()} />
+                <GiftCardPreview g={g} lang={lang} chapterLabel={chapterLabel} priceText={priceText} />
               </div>
               <div className="r-rev r-rev-2">
                 <div className="r-caps" style={{ marginBottom: 6 }}>{g.notes_t}</div>
