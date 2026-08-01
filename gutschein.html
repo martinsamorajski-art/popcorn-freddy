@@ -58,11 +58,11 @@
   /* print: only the card, at A5 landscape */
   @page{size:A5 landscape;margin:0}
   @media print{
-    body{background:#fff}
+    html,body{background:#fff;width:210mm;height:148mm}
     .wrap,.top,.grid{display:block;margin:0;padding:0;max-width:none}
     .panel,.stage .lbl,.top{display:none!important}
-    .stage{display:block}
-    .sheet{transform:none!important;box-shadow:none;width:210mm;height:148mm}
+    .stage{display:block;overflow:visible}
+    .sheet{transform:none!important;margin:0!important;box-shadow:none;width:210mm;height:148mm}
   }
 </style>
 </head>
@@ -164,7 +164,12 @@
   }
   window.addEventListener('resize',fit);setTimeout(fit,60);
 
-  document.getElementById('printBtn').addEventListener('click',function(){window.print();});
+  document.getElementById('printBtn').addEventListener('click',function(){
+    // drop the screen-fit scale/margin so print uses the true A5 sheet
+    sheet.style.transform='';sheet.style.marginBottom='';
+    window.print();
+    setTimeout(fit,300); // restore the screen preview afterwards
+  });
 })();
 </script>
 </body>
