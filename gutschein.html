@@ -70,55 +70,55 @@
 <div class="wrap">
   <div class="top">
     <div class="mark">Popcorn <em>&amp;</em> Freddy</div>
-    <div class="ey">Deine Geschenkkarte gestalten</div>
+    <div class="ey" id="tEy">Deine Geschenkkarte gestalten</div>
   </div>
   <div class="grid">
     <div class="panel">
-      <h2>Persönliche Widmung</h2>
-      <p class="hint">Fülle die Karte aus — die Vorschau aktualisiert sich sofort. Dann als PDF speichern oder direkt ausdrucken.</p>
-      <div class="locked" id="lockedBox">Guthaben &amp; Code kommen automatisch aus deiner Bestellung.<br />Code: <b id="lockedCode">—</b></div>
+      <h2 id="tPanelH">Persönliche Widmung</h2>
+      <p class="hint" id="tPanelHint">Fülle die Karte aus — die Vorschau aktualisiert sich sofort. Dann als PDF speichern oder direkt ausdrucken.</p>
+      <div class="locked" id="lockedBox"><span id="tLocked">Guthaben &amp; Code kommen automatisch aus deiner Bestellung.</span><br /><span id="tCodeWord">Code</span>: <b id="lockedCode">—</b></div>
       <div class="field">
-        <label for="fTo">Für</label>
+        <label for="fTo" id="tLTo">Für</label>
         <input id="fTo" type="text" maxlength="40" placeholder="z. B. Max" />
       </div>
       <div class="field">
-        <label for="fFrom">Von</label>
+        <label for="fFrom" id="tLFrom">Von</label>
         <input id="fFrom" type="text" maxlength="40" placeholder="z. B. Oma Hilde" />
       </div>
       <div class="field">
-        <label for="fDed">Widmung</label>
+        <label for="fDed" id="tLDed">Widmung</label>
         <textarea id="fDed" maxlength="240" placeholder="Ein paar liebe Zeilen zum Geburtstag …"></textarea>
         <div class="count"><span id="dedCount">0</span>/240</div>
       </div>
       <button class="btn" id="printBtn">Als PDF speichern &amp; drucken</button>
-      <p class="btn-note">Im Druckdialog „Als PDF speichern" wählen. Format A5, Querformat, Ränder „Keine", Hintergrundgrafiken aktiviert.</p>
+      <p class="btn-note" id="tBtnNote">Im Druckdialog „Als PDF speichern" wählen. Format A5, Querformat, Ränder „Keine", Hintergrundgrafiken aktiviert.</p>
     </div>
 
     <div class="stage">
-      <div class="lbl">Vorschau — A5 Querformat</div>
+      <div class="lbl" id="tStageLbl">Vorschau — A5 Querformat</div>
       <div class="sheet" id="sheet">
         <div class="card">
           <div class="frame"></div>
           <div class="inner">
             <div class="brand">Popcorn <em>&amp;</em> Freddy</div>
-            <div class="eyebrow">Eine Geschenkkarte</div>
+            <div class="eyebrow" id="tCardEy">Eine Geschenkkarte</div>
             <div class="rule"></div>
             <div class="cbody">
               <div class="left">
-                <div class="dedic-label">Für <span id="oTo">…</span></div>
+                <div class="dedic-label"><span id="tForWord">Für</span> <span id="oTo">…</span></div>
                 <div class="dedic" id="oDed">Ein Abenteuer wartet auf dich.</div>
-                <div class="signoff">Von <b id="oFrom">…</b></div>
+                <div class="signoff"><span id="tFromWord">Von</span> <b id="oFrom">…</b></div>
               </div>
               <div class="right">
-                <div class="worth-l">Gültig für</div>
+                <div class="worth-l" id="tValidFor">Gültig für</div>
                 <div class="chapters" id="oChapters">Kapitel 1–8</div>
                 <div class="amount" id="oAmount"></div>
-                <div class="code-l">Dein Code</div>
+                <div class="code-l" id="tYourCode">Dein Code</div>
                 <div class="code" id="oCode">————-————</div>
               </div>
             </div>
           </div>
-          <div class="foot">Einzulösen auf popcornfreddy.com · Restguthaben bleibt erhalten · Der Versand der Kapitel wird beim Einlösen berechnet<span id="oOrder"></span></div>
+          <div class="foot"><span id="tFootText">Einzulösen auf popcornfreddy.com · Restguthaben bleibt erhalten · Der Versand der Kapitel wird beim Einlösen berechnet</span><span id="oOrder"></span></div>
         </div>
       </div>
     </div>
@@ -130,18 +130,52 @@
   var qs=new URLSearchParams(location.search);
   function g(k){return (qs.get(k)||'').trim();}
   var code=g('code'), amount=g('amount'), chapters=g('chapters'), order=g('order');
+  var lang=(g('lang')||document.documentElement.lang||'de').slice(0,2).toLowerCase();
+  if(lang!=='en')lang='de';
+
+  var T={
+    de:{title:'Geschenkkarte gestalten — Popcorn & Freddy',ey:'Deine Geschenkkarte gestalten',panelH:'Persönliche Widmung',
+      panelHint:'Fülle die Karte aus — die Vorschau aktualisiert sich sofort. Dann als PDF speichern oder direkt ausdrucken.',
+      locked:'Guthaben & Code kommen automatisch aus deiner Bestellung.',codeWord:'Code',
+      lTo:'Für',lFrom:'Von',lDed:'Widmung',phTo:'z. B. Max',phFrom:'z. B. Oma Hilde',phDed:'Ein paar liebe Zeilen zum Geburtstag …',
+      btn:'Als PDF speichern & drucken',btnNote:'Im Druckdialog „Als PDF speichern“ wählen. Format A5, Querformat, Ränder „Keine“, Hintergrundgrafiken aktiviert.',
+      stageLbl:'Vorschau — A5 Querformat',cardEy:'Eine Geschenkkarte',forWord:'Für',fromWord:'Von',validFor:'Gültig für',yourCode:'Dein Code',
+      defChapters:'Kapitel 1–8',defDed:'Ein Abenteuer wartet auf dich.',
+      foot:'Einzulösen auf popcornfreddy.com · Restguthaben bleibt erhalten · Der Versand der Kapitel wird beim Einlösen berechnet',orderWord:'Bestellung'},
+    en:{title:'Design your gift card — Popcorn & Freddy',ey:'Design your gift card',panelH:'Personal dedication',
+      panelHint:'Fill in the card — the preview updates instantly. Then save as a PDF or print it directly.',
+      locked:'Balance & code are filled in automatically from your order.',codeWord:'Code',
+      lTo:'To',lFrom:'From',lDed:'Dedication',phTo:'e.g. Max',phFrom:'e.g. Grandma Hilde',phDed:'A few warm birthday lines …',
+      btn:'Save as PDF & print',btnNote:'In the print dialog choose “Save as PDF”. Format A5, landscape, margins “None”, background graphics enabled.',
+      stageLbl:'Preview — A5 landscape',cardEy:'A gift card',forWord:'For',fromWord:'From',validFor:'Valid for',yourCode:'Your code',
+      defChapters:'Chapters 1–8',defDed:'An adventure awaits you.',
+      foot:'Redeem at popcornfreddy.com · Any remaining balance is kept · Shipping for the chapters is charged on redemption',orderWord:'Order'}
+  };
+  var t=T[lang];
+  document.documentElement.lang=lang;
+  document.title=t.title;
+  function set(id,v){var el=document.getElementById(id);if(el)el.textContent=v;}
+  set('tEy',t.ey);set('tPanelH',t.panelH);set('tPanelHint',t.panelHint);set('tLocked',t.locked);set('tCodeWord',t.codeWord);
+  set('tLTo',t.lTo);set('tLFrom',t.lFrom);set('tLDed',t.lDed);set('tBtnNote',t.btnNote);set('tStageLbl',t.stageLbl);
+  set('tCardEy',t.cardEy);set('tForWord',t.forWord);set('tFromWord',t.fromWord);set('tValidFor',t.validFor);set('tYourCode',t.yourCode);
+  document.getElementById('printBtn').textContent=t.btn;
+  document.getElementById('fTo').placeholder=t.phTo;
+  document.getElementById('fFrom').placeholder=t.phFrom;
+  document.getElementById('fDed').placeholder=t.phDed;
+  document.getElementById('oChapters').textContent=t.defChapters;
 
   // locked-from-URL fields
   if(code){document.getElementById('oCode').textContent=code;document.getElementById('lockedCode').textContent=code;}
   else{document.getElementById('lockedBox').style.display='none';}
   if(chapters)document.getElementById('oChapters').textContent=chapters;
   if(amount)document.getElementById('oAmount').textContent=amount;
-  if(order)document.getElementById('oOrder').textContent=' · Bestellung '+order;
+  document.getElementById('tFootText').textContent=t.foot;
+  if(order)document.getElementById('oOrder').textContent=' · '+t.orderWord+' '+order;
 
   // live editable fields
   var fTo=document.getElementById('fTo'),fFrom=document.getElementById('fFrom'),fDed=document.getElementById('fDed');
   var oTo=document.getElementById('oTo'),oFrom=document.getElementById('oFrom'),oDed=document.getElementById('oDed'),dedCount=document.getElementById('dedCount');
-  var defDed='Ein Abenteuer wartet auf dich.';
+  var defDed=t.defDed;
   function sync(){
     oTo.textContent=fTo.value.trim()||'…';
     oFrom.textContent=fFrom.value.trim()||'…';
