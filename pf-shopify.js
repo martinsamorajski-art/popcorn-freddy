@@ -182,6 +182,11 @@
       'page_previews_en: metafield(namespace: "custom", key: "page_previews_en") {\n' +
       '  references(first: 12) { nodes { ... on MediaImage { image { url altText } } } }\n' +
       '}\n' +
+      // English twin of the MAIN product photos (index card + gallery + thumb).
+      // Native product images can't be translated, so EN photos live here.
+      'product_images_en: metafield(namespace: "custom", key: "product_images_en") {\n' +
+      '  references(first: 12) { nodes { ... on MediaImage { image { url altText } } } }\n' +
+      '}\n' +
       // Judge.me syncs its aggregate into the standard `reviews` namespace.
       'jm_rating: metafield(namespace: "reviews", key: "rating") { value }\n' +
       'jm_rating_count: metafield(namespace: "reviews", key: "rating_count") { value }\n' +
@@ -270,6 +275,13 @@
       return { src: im.url, alt: im.altText || p.title, fit: 'cover' };
     });
     if (!images.length && p.featuredImage) images = [{ src: p.featuredImage.url, alt: p.featuredImage.altText || p.title, fit: 'cover' }];
+    // EN visitor: swap in the English photo set when the `_en` metafield is filled.
+    if (wantEn && p.product_images_en && p.product_images_en.references) {
+      var enImgs = (p.product_images_en.references.nodes || [])
+        .filter(function (n) { return n && n.image && n.image.url; })
+        .map(function (n) { return { src: n.image.url, alt: n.image.altText || p.title, fit: 'cover' }; });
+      if (enImgs.length) images = enImgs;
+    }
 
     var out = {
       id: p.id,
@@ -450,7 +462,10 @@
     // delivery address (see setDeliveryAddress).
     'deliveryGroups(first: 5) { nodes { deliveryOptions { handle title estimatedCost { amount currencyCode } } } }\n' +
     'lines(first: 50) { nodes { id quantity\n' +
-    '  merchandise { ... on ProductVariant { id title image { url altText } product { title handle featuredImage { url altText } } price { amount currencyCode } } }\n' +
+    '  merchandise { ... on ProductVariant { id title image { url altText } product { title handle featuredImage { url altText }\n' +
+    '    product_images_en: metafield(namespace: "custom", key: "product_images_en") {\n' +
+    '      references(first: 1) { nodes { ... on MediaImage { image { url } } } }\n' +
+    '    } } price { amount currencyCode } } }\n' +
     '  attributes { key value }\n' +
     '  cost { totalAmount { amount currencyCode } } } }';
 
@@ -467,6 +482,11 @@
       var m = l.merchandise || {};
       var prod = m.product || {};
       var img = (m.image && m.image.url) || (prod.featuredImage && prod.featuredImage.url) || null;
+      // EN visitor: use the English product photo for the thumbnail when set.
+      if (String(langCode()).toUpperCase().indexOf('EN') === 0 && prod.product_images_en && prod.product_images_en.references) {
+        var enNodes = prod.product_images_en.references.nodes || [];
+        if (enNodes[0] && enNodes[0].image && enNodes[0].image.url) img = enNodes[0].image.url;
+      }
       var price = (m.price && Number(m.price.amount)) || 0;
       var cc = (m.price && m.price.currencyCode) || (cart.cost && cart.cost.totalAmount && cart.cost.totalAmount.currencyCode) || 'EUR';
       return {
