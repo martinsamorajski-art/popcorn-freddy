@@ -52,6 +52,14 @@
     try { if (window.PFLocale) return PFLocale.current().language; } catch (e) {}
     return 'DE';
   }
+  // A file-list metafield node can resolve as MediaImage OR GenericFile
+  // depending on how the file was attached — read a URL from either.
+  function refImgUrl(n) {
+    if (!n) return null;
+    if (n.image && n.image.url) return n.image.url;
+    if (n.url) return n.url;
+    return null;
+  }
 
   // ── Money formatting (uses currency returned BY Shopify) ──────
   function money(amount, currencyCode, lang) {
@@ -175,17 +183,17 @@
       // Sample pages of THIS chapter: a file-list metafield of images, so the
       // preview strip is per chapter and uploaded in Shopify (Content → Files).
       'page_previews: metafield(namespace: "custom", key: "page_previews") {\n' +
-      '  references(first: 12) { nodes { ... on MediaImage { image { url altText } } } }\n' +
+      '  references(first: 12) { nodes { ... on MediaImage { image { url altText } } ... on GenericFile { url } } }\n' +
       '}\n' +
       // English twin: an EN visitor sees these instead when filled. Shopify
       // cannot translate a file-list metafield, so it is a separate field.
       'page_previews_en: metafield(namespace: "custom", key: "page_previews_en") {\n' +
-      '  references(first: 12) { nodes { ... on MediaImage { image { url altText } } } }\n' +
+      '  references(first: 12) { nodes { ... on MediaImage { image { url altText } } ... on GenericFile { url } } }\n' +
       '}\n' +
       // English twin of the MAIN product photos (index card + gallery + thumb).
       // Native product images can't be translated, so EN photos live here.
       'product_images_en: metafield(namespace: "custom", key: "product_images_en") {\n' +
-      '  references(first: 12) { nodes { ... on MediaImage { image { url altText } } } }\n' +
+      '  references(first: 12) { nodes { ... on MediaImage { image { url altText } } ... on GenericFile { url } } }\n' +
       '}\n' +
       // Judge.me syncs its aggregate into the standard `reviews` namespace.
       'jm_rating: metafield(namespace: "reviews", key: "rating") { value }\n' +
@@ -278,8 +286,9 @@
     // EN visitor: swap in the English photo set when the `_en` metafield is filled.
     if (wantEn && p.product_images_en && p.product_images_en.references) {
       var enImgs = (p.product_images_en.references.nodes || [])
-        .filter(function (n) { return n && n.image && n.image.url; })
-        .map(function (n) { return { src: n.image.url, alt: n.image.altText || p.title, fit: 'cover' }; });
+        .map(function (n) { return refImgUrl(n); })
+        .filter(Boolean)
+        .map(function (u) { return { src: u, alt: p.title, fit: 'cover' }; });
       if (enImgs.length) images = enImgs;
     }
 
@@ -331,8 +340,8 @@
         var src = (enField && enField.references && enField.references.nodes && enField.references.nodes.length)
           ? enField : p.page_previews;
         var nodes = (src && src.references && src.references.nodes) || [];
-        return nodes.filter(function (n) { return n && n.image && n.image.url; })
-          .map(function (n) { return { src: n.image.url, alt: n.image.altText || p.title }; });
+        return nodes.map(function (n) { return refImgUrl(n); }).filter(Boolean)
+          .map(function (u) { return { src: u, alt: p.title }; });
       })(),
       scarcity: mf.scarcity,
       guarantee: mf.guarantee,
@@ -464,7 +473,7 @@
     'lines(first: 50) { nodes { id quantity\n' +
     '  merchandise { ... on ProductVariant { id title image { url altText } product { title handle featuredImage { url altText }\n' +
     '    product_images_en: metafield(namespace: "custom", key: "product_images_en") {\n' +
-    '      references(first: 1) { nodes { ... on MediaImage { image { url } } } }\n' +
+    '      references(first: 1) { nodes { ... on MediaImage { image { url } } ... on GenericFile { url } } }\n' +
     '    } } price { amount currencyCode } } }\n' +
     '  attributes { key value }\n' +
     '  cost { totalAmount { amount currencyCode } } } }';
@@ -485,7 +494,8 @@
       // EN visitor: use the English product photo for the thumbnail when set.
       if (String(langCode()).toUpperCase().indexOf('EN') === 0 && prod.product_images_en && prod.product_images_en.references) {
         var enNodes = prod.product_images_en.references.nodes || [];
-        if (enNodes[0] && enNodes[0].image && enNodes[0].image.url) img = enNodes[0].image.url;
+        var enUrl = enNodes.length ? refImgUrl(enNodes[0]) : null;
+        if (enUrl) img = enUrl;
       }
       var price = (m.price && Number(m.price.amount)) || 0;
       var cc = (m.price && m.price.currencyCode) || (cart.cost && cart.cost.totalAmount && cart.cost.totalAmount.currencyCode) || 'EUR';
