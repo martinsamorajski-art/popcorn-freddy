@@ -192,7 +192,7 @@
       '}\n' +
       // English twin of the MAIN product photos (index card + gallery + thumb).
       // Native product images can't be translated, so EN photos live here.
-      'product_images_en: metafield(namespace: "custom", key: "product_images_en") {\n' +
+      'product_images_en: metafield(namespace: "custom", key: "custom_product_images_en") {\n' +
       '  references(first: 12) { nodes { ... on MediaImage { image { url altText } } ... on GenericFile { url } } }\n' +
       '}\n' +
       // Judge.me syncs its aggregate into the standard `reviews` namespace.
@@ -472,7 +472,7 @@
     'deliveryGroups(first: 5) { nodes { deliveryOptions { handle title estimatedCost { amount currencyCode } } } }\n' +
     'lines(first: 50) { nodes { id quantity\n' +
     '  merchandise { ... on ProductVariant { id title image { url altText } product { title handle featuredImage { url altText }\n' +
-    '    product_images_en: metafield(namespace: "custom", key: "product_images_en") {\n' +
+    '    product_images_en: metafield(namespace: "custom", key: "custom_product_images_en") {\n' +
     '      references(first: 1) { nodes { ... on MediaImage { image { url } } ... on GenericFile { url } } }\n' +
     '    } } price { amount currencyCode } } }\n' +
     '  attributes { key value }\n' +
