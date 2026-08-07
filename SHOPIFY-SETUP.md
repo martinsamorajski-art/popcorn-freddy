@@ -127,6 +127,7 @@ All are optional — anything empty simply doesn't render.
 |---|---|---|
 | `caps` | Single line text | Eyebrow above title ("Kapitel 01 · …") |
 | `emotion` | Single line text | "Gefühl / Emotion" pill |
+| `bausatz` | Single line text | "Bausatz / Building set" pill (z. B. „Auto") |
 | `meta_rows` | JSON | Icon fact row `[{"icon":"user","t":"Ab 4 Jahren"}]` |
 | `inside_items` | JSON | "In der Box" list `[{"icon":"book","t":"Titel","d":"…"}]` |
 | `details` | JSON | "Auf einen Blick" table `[{"k":"Alter","v":"Ab 4"}]` |

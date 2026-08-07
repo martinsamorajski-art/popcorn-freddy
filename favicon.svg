@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="116" fill="#3F4E36"></rect>
+  <rect x="30" y="30" width="452" height="452" rx="90" fill="none" stroke="#C9A96C" stroke-opacity="0.42" stroke-width="3"></rect>
+  <text x="50%" y="52%" text-anchor="middle" dominant-baseline="central" font-family="&#39;Young Serif&#39;,&#39;Georgia&#39;,serif" font-weight="700" font-size="230" letter-spacing="-6">
+    <tspan fill="#FBF6E9">P</tspan><tspan fill="#C9A96C" font-size="150" dy="-6">&amp;</tspan><tspan fill="#FBF6E9" dy="6">F</tspan>
+  </text>
+</svg>
