@@ -177,6 +177,11 @@
       'page_previews: metafield(namespace: "custom", key: "page_previews") {\n' +
       '  references(first: 12) { nodes { ... on MediaImage { image { url altText } } } }\n' +
       '}\n' +
+      // English twin: an EN visitor sees these instead when filled. Shopify
+      // cannot translate a file-list metafield, so it is a separate field.
+      'page_previews_en: metafield(namespace: "custom", key: "page_previews_en") {\n' +
+      '  references(first: 12) { nodes { ... on MediaImage { image { url altText } } } }\n' +
+      '}\n' +
       // Judge.me syncs its aggregate into the standard `reviews` namespace.
       'jm_rating: metafield(namespace: "reviews", key: "rating") { value }\n' +
       'jm_rating_count: metafield(namespace: "reviews", key: "rating_count") { value }\n' +
@@ -310,7 +315,10 @@
         : (mf.rating_count != null ? Number(mf.rating_count) : null),
       // Sample pages of this chapter (file-list metafield of images).
       pagePreviews: (function () {
-        var nodes = (p.page_previews && p.page_previews.references && p.page_previews.references.nodes) || [];
+        var enField = wantEn ? p.page_previews_en : null;
+        var src = (enField && enField.references && enField.references.nodes && enField.references.nodes.length)
+          ? enField : p.page_previews;
+        var nodes = (src && src.references && src.references.nodes) || [];
         return nodes.filter(function (n) { return n && n.image && n.image.url; })
           .map(function (n) { return { src: n.image.url, alt: n.image.altText || p.title }; });
       })(),
