@@ -113,7 +113,7 @@
   // the existing design shows. See SHOPIFY-SETUP.md for the exact keys.
   var METAFIELD_IDS = [
     'chapter_no', 'teaser', 'toy', 'release_label', 'badge',
-    'caps', 'emotion', 'meta_rows', 'inside_items', 'details',
+    'caps', 'emotion', 'bausatz', 'meta_rows', 'inside_items', 'details',
     'story_title', 'story_body', 'story_hand',
     'reviews', 'rating', 'rating_count',
     'scarcity', 'guarantee', 'gift_note', 'personalization_label',
@@ -290,6 +290,7 @@
       // extra content from metafields (may be null → components fall back)
       caps: mf.caps,
       emotion: mf.emotion,
+      bausatz: mf.bausatz,
       meta_rows: parseMaybeJSON(mf.meta_rows),
       // Text-list form wins when present (it is the translatable one); the JSON
       // metafield stays supported so nothing already filled in breaks.
@@ -861,6 +862,19 @@
     return p;
   }
 
+  // Every review in the shop (not scoped to a product): the product page shows
+  // one pooled wall so a brand-new chapter isn't left looking review-less.
+  // Resolves to { reviews, count, average } (average is a 1–5 number or null).
+  var _allReviews = null;
+  function getAllReviews() {
+    if (_allReviews) return _allReviews;
+    _allReviews = fetch('/api/reviews?per_page=36')
+      .then(function (r) { return r.json(); })
+      .then(function (d) { return { reviews: (d && d.reviews) || [], count: (d && d.count) || 0, average: (d && d.average) || null }; })
+      .catch(function () { return { reviews: [], count: 0, average: null }; });
+    return _allReviews;
+  }
+
   // ── Localization (populates the country/language selector) ────
   // The available countries + languages come straight from Shopify's
   // localization query — never a hardcoded list. Cached for the session.
@@ -910,6 +924,7 @@
     getChapters: getChapters,
     getLocalization: getLocalization,
     getReviews: getReviews,
+    getAllReviews: getAllReviews,
     peek: peek,
     ensure: ensure,
     // cart

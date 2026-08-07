@@ -323,6 +323,8 @@ function RdIcon({ name, size = 20 }) {
   const paths = {
     user: <React.Fragment><circle cx="12" cy="8" r="3.6" /><path d="M5.5 20.5a6.5 6.5 0 0 1 13 0" /></React.Fragment>,
     build: <React.Fragment><path d="M13.5 4.5 19.5 10.5 17 13l-6-6 2.5-2.5Z" /><path d="m11 7-7.5 7.5L6 17l7.5-7.5" /></React.Fragment>,
+    blocks: <React.Fragment><rect x="3.5" y="12.5" width="7" height="7" rx="1" /><rect x="13.5" y="12.5" width="7" height="7" rx="1" /><path d="M12 4.2 15.5 10.5h-7L12 4.2Z" /></React.Fragment>,
+    car: <React.Fragment><path d="M3 14.5h18v3a.5.5 0 0 1-.5.5h-1.5v-.5a1.5 1.5 0 0 0-3 0v.5H8.5v-.5a1.5 1.5 0 0 0-3 0v.5H3.5a.5.5 0 0 1-.5-.5v-3Z" /><path d="M4.5 14.5 6.2 9.6A2 2 0 0 1 8.1 8.3h7.8a2 2 0 0 1 1.9 1.3l1.7 4.9" /></React.Fragment>,
     heart: <path d="M12 20.5S4 16 4 9.8A4.3 4.3 0 0 1 12 7a4.3 4.3 0 0 1 8 2.8c0 6.2-8 10.7-8 10.7Z" />,
     truck: <React.Fragment><rect x="2.5" y="6.5" width="11" height="9" rx="1" /><path d="M13.5 9.5h3.8l3.2 3.2v2.8h-7z" /><circle cx="6.5" cy="17.5" r="1.7" /><circle cx="17" cy="17.5" r="1.7" /></React.Fragment>,
     shield: <React.Fragment><path d="M12 2.8 5 5.6v5.2c0 4 2.9 6.9 7 8 4.1-1.1 7-4 7-8V5.6L12 2.8Z" /><path d="m9 11.5 2.2 2.2 4-4.2" /></React.Fragment>,

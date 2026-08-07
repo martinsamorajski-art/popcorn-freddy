@@ -46,7 +46,7 @@ const PS_TRUST = {
 const PF_UI = {
   de: { added: 'Liegt im Korb', checkout: 'Zur Kasse', add: 'In den Warenkorb', price_note: 'inkl. MwSt.',
     readmore: 'Die ganze Geschichte lesen', rating_count: function (n) { return 'aus ' + n + ' Bewertungen'; },
-    name_hint: '— erscheint gedruckt in der Geschichte', name_ph: 'z. B. Mia', emotion_k: 'Gefühl',
+    name_hint: '— erscheint gedruckt in der Geschichte', name_ph: 'z. B. Mia', emotion_k: 'Gefühl', bausatz_k: 'Bausatz',
     reviews_eyebrow: 'Stimmen von Familien', reviews_title: 'Was Eltern nach der ersten Box sagen.', verified: 'Verifizierter Kauf',
     reviews_empty: 'Die ersten Bewertungen sammeln wir gerade — sie erscheinen hier, sobald Familien ihr Kapitel erlebt haben.',
     pages_empty: 'Seitenvorschau folgt in Kürze.',
@@ -60,7 +60,7 @@ const PF_UI = {
     back_link: 'Alle Kapitel ansehen', sold_out: 'Zurzeit ausverkauft', notify: 'Benachrichtigt mich', unavailable: 'Produkt nicht gefunden.' },
   en: { added: 'In your basket', checkout: 'To checkout', add: 'Add to basket', price_note: 'incl. VAT',
     readmore: 'Read the full story', rating_count: function (n) { return 'from ' + n + ' reviews'; },
-    name_hint: '— appears printed in the story', name_ph: 'e.g. Mia', emotion_k: 'Emotion',
+    name_hint: '— appears printed in the story', name_ph: 'e.g. Mia', emotion_k: 'Emotion', bausatz_k: 'Building set',
     reviews_eyebrow: 'Voices from families', reviews_title: 'What parents say after the first box.', verified: 'Verified purchase',
     reviews_empty: "We're collecting the first reviews — they appear here once families have lived their chapter.",
     pages_empty: 'Page preview coming soon.',
@@ -145,10 +145,20 @@ function PSBuyBox({ p, ui, x, lang, inCart, qty, onAdd, onQty }) {
 
       {lede && <p className="r-serif" style={{ fontSize: 17, color: 'var(--rd-ink-soft)', marginTop: 18, lineHeight: 1.6, textWrap: 'pretty' }}>{lede}{p.story_body && (<> <button type="button" onClick={() => psScrollTo('story')} style={{ display: 'inline', background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'var(--f-sans)', fontWeight: 700, fontSize: 15, color: 'var(--rd-terra)', textDecoration: 'underline', textUnderlineOffset: 3 }}>{ui.readmore}</button></>)}</p>}
 
-      {p.emotion && (
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 12, marginTop: 22, padding: '11px 18px 11px 15px', borderRadius: 99, background: 'color-mix(in srgb, var(--rd-terra) 9%, transparent)', border: '1px solid color-mix(in srgb, var(--rd-terra) 28%, transparent)' }}>
-          <span style={{ color: 'var(--rd-terra)', display: 'inline-flex', flex: 'none' }}><RdIcon name="heart" size={18} /></span>
-          <span style={{ fontFamily: 'var(--f-sans)', fontSize: 15, color: 'var(--rd-ink)' }}><strong style={{ fontWeight: 800 }}>{ui.emotion_k}:</strong> {p.emotion}</span>
+      {(p.emotion || p.bausatz) && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 22 }}>
+          {p.emotion && (
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 12, padding: '11px 18px 11px 15px', borderRadius: 99, background: 'color-mix(in srgb, var(--rd-terra) 9%, transparent)', border: '1px solid color-mix(in srgb, var(--rd-terra) 28%, transparent)' }}>
+              <span style={{ color: 'var(--rd-terra)', display: 'inline-flex', flex: 'none' }}><RdIcon name="heart" size={18} /></span>
+              <span style={{ fontFamily: 'var(--f-sans)', fontSize: 15, color: 'var(--rd-ink)' }}><strong style={{ fontWeight: 800 }}>{ui.emotion_k}:</strong> {p.emotion}</span>
+            </div>
+          )}
+          {p.bausatz && (
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 12, padding: '11px 18px 11px 15px', borderRadius: 99, background: 'color-mix(in srgb, var(--rd-moss) 9%, transparent)', border: '1px solid color-mix(in srgb, var(--rd-moss) 28%, transparent)' }}>
+              <span style={{ color: 'var(--rd-moss)', display: 'inline-flex', flex: 'none' }}><RdIcon name="blocks" size={18} /></span>
+              <span style={{ fontFamily: 'var(--f-sans)', fontSize: 15, color: 'var(--rd-ink)' }}><strong style={{ fontWeight: 800 }}>{ui.bausatz_k}:</strong> {p.bausatz}</span>
+            </div>
+          )}
         </div>
       )}
 
@@ -271,21 +281,27 @@ function PSSticky({ p, ui, inCart, onAdd }) {
 // metafield is the fallback for a store without the app. Stars + count come
 // from the synced `reviews.*` metafields. Design is unchanged either way.
 function usePSReviews(p) {
-  const [live, setLive] = useState(null);
-  const id = p && p.id;
+  // Shop-wide pool: every chapter shows ALL reviews, not just its own. Falls
+  // back to the product's own list / manual metafield if the app isn't wired.
+  const [all, setAll] = useState(null);
   useEffect(() => {
-    if (!id || !(window.PFShop && PFShop.getReviews)) return;
+    if (!(window.PFShop && PFShop.getAllReviews)) return;
     let alive = true;
-    PFShop.getReviews(p).then((list) => { if (alive) setLive(list || []); }).catch(() => {});
+    PFShop.getAllReviews().then((d) => { if (alive) setAll(d || { reviews: [] }); }).catch(() => {});
     return () => { alive = false; };
-  }, [id]);
-  if (live && live.length) return live;
-  return (p && p.reviews) || [];
+  }, []);
+  if (all && all.reviews && all.reviews.length) return all;
+  const own = (p && p.reviews) || [];
+  return { reviews: own, count: own.length, average: p && p.rating ? Number(p.rating) : null };
 }
 
 function PSReviews({ p, ui, lang }) {
-  const reviews = usePSReviews(p);
-  const score = p.rating ? String(p.rating).replace('.', lang === 'de' ? ',' : '.') + '/5' : null;
+  const data = usePSReviews(p);
+  const reviews = data.reviews || [];
+  // Score/count now describe the whole shop, matching the pooled wall below.
+  const avg = data.average != null ? data.average : (p.rating ? Number(p.rating) : null);
+  const count = data.count != null ? data.count : (p.rating_count || 0);
+  const score = avg ? avg.toFixed(1).replace('.', lang === 'de' ? ',' : '.') + '/5' : null;
   return (
     <section id="reviews" data-rd data-screen-label="Bewertungen" style={{ padding: '118px 0 118px', background: 'var(--rd-cream)', borderTop: '1px solid color-mix(in srgb, var(--rd-ink) 8%, transparent)' }}>
       <div className="rwrap" style={{ position: 'relative', zIndex: 2 }}>
@@ -294,7 +310,7 @@ function PSReviews({ p, ui, lang }) {
           <div className="r-rev" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, marginTop: 20, flexWrap: 'wrap' }}>
             <Ch1Stars size={17} />
             <span style={{ fontFamily: 'var(--f-sans)', fontWeight: 800, fontSize: 16, color: 'var(--rd-ink)' }}>{score}</span>
-            {p.rating_count ? <span style={{ fontSize: 14.5, color: 'var(--rd-ink-mute)' }}>· {ui.rating_count(p.rating_count)}</span> : null}
+            {count ? <span style={{ fontSize: 14.5, color: 'var(--rd-ink-mute)' }}>· {ui.rating_count(count)}</span> : null}
           </div>
         )}
         <div className="r-rev" style={{ marginTop: 40 }}>
