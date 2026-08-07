@@ -284,10 +284,10 @@
     });
     if (!images.length && p.featuredImage) images = [{ src: p.featuredImage.url, alt: p.featuredImage.altText || p.title, fit: 'cover' }];
     // EN visitor: swap in the English photo set when the `_en` metafield is filled.
-    if (wantEn && p.product_images_en && p.product_images_en.references) {
-      var enImgs = (p.product_images_en.references.nodes || [])
-        .map(function (n) { return refImgUrl(n); })
-        .filter(Boolean)
+    if (wantEn && p.product_images_en) {
+      try { console.log('[PFShop] product_images_en raw:', JSON.stringify(p.product_images_en)); } catch (e) {}
+      var enNodes2 = (p.product_images_en.references && p.product_images_en.references.nodes) || [];
+      var enImgs = enNodes2.map(function (n) { return refImgUrl(n); }).filter(Boolean)
         .map(function (u) { return { src: u, alt: p.title, fit: 'cover' }; });
       if (enImgs.length) images = enImgs;
     }
