@@ -693,8 +693,8 @@ const PS_SHOP_CSS = `
   .shop-page img { display: block; width: 100%; aspect-ratio: 1 / 1.414; object-fit: cover; border-radius: 8px; }
   .shop-hero-grid { display: grid; grid-template-columns: 1.02fr 0.98fr; gap: 60px; align-items: start; padding-top: 132px; padding-bottom: 96px; }
   .shop-gal { position: sticky; top: 108px; }
-  .shop-gal-main { border-radius: 16px; overflow: hidden; background: var(--rd-cream); border: 1px solid color-mix(in srgb, var(--rd-ink) 12%, transparent); box-shadow: 0 40px 90px -50px color-mix(in srgb, var(--rd-ink) 55%, transparent); aspect-ratio: 4 / 4.3; }
-  .shop-gal-main img { width: 100%; height: 100%; display: block; animation: shop-fade 0.4s var(--ease); }
+  .shop-gal-main { border-radius: 16px; overflow: hidden; background: var(--rd-cream); border: 1px solid color-mix(in srgb, var(--rd-ink) 12%, transparent); box-shadow: 0 40px 90px -50px color-mix(in srgb, var(--rd-ink) 55%, transparent); aspect-ratio: 4 / 5; }
+  .shop-gal-main img { width: 100%; height: 100%; object-fit: cover; display: block; animation: shop-fade 0.4s var(--ease); }
   @keyframes shop-fade { from { opacity: 0; } to { opacity: 1; } }
   html[data-anim="off"] .shop-gal-main img { animation: none; }
   .shop-gal-thumbs { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-top: 14px; }
@@ -746,7 +746,7 @@ const PS_SHOP_CSS = `
   @media (max-width: 900px) {
     .shop-hero-grid { grid-template-columns: minmax(0, 1fr); gap: 34px; padding-top: 116px; padding-bottom: 64px; }
     .shop-gal { position: static; top: auto; }
-    .shop-gal-main { aspect-ratio: 4 / 3.7; }
+    .shop-gal-main { aspect-ratio: 4 / 5; }
     .shop-buy { max-width: 100%; }
   }
   @media (max-width: 560px) {
