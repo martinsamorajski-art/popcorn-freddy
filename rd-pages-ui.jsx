@@ -83,6 +83,7 @@ function RdPageTopBar({ t, lang }) {
                 <a key={i} href={href} className="rd-nav-link">{label}</a>
               ))}
             </div>
+            <div className="rd-nav-locale"><RdLocaleControl lang={lang} /></div>
             <RdCartButtons label={t.nav.shop} cartCount={cartCount} onOpenCart={() => setCartOpen((v) => !v)} />
             <RdMobileNav
               links={links} ctaLabel={t.nav.mobile_cta} onCta={() => { window.location.href = RD_PAGES.home + '#chapters'; }}

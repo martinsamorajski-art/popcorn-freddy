@@ -40,6 +40,7 @@ function RdTopBar({ t, lang, cartCount, onOpenCart, onStartAdventure }) {
                 <a key={i} href={href} className="rd-nav-link">{label}</a>
               ))}
             </div>
+            <div className="rd-nav-locale"><RdLocaleControl lang={lang} /></div>
             <button onClick={onOpenCart} aria-label="cart" className="rbtn rbtn-primary rd-cart-btn" style={{ position: 'relative', padding: '10px 18px', fontSize: 14, borderRadius: 9 }}>
               <RdIcon name="cart" size={16} />
               <span className="rd-cart-label">{t.nav.shop}</span>
