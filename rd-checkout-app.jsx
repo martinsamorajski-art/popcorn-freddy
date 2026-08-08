@@ -15,6 +15,40 @@ function rcStateSave(s) {
 }
 
 // ─── Widmung — dedication, Kapitel 1 only ────────────────────
+// ─── Widmung-Nachfrage — in-page modal instead of window.confirm ─
+function RcDedConfirm({ rc, onKeep, onEdit }) {
+  const d = rc.cart.ded.confirm;
+  React.useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') onEdit(); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, []);
+  return (
+    <div className="rc-modal-scrim" onMouseDown={(e) => { if (e.target === e.currentTarget) onEdit(); }}>
+      <div className="rc-modal r-rev" role="dialog" aria-modal="true" aria-label={d.title}>
+        <div className="rc-modal-ico"><RdIcon name="heart" size={22} /></div>
+        <h3 className="rc-modal-title">{d.title}</h3>
+        <p className="rc-modal-body">{d.body}</p>
+        <div className="rc-modal-actions">
+          <button type="button" className="rbtn rbtn-ghost" onClick={onEdit}>{d.edit}</button>
+          <button type="button" className="rbtn rbtn-primary" onClick={onKeep}>{d.keep}</button>
+        </div>
+      </div>
+      <style>{`
+        .rc-modal-scrim { position: fixed; inset: 0; z-index: 120; display: flex; align-items: center; justify-content: center; padding: 20px; background: color-mix(in srgb, var(--rd-ink) 46%, transparent); backdrop-filter: blur(3px); animation: rcFade .18s ease; }
+        .rc-modal { width: min(440px, 100%); background: var(--rd-cream, #fbf6ea); border: 1px solid color-mix(in srgb, var(--rd-gold) 42%, transparent); border-radius: 16px; padding: 30px 30px 26px; text-align: center; box-shadow: 0 30px 70px -30px rgba(50,36,14,.6); animation: rcPop .22s cubic-bezier(.2,.9,.3,1.2); }
+        .rc-modal-ico { width: 52px; height: 52px; margin: 0 auto 14px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--rd-gold); background: color-mix(in srgb, var(--rd-gold-soft) 22%, transparent); }
+        .rc-modal-title { font-family: var(--f-serif); font-weight: 700; font-size: 21px; color: var(--rd-ink); margin: 0 0 8px; }
+        .rc-modal-body { font-family: var(--f-sans); font-size: 15px; line-height: 1.55; color: var(--rd-ink-soft); margin: 0 0 22px; }
+        .rc-modal-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .rc-modal-actions .rbtn { flex: 1 1 0; min-width: 140px; }
+        @keyframes rcFade { from { opacity: 0; } }
+        @keyframes rcPop { from { opacity: 0; transform: translateY(10px) scale(.97); } }
+      `}</style>
+    </div>
+  );
+}
+
 function RcDedication({ rc, name, value, gender, setField }) {
   const d = rc.cart.ded;
   const g = gender === 'w' ? 'w' : 'm';
@@ -74,7 +108,9 @@ function RcDedication({ rc, name, value, gender, setField }) {
       </div>
       <p className="r-it" style={{ fontSize: 13.5, color: 'var(--rd-ink-mute)', marginTop: 12, lineHeight: 1.5 }}>{d.note}</p>
       <style>{`
-        .rc-ded-page { position: relative; max-width: 300px; min-height: 430px; margin: 10px auto 0; background: #f4ead2; border-radius: 5px; box-shadow: 0 12px 30px -20px rgba(70,52,22,.6); display: flex; flex-direction: column; align-items: center; padding: 30px 26px 22px; }
+        .rc-ded-preview { background: linear-gradient(160deg, #33463d, #223029); border-radius: 14px; padding: 20px 20px 26px; box-shadow: inset 0 1px 0 rgba(255,255,255,.05); }
+        .rc-ded-preview .r-caps { color: color-mix(in srgb, var(--rd-gold) 70%, #fff) !important; text-align: center; display: block; }
+        .rc-ded-page { position: relative; max-width: 300px; min-height: 430px; margin: 12px auto 0; background: #f4ead2; border-radius: 5px; box-shadow: 0 18px 34px -18px rgba(0,0,0,.55); display: flex; flex-direction: column; align-items: center; padding: 30px 26px 22px; }
         .rc-ded-page::before { content: ''; position: absolute; inset: 9px; border: 1px solid color-mix(in srgb, var(--rd-gold) 55%, transparent); border-radius: 3px; pointer-events: none; }
         .rc-ded-heart { display: block; width: 34%; height: auto; margin: 2px auto 14px; opacity: .95; mix-blend-mode: multiply; }
         .rc-ded-text { align-self: stretch; font-family: var(--f-serif, Georgia, serif); font-size: 11px; line-height: 1.62; color: #5b4a32; white-space: pre-wrap; text-align: left; padding: 0 4px; }
@@ -594,6 +630,7 @@ function RcApp() {
   // The child's name is printed and engraved, so it cannot be optional: every
   // box in the basket needs one before the delivery step opens.
   const [missingNames, setMissingNames] = useState({});
+  const [dedAsk, setDedAsk] = useState(false);
   const leaveCart = () => {
     const bad = {};
     units.forEach((u) => {
@@ -616,16 +653,14 @@ function RcApp() {
       const suggested = (rc.cart.ded.example((p.name || '').trim(), g) || '').trim();
       const written = (p.dedication || '').trim();
       if (!written || written === suggested) {
-        const ok = window.confirm(rc.cart.ded.confirm_unchanged);
-        if (!ok) {
-          const ta = document.querySelector('.rc-ded-ta');
-          if (ta) ta.focus();
-          return;
-        }
+        setDedAsk(true);
+        return;
       }
     }
     goTo(1);
   };
+  const dedKeep = () => { setDedAsk(false); goTo(1); };
+  const dedEdit = () => { setDedAsk(false); const ta = document.querySelector('.rc-ded-ta'); if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); } };
 
   // Option B: from the delivery step, hand off to Shopify's hosted checkout
   // PRE-FILLED with the name/email/address collected here. Payment happens on
@@ -709,6 +744,7 @@ function RcApp() {
 
   return (
     <React.Fragment>
+      {dedAsk && <RcDedConfirm rc={rc} onKeep={dedKeep} onEdit={dedEdit} />}
       <RcTopBar rc={rc} lang={lang} setLang={setLang} cur={cur} setCur={setCur} />
       <main className="rwrap" style={{ paddingTop: 26, paddingBottom: 72, position: 'relative', zIndex: 2 }} data-screen-label={placed ? 'Bestellbestätigung' : 'Checkout'}>
         {placed ? (
