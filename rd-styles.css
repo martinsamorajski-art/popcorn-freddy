@@ -646,7 +646,7 @@
     .rd-trust-ret:hover { text-decoration-color: currentColor; }
 
     /* sticky CTA bar — cover + price + actions (matches chapter page) */
-    .rd-sticky { position: fixed; left: 0; right: 0; bottom: 0; z-index: 55; display: block; padding: 10px 0 calc(env(safe-area-inset-bottom, 0px) + 10px); background: color-mix(in srgb, var(--rd-paper) 94%, transparent); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-top: 1px solid color-mix(in srgb, var(--rd-ink) 14%, transparent); box-shadow: 0 -14px 40px -24px color-mix(in srgb, var(--rd-ink) 45%, transparent); transform: translateY(130%); transition: transform 0.4s var(--ease); }
+    .rd-sticky { position: fixed; left: 0; right: 0; bottom: 0; z-index: 55; display: block; padding: 10px 0 calc(env(safe-area-inset-bottom, 0px) + 10px); background: var(--rd-paper); border-top: 1px solid color-mix(in srgb, var(--rd-ink) 14%, transparent); box-shadow: 0 -14px 40px -24px color-mix(in srgb, var(--rd-ink) 45%, transparent); transform: translateY(130%); transition: transform 0.4s var(--ease); }
     .rd-sticky.show { transform: translateY(0); }
     .rd-sticky-row { display: flex; align-items: center; justify-content: space-between; gap: 18px; }
     .rd-sticky-info { display: flex; align-items: center; gap: 14px; min-width: 0; }
