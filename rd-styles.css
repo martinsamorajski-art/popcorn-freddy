@@ -646,8 +646,8 @@
     .rd-trust-ret:hover { text-decoration-color: currentColor; }
 
     /* sticky CTA bar — cover + price + actions (matches chapter page) */
-    .rd-sticky { position: fixed; left: 0; right: 0; bottom: 0; z-index: 55; display: block; padding: 12px 0; background: var(--rd-paper); border-top: 1px solid color-mix(in srgb, var(--rd-ink) 14%, transparent); box-shadow: 0 -14px 40px -24px color-mix(in srgb, var(--rd-ink) 45%, transparent); transform: translateY(130%); transition: transform 0.4s var(--ease); }
-    .rd-sticky.show { transform: translateY(0); }
+    .rd-sticky { position: fixed; left: 0; right: 0; bottom: -160px; z-index: 55; display: block; padding: 12px 0; background: var(--rd-paper); border-top: 1px solid color-mix(in srgb, var(--rd-ink) 14%, transparent); box-shadow: 0 -14px 40px -24px color-mix(in srgb, var(--rd-ink) 45%, transparent); transition: bottom 0.4s var(--ease); }
+    .rd-sticky.show { bottom: 0; }
     .rd-sticky::after { content: ''; position: absolute; left: 0; right: 0; top: 100%; height: 160px; background: var(--rd-paper); pointer-events: none; }
     .rd-sticky-row { display: flex; align-items: center; justify-content: space-between; gap: 18px; }
     .rd-sticky-info { display: flex; align-items: center; gap: 14px; min-width: 0; }
@@ -657,7 +657,7 @@
     .rd-sticky-price > span:first-child { font-family: var(--f-sans); font-weight: 800; font-size: 15px; color: var(--rd-ink); }
     .rd-sticky-note { font-size: 12.5px; color: var(--rd-ink-mute); }
     .rd-sticky-actions { display: flex; gap: 10px; flex: none; }
-    .rd-sticky .rbtn-primary { padding: 13px 22px; border-radius: 11px; font-size: 14.5px; justify-content: center; }
+    .rd-sticky .rbtn-primary { padding: 13px 22px; border-radius: 11px; font-size: 14.5px; justify-content: center; box-shadow: none; }
     .rd-sticky-all { padding: 13px 18px; border-radius: 11px; font-size: 14px; background: var(--rd-cream); color: var(--rd-ink); border: 1px solid color-mix(in srgb, var(--rd-ink) 22%, transparent); text-decoration: none; display: inline-flex; align-items: center; white-space: nowrap; }
     @media (max-width: 560px) {
       .rd-sticky-note { display: none; }
@@ -669,7 +669,6 @@
       .rd-sticky-all { padding: 12px 12px; font-size: 12.5px; }
     }
     @media (prefers-reduced-motion: reduce) { .rd-sticky { transition: none; } }
-
     /* exit-intent modal */
     .rd-exit { position: fixed; inset: 0; z-index: 90; display: grid; place-items: center; padding: 20px; background: color-mix(in srgb, var(--rd-night) 62%, transparent); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); animation: rd-exit-fade 0.3s ease both; }
     .rd-exit-card { position: relative; width: min(440px, 100%); background: var(--rd-cream); border-radius: 16px; padding: 40px 34px 30px; text-align: center; box-shadow: 0 50px 90px -30px rgba(0,0,0,0.6); border: 1px solid color-mix(in srgb, var(--rd-gold) 40%, transparent); animation: rd-exit-pop 0.35s var(--ease) both; }
