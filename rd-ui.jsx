@@ -292,12 +292,12 @@ function RdLocaleControl({ lang, dark, onNavigate }) {
 const RD_CRAFT = {
   de: {
     batch: 'Handgefertigt in kleinen Monats-Auflagen.',
-    count: 'Nur rund 250 personalisierte Abenteuer-Boxen entstehen jeden Monat — jede einzelne von Hand gefertigt.',
+    count: 'Nur rund 100 personalisierte Abenteuer-Boxen entstehen jeden Monat — jede einzelne von Hand gefertigt.',
     each: 'Jede Box wird einzeln gefertigt und personalisiert, bevor sie auf die Reise geht.',
   },
   en: {
     batch: 'Handcrafted in small monthly batches.',
-    count: 'Only around 250 personalised adventure boxes are created each month — every single one crafted by hand.',
+    count: 'Only around 100 personalised adventure boxes are created each month — every single one crafted by hand.',
     each: 'Each box is individually crafted and personalised before it sets off.',
   },
 };
