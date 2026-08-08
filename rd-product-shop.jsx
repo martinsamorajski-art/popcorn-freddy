@@ -735,6 +735,7 @@ const PS_SHOP_CSS = `
   .shop-verified { display: inline-flex; align-items: center; gap: 6px; margin-top: 12px; font-family: var(--f-sans); font-weight: 700; font-size: 11.5px; letter-spacing: 0.04em; color: var(--rd-moss); }
   .shop-sticky { position: fixed; left: 0; right: 0; bottom: 0; z-index: 45; background: var(--rd-paper); border-top: 1px solid color-mix(in srgb, var(--rd-ink) 14%, transparent); box-shadow: 0 -14px 40px -24px color-mix(in srgb, var(--rd-ink) 45%, transparent); padding-bottom: env(safe-area-inset-bottom); transform: translateY(110%); transition: transform 0.4s var(--ease); }
   .shop-sticky.on { transform: translateY(0); }
+  .shop-sticky::after { content: ''; position: absolute; left: 0; right: 0; top: 100%; height: 160px; background: var(--rd-paper); pointer-events: none; }
   body:has(.shop-sticky.on) .rd-suggest { bottom: calc(env(safe-area-inset-bottom) + 92px); transition: bottom 0.4s var(--ease); }
   .shop-sticky-row { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 12px 0; }
   .shop-sticky-info { display: flex; align-items: center; gap: 14px; min-width: 0; }
