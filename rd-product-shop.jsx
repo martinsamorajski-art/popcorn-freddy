@@ -244,6 +244,12 @@ function PSShopHero({ p, ui, x, lang, intensity, inCart, qty, onAdd, onQty }) {
 }
 
 // ─── STICKY BUY BAR ──────────────────────────────────────────
+// Short label for tight rows: "Kapitel 3" / "Chapter 3" out of the full title.
+function psChapterLabel(title) {
+  if (!title) return '';
+  var m = String(title).match(/(kapitel|chapter)\s*\d+/i);
+  return m ? m[0].replace(/\s+/g, ' ').replace(/^./, function (c) { return c.toUpperCase(); }) : title;
+}
 function PSSticky({ p, ui, inCart, onAdd }) {
   const [show, setShow] = useState(false);
   const barRef = React.useRef(null);
@@ -268,7 +274,7 @@ function PSSticky({ p, ui, inCart, onAdd }) {
         <div className="shop-sticky-info">
           <img src={(p.images[0] || {}).src} alt="" className="shop-sticky-thumb" />
           <div>
-            <div className="shop-sticky-name">{p.title}</div>
+            <div className="shop-sticky-name"><span className="sn-full">{p.title}</span><span className="sn-short">{psChapterLabel(p.title)}</span></div>
             <div className="shop-sticky-price"><span>{p.priceFormatted}</span><span className="shop-sticky-note">{ui.price_note}</span></div>
           </div>
         </div>
@@ -742,10 +748,11 @@ const PS_SHOP_CSS = `
   .shop-sticky.on { transform: translateY(0); }
   .shop-sticky::after { content: ''; position: absolute; left: 0; right: 0; top: 100%; height: 160px; background: var(--rd-paper); pointer-events: none; }
   body:has(.shop-sticky.on) .rd-suggest { bottom: calc(env(safe-area-inset-bottom) + 92px); transition: bottom 0.4s var(--ease); }
-  .shop-sticky-row { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 12px 0; }
+  .shop-sticky-row { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 12px 0; }
   .shop-sticky-info { display: flex; align-items: center; gap: 14px; min-width: 0; }
   .shop-sticky-thumb { width: 46px; height: 46px; border-radius: 8px; object-fit: cover; flex: none; border: 1px solid color-mix(in srgb, var(--rd-ink) 12%, transparent); }
   .shop-sticky-name { font-family: var(--f-serif); font-weight: 600; font-size: 16px; color: var(--rd-ink); line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .shop-sticky-name .sn-short { display: none; }
   .shop-sticky-price { display: flex; align-items: baseline; gap: 8px; }
   .shop-sticky-price > span:first-child { font-family: var(--f-sans); font-weight: 800; font-size: 15px; color: var(--rd-ink); }
   .shop-sticky-note { font-size: 12.5px; color: var(--rd-ink-mute); }
@@ -761,6 +768,10 @@ const PS_SHOP_CSS = `
     .shop-sticky-note { display: none; }
     .shop-sticky-name { font-size: 14.5px; }
     .shop-sticky-btn { padding: 11px 16px; }
+  }
+  @media (max-width: 480px) {
+    .shop-sticky-name .sn-full { display: none; }
+    .shop-sticky-name .sn-short { display: inline; }
   }
 `;
 

@@ -289,6 +289,13 @@ function RdCtaBand({ t, band, dark = false, primary = false }) {
 }
 
 // ─── STICKY MOBILE CTA BAR ───────────────────────────────────
+// Short label for tight rows: "Kapitel 3" / "Chapter 3" out of the full title,
+// falling back to the full title when no chapter number is present.
+function pfChapterLabel(title) {
+  if (!title) return '';
+  var m = String(title).match(/(kapitel|chapter)\s*\d+/i);
+  return m ? m[0].replace(/\s+/g, ' ').replace(/^./, function (c) { return c.toUpperCase(); }) : title;
+}
 function RdStickyBar({ t, onAdd, product }) {
   const [show, setShow] = useState(false);
   const barRef = React.useRef(null);
@@ -323,7 +330,7 @@ function RdStickyBar({ t, onAdd, product }) {
             ? <img src={product.images[0].src} alt="" className="rd-sticky-thumb" />
             : <span className="rd-sticky-thumb rd-skel" />}
           <div style={{ minWidth: 0 }}>
-            <div className="rd-sticky-name">{product ? product.title : ''}</div>
+            <div className="rd-sticky-name"><span className="rd-nm-full">{product ? product.title : ''}</span><span className="rd-nm-short">{product ? pfChapterLabel(product.title) : ''}</span></div>
             <div className="rd-sticky-price"><span>{product ? product.priceFormatted : ''}</span><span className="rd-sticky-note">{t.stickyNote}</span></div>
           </div>
         </div>
