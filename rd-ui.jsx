@@ -673,6 +673,7 @@ function RdCountrySuggest({ lang }) {
       <style>{`
         .rd-suggest { position: fixed; left: 18px; bottom: 18px; z-index: 55; width: min(340px, calc(100vw - 36px)); background: var(--rd-cream); border: 1px solid color-mix(in srgb, var(--rd-ink) 16%, transparent); border-radius: 14px; padding: 16px 18px 15px; box-shadow: 0 24px 60px -26px color-mix(in srgb, var(--rd-ink) 60%, transparent); animation: rdSuggestIn .4s cubic-bezier(.22,.61,.36,1); }
         @keyframes rdSuggestIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+        body:has(.rd-sticky.show) .rd-suggest, body:has(.shop-sticky.on) .rd-suggest { bottom: calc(env(safe-area-inset-bottom) + 92px); transition: bottom .4s cubic-bezier(.22,.61,.36,1); }
         .rd-suggest-x { position: absolute; top: 9px; right: 9px; width: 28px; height: 28px; display: grid; place-items: center; border: none; background: transparent; color: var(--rd-ink-mute); cursor: pointer; border-radius: 7px; }
         .rd-suggest-x:hover { color: var(--rd-ink); background: color-mix(in srgb, var(--rd-ink) 7%, transparent); }
         .rd-suggest-row { display: flex; align-items: flex-start; gap: 11px; padding-right: 22px; }
@@ -729,6 +730,7 @@ function RdLangSuggest() {
       <style>{`
         .rd-suggest { position: fixed; left: 18px; bottom: 18px; z-index: 55; width: min(340px, calc(100vw - 36px)); background: var(--rd-cream); border: 1px solid color-mix(in srgb, var(--rd-ink) 16%, transparent); border-radius: 14px; padding: 16px 18px 15px; box-shadow: 0 24px 60px -26px color-mix(in srgb, var(--rd-ink) 60%, transparent); animation: rdSuggestIn .4s cubic-bezier(.22,.61,.36,1); }
         @keyframes rdSuggestIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+        body:has(.rd-sticky.show) .rd-suggest, body:has(.shop-sticky.on) .rd-suggest { bottom: calc(env(safe-area-inset-bottom) + 92px); transition: bottom .4s cubic-bezier(.22,.61,.36,1); }
         .rd-suggest-x { position: absolute; top: 9px; right: 9px; width: 28px; height: 28px; display: grid; place-items: center; border: none; background: transparent; color: var(--rd-ink-mute); cursor: pointer; border-radius: 7px; }
         .rd-suggest-x:hover { color: var(--rd-ink); background: color-mix(in srgb, var(--rd-ink) 7%, transparent); }
         .rd-suggest-row { display: flex; align-items: flex-start; gap: 11px; padding-right: 22px; }
