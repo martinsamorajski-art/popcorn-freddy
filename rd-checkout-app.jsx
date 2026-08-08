@@ -15,52 +15,20 @@ function rcStateSave(s) {
 }
 
 // ─── Widmung — dedication, Kapitel 1 only ────────────────────
-// ─── Widmung-Nachfrage — in-page modal instead of window.confirm ─
-function RcDedConfirm({ rc, onKeep, onEdit }) {
-  const d = rc.cart.ded.confirm;
-  React.useEffect(() => {
-    const onKey = (e) => { if (e.key === 'Escape') onEdit(); };
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, []);
-  return (
-    <div className="rc-modal-scrim" onMouseDown={(e) => { if (e.target === e.currentTarget) onEdit(); }}>
-      <div className="rc-modal r-rev" role="dialog" aria-modal="true" aria-label={d.title}>
-        <div className="rc-modal-ico"><RdIcon name="heart" size={22} /></div>
-        <h3 className="rc-modal-title">{d.title}</h3>
-        <p className="rc-modal-body">{d.body}</p>
-        <div className="rc-modal-actions">
-          <button type="button" className="rbtn rbtn-ghost" onClick={onEdit}>{d.edit}</button>
-          <button type="button" className="rbtn rbtn-primary" onClick={onKeep}>{d.keep}</button>
-        </div>
-      </div>
-      <style>{`
-        .rc-modal-scrim { position: fixed; inset: 0; z-index: 120; display: flex; align-items: center; justify-content: center; padding: 20px; background: color-mix(in srgb, var(--rd-ink) 46%, transparent); backdrop-filter: blur(3px); animation: rcFade .18s ease; }
-        .rc-modal { width: min(440px, 100%); background: var(--rd-cream, #fbf6ea); border: 1px solid color-mix(in srgb, var(--rd-gold) 42%, transparent); border-radius: 16px; padding: 30px 30px 26px; text-align: center; box-shadow: 0 30px 70px -30px rgba(50,36,14,.6); animation: rcPop .22s cubic-bezier(.2,.9,.3,1.2); }
-        .rc-modal-ico { width: 52px; height: 52px; margin: 0 auto 14px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--rd-gold); background: color-mix(in srgb, var(--rd-gold-soft) 22%, transparent); }
-        .rc-modal-title { font-family: var(--f-serif); font-weight: 700; font-size: 21px; color: var(--rd-ink); margin: 0 0 8px; }
-        .rc-modal-body { font-family: var(--f-sans); font-size: 15px; line-height: 1.55; color: var(--rd-ink-soft); margin: 0 0 22px; }
-        .rc-modal-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
-        .rc-modal-actions .rbtn { flex: 1 1 0; min-width: 140px; }
-        @keyframes rcFade { from { opacity: 0; } }
-        @keyframes rcPop { from { opacity: 0; transform: translateY(10px) scale(.97); } }
-      `}</style>
-    </div>
-  );
-}
-
-function RcDedication({ rc, name, value, gender, setField }) {
+function RcDedication({ rc, name, value, want, setField }) {
   const d = rc.cart.ded;
-  const g = gender === 'w' ? 'w' : 'm';
   const MAX = 500;
-  const example = d.example(name, g);
+  const example = d.example(name);
+  // When the parent says yes, seed the textarea with the example (once, and keep
+  // it following the name until they edit the text themselves).
   const lastEx = React.useRef(null);
   React.useEffect(() => {
+    if (want !== 'yes') return;
     if (!value || value === lastEx.current) {
       if (value !== example) setField('dedication', example);
     }
     lastEx.current = example;
-  }, [example]);
+  }, [example, want]);
   const onChange = (e) => {
     let v = e.target.value;
     const rows = v.split('\n');
@@ -68,30 +36,31 @@ function RcDedication({ rc, name, value, gender, setField }) {
     if (v.length > MAX) v = v.slice(0, MAX);
     setField('dedication', v);
   };
-  const setG = (val) => {
-    if (!value || value === lastEx.current) { const nx = d.example(name, val); setField('dedication', nx); lastEx.current = nx; }
-    setField('dedGender', val);
-  };
   const remaining = MAX - (value || '').length;
-  const gBtn = (val, label) => (
-    <button type="button" onClick={() => setG(val)} aria-pressed={g === val} style={{
-      padding: '9px 18px', borderRadius: 9, fontFamily: 'var(--f-sans)', fontWeight: 700, fontSize: 14, cursor: 'pointer',
-      border: g === val ? '1.5px solid var(--rd-gold)' : '1px solid color-mix(in srgb, var(--rd-ink) 20%, transparent)',
-      background: g === val ? 'color-mix(in srgb, var(--rd-gold-soft) 16%, transparent)' : 'transparent',
+  const choose = (val) => {
+    setField('dedWant', val);
+    if (val === 'no') setField('dedication', '');
+  };
+  const optBtn = (val, label) => (
+    <button type="button" onClick={() => choose(val)} aria-pressed={want === val} style={{
+      padding: '11px 22px', borderRadius: 10, fontFamily: 'var(--f-sans)', fontWeight: 700, fontSize: 14.5, cursor: 'pointer',
+      border: want === val ? '1.5px solid var(--rd-gold)' : '1px solid color-mix(in srgb, var(--rd-ink) 20%, transparent)',
+      background: want === val ? 'color-mix(in srgb, var(--rd-gold-soft) 16%, transparent)' : 'transparent',
       color: 'var(--rd-ink)', transition: 'border-color 0.25s, background 0.25s',
     }}>{label}</button>
   );
   return (
     <div className="rc-ded" style={{ marginTop: 24, paddingTop: 22, borderTop: '1px dashed color-mix(in srgb, var(--rd-ink) 16%, transparent)' }}>
       <div style={{ fontFamily: 'var(--f-sans)', fontWeight: 800, fontSize: 15.5, color: 'var(--rd-ink)', display: 'flex', alignItems: 'center', gap: 9 }}>
-        <span style={{ color: 'var(--rd-gold)', display: 'inline-flex' }}><RdIcon name="heart" size={18} /></span>{d.title}
+        <span style={{ color: 'var(--rd-gold)', display: 'inline-flex' }}><RdIcon name="heart" size={18} /></span>{d.ask}
       </div>
-      <p className="r-it" style={{ fontSize: 14.5, color: 'var(--rd-ink-mute)', marginTop: 8, lineHeight: 1.55 }}>{d.desc}</p>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 16, flexWrap: 'wrap' }}>
-        <span className="rc-label" style={{ margin: 0 }}>{d.gender_label}</span>
-        {gBtn('m', d.boy)}{gBtn('w', d.girl)}
+      <p className="r-it" style={{ fontSize: 14.5, color: 'var(--rd-ink-mute)', marginTop: 8, lineHeight: 1.55 }}>{d.ask_hint}</p>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 16, flexWrap: 'wrap' }}>
+        {optBtn('yes', d.yes)}{optBtn('no', d.no)}
       </div>
-      <div className="rc-ded-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginTop: 16, alignItems: 'start' }}>
+      {want === 'yes' && (
+      <React.Fragment>
+      <div className="rc-ded-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginTop: 20, alignItems: 'start' }}>
         <div className="rc-field" style={{ margin: 0 }}>
           <textarea className="rc-input rc-ded-ta" value={value || ''} onChange={onChange} rows={10} placeholder={d.ph}
             style={{ minHeight: 230, resize: 'vertical', lineHeight: 1.6 }} />
@@ -100,21 +69,21 @@ function RcDedication({ rc, name, value, gender, setField }) {
         <div className="rc-ded-preview">
           <div className="r-caps" style={{ color: 'var(--rd-gold)', letterSpacing: '0.2em', fontSize: 11 }}>{d.preview_caps}</div>
           <div className="rc-ded-page">
-            <img className="rc-ded-heart" src="assets/ded-heart.png" alt="" />
-            <div className="rc-ded-text">{(value || '').trim() || d.example(name, g)}</div>
-            <img className="rc-ded-scene" src="assets/ded-scene.png" alt="" />
+            <img className="rc-ded-heart" src="assets/ded-heart-t.png" alt="" />
+            <div className="rc-ded-text">{(value || '').trim() || example}</div>
+            <img className="rc-ded-scene" src="assets/ded-scene-t.png" alt="" />
           </div>
         </div>
       </div>
       <p className="r-it" style={{ fontSize: 13.5, color: 'var(--rd-ink-mute)', marginTop: 12, lineHeight: 1.5 }}>{d.note}</p>
+      </React.Fragment>
+      )}
       <style>{`
-        .rc-ded-preview { background: linear-gradient(160deg, #33463d, #223029); border-radius: 14px; padding: 20px 20px 26px; box-shadow: inset 0 1px 0 rgba(255,255,255,.05); }
-        .rc-ded-preview .r-caps { color: color-mix(in srgb, var(--rd-gold) 70%, #fff) !important; text-align: center; display: block; }
-        .rc-ded-page { position: relative; max-width: 300px; min-height: 430px; margin: 12px auto 0; background: #f4ead2; border-radius: 5px; box-shadow: 0 18px 34px -18px rgba(0,0,0,.55); display: flex; flex-direction: column; align-items: center; padding: 30px 26px 22px; }
+        .rc-ded-page { position: relative; max-width: 300px; min-height: 430px; margin: 10px auto 0; background: #f5e7c8; border-radius: 5px; box-shadow: 0 12px 30px -20px rgba(70,52,22,.6); display: flex; flex-direction: column; align-items: center; padding: 30px 26px 22px; }
         .rc-ded-page::before { content: ''; position: absolute; inset: 9px; border: 1px solid color-mix(in srgb, var(--rd-gold) 55%, transparent); border-radius: 3px; pointer-events: none; }
-        .rc-ded-heart { display: block; width: 34%; height: auto; margin: 2px auto 14px; opacity: .95; mix-blend-mode: multiply; }
+        .rc-ded-heart { display: block; width: 34%; height: auto; margin: 2px auto 14px; }
         .rc-ded-text { align-self: stretch; font-family: var(--f-serif, Georgia, serif); font-size: 11px; line-height: 1.62; color: #5b4a32; white-space: pre-wrap; text-align: left; padding: 0 4px; }
-        .rc-ded-scene { display: block; width: 74%; height: auto; margin: auto auto 0; mix-blend-mode: multiply; }
+        .rc-ded-scene { display: block; width: 74%; height: auto; margin: auto auto 0; }
         @media (max-width: 640px){ .rc-ded-grid{ grid-template-columns: 1fr !important; } }
       `}</style>
     </div>
@@ -224,7 +193,7 @@ function RcStepCart({ rc, lang, cur, cart, setQty, removeItem, units, personal, 
                 </div>
               </div>
               {u.chapter === 1 && (
-                <RcDedication rc={rc} name={(p.name || '').trim()} value={p.dedication} gender={p.dedGender} setField={(f, v) => setPersonalField(u.key, f, v)} />
+                <RcDedication rc={rc} name={(p.name || '').trim()} value={p.dedication} want={p.dedWant} setField={(f, v) => setPersonalField(u.key, f, v)} />
               )}
             </div>
           );
@@ -630,7 +599,6 @@ function RcApp() {
   // The child's name is printed and engraved, so it cannot be optional: every
   // box in the basket needs one before the delivery step opens.
   const [missingNames, setMissingNames] = useState({});
-  const [dedAsk, setDedAsk] = useState(false);
   const leaveCart = () => {
     const bad = {};
     units.forEach((u) => {
@@ -644,23 +612,8 @@ function RcApp() {
       if (el) { el.focus({ preventScroll: false }); }
       return;
     }
-    // Dedication (Kapitel 1 only): if the parent left the suggested text
-    // untouched, ask whether they really want to keep it as-is before moving on.
-    const ch1 = units.find((u) => u.chapter === 1);
-    if (ch1) {
-      const p = personal[ch1.key] || {};
-      const g = p.dedGender === 'w' ? 'w' : 'm';
-      const suggested = (rc.cart.ded.example((p.name || '').trim(), g) || '').trim();
-      const written = (p.dedication || '').trim();
-      if (!written || written === suggested) {
-        setDedAsk(true);
-        return;
-      }
-    }
     goTo(1);
   };
-  const dedKeep = () => { setDedAsk(false); goTo(1); };
-  const dedEdit = () => { setDedAsk(false); const ta = document.querySelector('.rc-ded-ta'); if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); } };
 
   // Option B: from the delivery step, hand off to Shopify's hosted checkout
   // PRE-FILLED with the name/email/address collected here. Payment happens on
@@ -744,7 +697,6 @@ function RcApp() {
 
   return (
     <React.Fragment>
-      {dedAsk && <RcDedConfirm rc={rc} onKeep={dedKeep} onEdit={dedEdit} />}
       <RcTopBar rc={rc} lang={lang} setLang={setLang} cur={cur} setCur={setCur} />
       <main className="rwrap" style={{ paddingTop: 26, paddingBottom: 72, position: 'relative', zIndex: 2 }} data-screen-label={placed ? 'Bestellbestätigung' : 'Checkout'}>
         {placed ? (
