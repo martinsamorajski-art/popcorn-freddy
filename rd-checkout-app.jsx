@@ -69,7 +69,7 @@ function RcDedication({ rc, name, value, want, setField }) {
         <div className="rc-ded-preview">
           <div className="r-caps" style={{ color: 'var(--rd-gold)', letterSpacing: '0.2em', fontSize: 11 }}>{d.preview_caps}</div>
           <div className="rc-ded-page">
-            <img className="rc-ded-heart" src="assets/ded-heart-t.png" alt="" />
+            <img className="rc-ded-heart" src="assets/ded-heart-v2.png" alt="" />
             <div className="rc-ded-text">{(value || '').trim() || example}</div>
             <img className="rc-ded-scene" src="assets/ded-scene-t.png" alt="" />
           </div>
