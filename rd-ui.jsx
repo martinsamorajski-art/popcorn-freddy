@@ -280,7 +280,7 @@ function RdLocaleControl({ lang, dark, onNavigate }) {
                 </select>
               </div>
             </label>
-            <button type="button" className="rbtn rbtn-primary" style={{ width: '100%', justifyContent: 'center', marginTop: 22, padding: '14px 20px' }} onClick={apply}>{T.go}</button>
+            <button type="button" className="rbtn rbtn-primary" style={{ width: '100%', justifyContent: 'center', marginTop: 22, padding: '14px 20px' }} onClick={apply}>{(RD_LOCALE_T[(rdPrefixMeta(pick).language || lang).toLowerCase()] || T).go}</button>
           </div>
         </div>
       )}
