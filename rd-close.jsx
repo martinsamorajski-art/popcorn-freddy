@@ -291,6 +291,24 @@ function RdCtaBand({ t, band, dark = false, primary = false }) {
 // ─── STICKY MOBILE CTA BAR ───────────────────────────────────
 function RdStickyBar({ t, onAdd, product }) {
   const [show, setShow] = useState(false);
+  const barRef = React.useRef(null);
+  useEffect(() => {
+    const el = barRef.current;
+    const vv = window.visualViewport;
+    if (!el || !vv) return;
+    let raf = 0;
+    const syncVV = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        const offset = Math.max(0, document.documentElement.clientHeight - (vv.height + vv.offsetTop));
+        el.style.setProperty('--vv', offset + 'px');
+      });
+    };
+    vv.addEventListener('resize', syncVV);
+    vv.addEventListener('scroll', syncVV);
+    syncVV();
+    return () => { vv.removeEventListener('resize', syncVV); vv.removeEventListener('scroll', syncVV); cancelAnimationFrame(raf); };
+  }, []);
   useEffect(() => {
     let ticking = false;
     const onScroll = () => {
@@ -309,7 +327,7 @@ function RdStickyBar({ t, onAdd, product }) {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
   return (
-    <div className={'rd-sticky' + (show ? ' show' : '')} aria-hidden={show ? undefined : 'true'}>
+    <div ref={barRef} className={'rd-sticky' + (show ? ' show' : '')} aria-hidden={show ? undefined : 'true'}>
       <div className="rwrap rd-sticky-row">
         {/* The bar advertises the featured Shopify product — cover, title and
             price all come from it, so it can never disagree with the card or cart. */}
