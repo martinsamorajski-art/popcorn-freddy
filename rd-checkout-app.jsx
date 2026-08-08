@@ -65,13 +65,22 @@ function RcDedication({ rc, name, value, gender, setField }) {
         </div>
         <div className="rc-ded-preview">
           <div className="r-caps" style={{ color: 'var(--rd-gold)', letterSpacing: '0.2em', fontSize: 11 }}>{d.preview_caps}</div>
-          <div style={{ marginTop: 10, padding: '28px 26px', borderRadius: 10, background: 'var(--rd-cream, #fbf6ea)', border: '1px solid color-mix(in srgb, var(--rd-gold) 40%, transparent)', minHeight: 230 }}>
-            <div style={{ fontFamily: 'var(--f-serif, Georgia, serif)', fontSize: 16, lineHeight: 1.75, color: 'var(--rd-walnut, #5b4a36)', whiteSpace: 'pre-wrap', fontStyle: 'italic' }}>{(value || '').trim() || d.example(name, g)}</div>
+          <div className="rc-ded-page">
+            <img className="rc-ded-heart" src="assets/ded-heart.png" alt="" />
+            <div className="rc-ded-text">{(value || '').trim() || d.example(name, g)}</div>
+            <img className="rc-ded-scene" src="assets/ded-scene.png" alt="" />
           </div>
         </div>
       </div>
       <p className="r-it" style={{ fontSize: 13.5, color: 'var(--rd-ink-mute)', marginTop: 12, lineHeight: 1.5 }}>{d.note}</p>
-      <style>{`@media (max-width: 640px){ .rc-ded-grid{ grid-template-columns: 1fr !important; } }`}</style>
+      <style>{`
+        .rc-ded-page { position: relative; max-width: 300px; min-height: 430px; margin: 10px auto 0; background: #f4ead2; border-radius: 5px; box-shadow: 0 12px 30px -20px rgba(70,52,22,.6); display: flex; flex-direction: column; align-items: center; padding: 30px 26px 22px; }
+        .rc-ded-page::before { content: ''; position: absolute; inset: 9px; border: 1px solid color-mix(in srgb, var(--rd-gold) 55%, transparent); border-radius: 3px; pointer-events: none; }
+        .rc-ded-heart { display: block; width: 34%; height: auto; margin: 2px auto 14px; opacity: .95; mix-blend-mode: multiply; }
+        .rc-ded-text { align-self: stretch; font-family: var(--f-serif, Georgia, serif); font-size: 11px; line-height: 1.62; color: #5b4a32; white-space: pre-wrap; text-align: left; padding: 0 4px; }
+        .rc-ded-scene { display: block; width: 74%; height: auto; margin: auto auto 0; mix-blend-mode: multiply; }
+        @media (max-width: 640px){ .rc-ded-grid{ grid-template-columns: 1fr !important; } }
+      `}</style>
     </div>
   );
 }
@@ -79,6 +88,7 @@ function RcDedication({ rc, name, value, gender, setField }) {
 // ─── STEP 1 — cart, personalisation, add-ons ─────────────────
 function RcStepCart({ rc, lang, cur, cart, setQty, removeItem, units, personal, setPersonalField, addons, toggleAddon, onNext, missing }) {
   const multi = units.length > 1;
+  const hasFirst = units.some((u) => u.chapter === 1);
   return (
     <React.Fragment>
       <div className="rc-card r-rev">
@@ -107,23 +117,24 @@ function RcStepCart({ rc, lang, cur, cart, setQty, removeItem, units, personal, 
           ))}
         </div>
 
-        {/* included folder — collapsed by default */}
-        <details className="rc-folder-acc" style={{ marginTop: 14, borderRadius: 10, border: '1px dashed color-mix(in srgb, var(--rd-gold) 60%, transparent)', background: 'color-mix(in srgb, var(--rd-gold-soft) 10%, transparent)', overflow: 'hidden' }}>
-          <summary style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '13px 16px', cursor: 'pointer', listStyle: 'none', fontFamily: 'var(--f-sans)', fontWeight: 700, fontSize: 15, color: 'var(--rd-ink)' }}>
+        {/* leather folder — comes ONCE with the first box, so only shown when
+            chapter 1 is in the basket. Always open, with the real photo. */}
+        {hasFirst && (
+        <div className="rc-folder-card" style={{ marginTop: 14, borderRadius: 10, border: '1px dashed color-mix(in srgb, var(--rd-gold) 60%, transparent)', background: 'color-mix(in srgb, var(--rd-gold-soft) 10%, transparent)', overflow: 'hidden' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '13px 16px', fontFamily: 'var(--f-sans)', fontWeight: 700, fontSize: 15, color: 'var(--rd-ink)' }}>
             <span style={{ color: 'var(--rd-gold)', display: 'inline-flex' }}><RdIcon name="gift" size={18} /></span>
             <span style={{ flex: 1 }}>{rc.cart.folder_summary}</span>
-            <span className="r-hand" style={{ fontSize: 18, color: 'var(--rd-terra)', transform: 'rotate(-3deg)' }}>{rc.cart.folder_free}</span>
-            <span className="rc-acc-chev" aria-hidden="true" style={{ fontSize: 12, color: 'var(--rd-ink-mute)', transition: 'transform 0.2s', display: 'inline-block' }}>▸</span>
-          </summary>
-          <div style={{ display: 'grid', gridTemplateColumns: '58px 1fr', gap: 16, alignItems: 'center', padding: '4px 16px 16px' }}>
-            <div className="rc-addon-thumb"><img src="assets/wooden-folder.webp" alt="" /></div>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '104px 1fr', gap: 16, alignItems: 'center', padding: '0 16px 16px' }}>
+            <div className="rc-folder-photo"><img src="assets/leather-folder.png" alt={rc.cart.folder_t} /></div>
             <div>
               <div style={{ fontFamily: 'var(--f-sans)', fontWeight: 700, fontSize: 15, color: 'var(--rd-ink)' }}>{rc.cart.folder_t}</div>
               <div className="r-it" style={{ fontSize: 14.5, color: 'var(--rd-ink-mute)', marginTop: 2, lineHeight: 1.45 }}>{rc.cart.folder_d}</div>
             </div>
           </div>
-        </details>
-        <style>{`.rc-folder-acc summary::-webkit-details-marker{display:none}.rc-folder-acc[open] .rc-acc-chev{transform:rotate(90deg)}`}</style>
+        </div>
+        )}
+        <style>{`.rc-folder-photo{border-radius:8px;overflow:hidden;background:#fff;border:1px solid color-mix(in srgb, var(--rd-ink) 12%, transparent)}.rc-folder-photo img{display:block;width:100%;height:auto}`}</style>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, color: 'var(--rd-ink-mute)' }}>
           <span style={{ color: 'var(--rd-gold)', display: 'inline-flex', flexShrink: 0 }}><RdIcon name="gift" size={16} /></span>
           <span className="r-it" style={{ fontSize: 13.5, lineHeight: 1.45 }}>{rc.cart.gift_hint}</span>
@@ -573,7 +584,12 @@ function RcApp() {
     remaining: giftInfo ? Math.round((giftInfo.balance - totals.gift) * 100) / 100 : 0,
   };
 
-  const scrollTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });  const goTo = (s) => { setStep(s); scrollTop(); };
+  const scrollTop = () => {
+    const jump = () => { try { window.scrollTo(0, 0); } catch (e) {} document.documentElement.scrollTop = 0; if (document.body) document.body.scrollTop = 0; };
+    jump();
+    requestAnimationFrame(jump);
+  };
+  const goTo = (s) => { setStep(s); scrollTop(); };
 
   // The child's name is printed and engraved, so it cannot be optional: every
   // box in the basket needs one before the delivery step opens.
@@ -590,6 +606,23 @@ function RcApp() {
       const el = document.getElementById('rc-name-' + first);
       if (el) { el.focus({ preventScroll: false }); }
       return;
+    }
+    // Dedication (Kapitel 1 only): if the parent left the suggested text
+    // untouched, ask whether they really want to keep it as-is before moving on.
+    const ch1 = units.find((u) => u.chapter === 1);
+    if (ch1) {
+      const p = personal[ch1.key] || {};
+      const g = p.dedGender === 'w' ? 'w' : 'm';
+      const suggested = (rc.cart.ded.example((p.name || '').trim(), g) || '').trim();
+      const written = (p.dedication || '').trim();
+      if (!written || written === suggested) {
+        const ok = window.confirm(rc.cart.ded.confirm_unchanged);
+        if (!ok) {
+          const ta = document.querySelector('.rc-ded-ta');
+          if (ta) ta.focus();
+          return;
+        }
+      }
     }
     goTo(1);
   };
@@ -677,7 +710,7 @@ function RcApp() {
   return (
     <React.Fragment>
       <RcTopBar rc={rc} lang={lang} setLang={setLang} cur={cur} setCur={setCur} />
-      <main className="rwrap" style={{ paddingTop: 26, paddingBottom: 110, position: 'relative', zIndex: 2 }} data-screen-label={placed ? 'Bestellbestätigung' : 'Checkout'}>
+      <main className="rwrap" style={{ paddingTop: 26, paddingBottom: 72, position: 'relative', zIndex: 2 }} data-screen-label={placed ? 'Bestellbestätigung' : 'Checkout'}>
         {placed ? (
           <RcConfirm rc={rc} lang={lang} childName={primaryName} orderNo={orderNo} onReset={resetAfterOrder} />
         ) : empty ? (
@@ -691,7 +724,7 @@ function RcApp() {
                 {step === 1 && <RcStepShip rc={rc} lang={lang} form={form} setForm={setForm} onBack={() => goTo(0)} onNext={goToPayment} />}
                 {step === 2 && <RcStepPay rc={rc} lang={lang} cur={cur} pay={pay} setPay={setPay} sealing={sealing} onBack={() => goTo(1)} onOrder={placeOrder} totals={totals} />}
               </div>
-              <RcSummary rc={rc} t={t} lang={lang} cur={cur} cart={lines} addons={addons} totals={totals} gift={null} disc={null} />
+              <RcSummary rc={rc} t={t} lang={lang} cur={cur} cart={lines} addons={addons} totals={totals} gift={null} disc={null} step={step} />
               {/* Discount codes & gift cards are handled natively on Shopify's checkout. */}
             </div>
           </React.Fragment>

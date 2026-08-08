@@ -30,6 +30,7 @@ const RC_COPY = {
         title: 'Deine persönliche Widmung',
         desc: 'Mache dieses Abenteuer noch persönlicher und hinterlasse eine liebe Botschaft auf der ersten Seite des Buches. Deine Widmung wird mitgedruckt und begleitet das Kind auf seiner Reise durch alle acht Kapitel.',
         note: 'Hinweis: Deine Nachricht kann bis zu 10 Zeilen lang sein. Bitte überprüfe sie vor dem Bestellen – sie wird genau so gedruckt, wie du sie eingibst.',
+        confirm_unchanged: 'Du hast die vorgeschlagene Widmung nicht verändert. Möchtest du diesen Text unverändert übernehmen und fortfahren?',
         gender_label: 'Anrede',
         boy: 'Junge',
         girl: 'Mädchen',
@@ -44,7 +45,7 @@ const RC_COPY = {
       folder_t: 'Personalisierte Kunstleder-Mappe',
       folder_d: 'Einmalig zur ersten Box — mit Namensgravur von Popcorn & Freddy.',
       folder_free: 'Geschenkt',
-      folder_summary: 'Was in jeder Box steckt',
+      folder_summary: 'Zur ersten Box geschenkt',
       gift_hint: 'Geschenkkarte? Ihren Code geben Sie im letzten Schritt (Zahlung) ein.',
       addons_title: 'Kleine Extras für die Reise',
       addons: [
@@ -158,6 +159,7 @@ const RC_COPY = {
         title: 'Your personal dedication',
         desc: 'Make this adventure even more personal and leave a loving message on the first page of the book. Your dedication is printed inside and travels with the child through all eight chapters.',
         note: 'Note: your message can be up to 10 lines long. Please double-check it before ordering – it is printed exactly as you enter it.',
+        confirm_unchanged: "You haven't changed the suggested dedication. Do you want to keep this text as it is and continue?",
         gender_label: 'Greeting',
         boy: 'Boy',
         girl: 'Girl',
@@ -172,7 +174,7 @@ const RC_COPY = {
       folder_t: 'Personalised faux leather folder',
       folder_d: 'One-time with your first box — engraved by Popcorn & Freddy.',
       folder_free: 'On us',
-      folder_summary: "What's inside every box",
+      folder_summary: 'A gift with your first box',
       gift_hint: 'Gift card? Enter your code in the final step (payment).',
       addons_title: 'Little extras for the journey',
       addons: [
@@ -486,7 +488,7 @@ function RcDiscount({ rc, lang, cur, code, setCode, onApply, onRemove, status, e
 }
 
 // Order summary sidebar
-function RcSummary({ rc, t, lang, cur, cart, addons, totals, gift, disc }) {
+function RcSummary({ rc, t, lang, cur, cart, addons, totals, gift, disc, step }) {
   return (
     <aside className="rc-aside">
       <div className="rc-card">
@@ -543,7 +545,8 @@ function RcSummary({ rc, t, lang, cur, cart, addons, totals, gift, disc }) {
         </div>
       </div>
 
-      {/* what's in the box */}
+      {/* what's in the box — basket step only, to keep the later steps light */}
+      {step === 0 && (
       <details className="rc-card rc-contents">
         <summary>
           <h3 className="rc-card-title"><span className="rc-title-ico"><RdIcon name="gift" size={19} /></span>{rc.sum.contents}</h3>
@@ -561,8 +564,10 @@ function RcSummary({ rc, t, lang, cur, cart, addons, totals, gift, disc }) {
           ))}
         </div>
       </details>
+      )}
 
-      <div style={{ display: 'grid', gap: 10, padding: '20px 6px 0' }}>
+      {step === 0 && (
+      <div style={{ display: 'grid', gap: 10, padding: '14px 6px 0' }}>
         {rc.sum.trust.map((b, i) => (
           <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 11, color: 'var(--rd-ink-soft)', fontSize: 14.5, fontFamily: 'var(--f-sans)' }}>
             <span style={{ color: 'var(--rd-gold)', display: 'inline-flex' }}><RdIcon name={b.icon} size={18} /></span>
@@ -570,6 +575,7 @@ function RcSummary({ rc, t, lang, cur, cart, addons, totals, gift, disc }) {
           </div>
         ))}
       </div>
+      )}
     </aside>
   );
 }

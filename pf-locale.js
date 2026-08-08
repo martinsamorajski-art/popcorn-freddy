@@ -298,7 +298,18 @@
     if (a.hasAttribute('download')) return;
     var h = a.getAttribute('href');
     if (!h) return;
-    if (/^(https?:|mailto:|tel:|\/\/|#)/i.test(h)) return;   // external / hash-only
+    if (/^#/.test(h)) {
+      // A <base href="/"> (added by fixBase on locale-prefixed pages so root-
+      // relative assets resolve to root) ALSO makes the browser resolve a pure-
+      // hash link against the base — jumping to /#id, which drops the locale
+      // prefix and reloads the home page. Keep hash links on THIS page instead.
+      if (h.length > 1 && document.querySelector('base')) {
+        e.preventDefault();
+        try { if (location.hash === h) location.hash = ''; location.hash = h; } catch (_) {}
+      }
+      return;
+    }
+    if (/^(https?:|mailto:|tel:|\/\/)/i.test(h)) return;      // external
     if (RX.test(h)) return;                                   // already localized
     var fixed = withLocale(h);
     if (fixed && fixed !== h) { e.preventDefault(); location.href = fixed; }
