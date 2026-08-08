@@ -245,12 +245,14 @@
     // Only the true bare-domain root. Never when a specific file is being served
     // (e.g. /index.html in a file preview) — that has no locale routing to hit.
     if (path !== '/') return;
-    // LOOP GUARD: redirect at most once per tab. If the server ever fails to
-    // honour the locale route we land back here — without this, that would be
-    // an endless refresh loop.
+    // LOOP GUARD: block only a genuine sub-second refresh loop (server failing
+    // to honour the locale route and bouncing us straight back to bare root).
+    // A time window — NOT a session-wide flag — so retyping the bare domain
+    // later in the same session still redirects as expected.
     try {
-      if (sessionStorage.getItem('pf-geo-redirected') === '1') return;
-      sessionStorage.setItem('pf-geo-redirected', '1');
+      var last = Number(sessionStorage.getItem('pf-geo-redirected-at') || 0);
+      if (last && (Date.now() - last) < 4000) return;
+      sessionStorage.setItem('pf-geo-redirected-at', String(Date.now()));
     } catch (e) {}
     var saved = savedChoice();
     if (saved) { location.replace(home(saved) + location.hash); return; }
