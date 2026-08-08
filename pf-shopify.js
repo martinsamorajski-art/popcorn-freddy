@@ -945,6 +945,41 @@
       .catch(function () { return ''; });
   }
 
+  // ── Pin a fixed bottom bar flush to the VISUAL viewport bottom ──
+  // iOS Chrome grows the visual viewport past the layout viewport when its
+  // toolbar collapses; a bottom:0 bar then floats a toolbar-height above the
+  // screen edge. Writes the SIGNED gap (negative = push below layout bottom)
+  // into --vv on the element; the bar's CSS uses `bottom: var(--vv, 0px)`.
+  // Returns a cleanup function. No-op (bottom:0 fallback) without visualViewport.
+  window.pfPinToViewportBottom = function (el) {
+    var vv = window.visualViewport;
+    if (!el || !vv) return function () {};
+    var raf = 0, last = null;
+    function apply() {
+      raf = 0;
+      var gap = document.documentElement.clientHeight - vv.height - vv.offsetTop;
+      gap = Math.round(gap);
+      if (gap === last) return;
+      last = gap;
+      el.style.setProperty('--vv', gap + 'px');
+    }
+    function sync() { if (!raf) raf = requestAnimationFrame(apply); }
+    vv.addEventListener('resize', sync);
+    vv.addEventListener('scroll', sync);
+    window.addEventListener('scroll', sync, { passive: true });
+    window.addEventListener('resize', sync);
+    window.addEventListener('orientationchange', sync);
+    sync();
+    return function () {
+      vv.removeEventListener('resize', sync);
+      vv.removeEventListener('scroll', sync);
+      window.removeEventListener('scroll', sync);
+      window.removeEventListener('resize', sync);
+      window.removeEventListener('orientationchange', sync);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  };
+
   window.PFShop = {
     // config / markets
     get enabled() { return _enabled === true; },

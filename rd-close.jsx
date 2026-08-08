@@ -294,20 +294,7 @@ function RdStickyBar({ t, onAdd, product }) {
   const barRef = React.useRef(null);
   useEffect(() => {
     const el = barRef.current;
-    const vv = window.visualViewport;
-    if (!el || !vv) return;
-    let raf = 0;
-    const syncVV = () => {
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(() => {
-        const offset = Math.max(0, document.documentElement.clientHeight - (vv.height + vv.offsetTop));
-        el.style.setProperty('--vv', offset + 'px');
-      });
-    };
-    vv.addEventListener('resize', syncVV);
-    vv.addEventListener('scroll', syncVV);
-    syncVV();
-    return () => { vv.removeEventListener('resize', syncVV); vv.removeEventListener('scroll', syncVV); cancelAnimationFrame(raf); };
+    if (el && window.pfPinToViewportBottom) return window.pfPinToViewportBottom(el);
   }, []);
   useEffect(() => {
     let ticking = false;

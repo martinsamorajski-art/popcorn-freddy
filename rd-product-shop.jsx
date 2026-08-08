@@ -246,6 +246,11 @@ function PSShopHero({ p, ui, x, lang, intensity, inCart, qty, onAdd, onQty }) {
 // ─── STICKY BUY BAR ──────────────────────────────────────────
 function PSSticky({ p, ui, inCart, onAdd }) {
   const [show, setShow] = useState(false);
+  const barRef = React.useRef(null);
+  useEffect(() => {
+    const el = barRef.current;
+    if (el && window.pfPinToViewportBottom) return window.pfPinToViewportBottom(el);
+  }, []);
   useEffect(() => {
     const onScroll = () => {
       const past = window.scrollY > 560;
@@ -258,7 +263,7 @@ function PSSticky({ p, ui, inCart, onAdd }) {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
   return (
-    <div className={`shop-sticky ${show ? 'on' : ''}`} aria-hidden={!show}>
+    <div ref={barRef} className={`shop-sticky ${show ? 'on' : ''}`} aria-hidden={!show}>
       <div className="rwrap shop-sticky-row">
         <div className="shop-sticky-info">
           <img src={(p.images[0] || {}).src} alt="" className="shop-sticky-thumb" />
@@ -733,7 +738,7 @@ const PS_SHOP_CSS = `
   }
   .shop-review { height: 100%; display: flex; flex-direction: column; background: var(--rd-paper); border: 1px solid color-mix(in srgb, var(--rd-ink) 11%, transparent); border-radius: 14px; padding: 26px 26px 24px; box-shadow: 0 1px 3px color-mix(in srgb, var(--rd-ink) 6%, transparent), 0 22px 44px -34px color-mix(in srgb, var(--rd-ink) 30%, transparent); }
   .shop-verified { display: inline-flex; align-items: center; gap: 6px; margin-top: 12px; font-family: var(--f-sans); font-weight: 700; font-size: 11.5px; letter-spacing: 0.04em; color: var(--rd-moss); }
-  .shop-sticky { position: fixed; left: 0; right: 0; bottom: 0; z-index: 45; background: var(--rd-paper); border-top: 1px solid color-mix(in srgb, var(--rd-ink) 14%, transparent); box-shadow: 0 -14px 40px -24px color-mix(in srgb, var(--rd-ink) 45%, transparent); padding-bottom: env(safe-area-inset-bottom); transform: translateY(110%); transition: transform 0.4s var(--ease); }
+  .shop-sticky { position: fixed; left: 0; right: 0; bottom: var(--vv, 0px); z-index: 45; background: var(--rd-paper); border-top: 1px solid color-mix(in srgb, var(--rd-ink) 14%, transparent); box-shadow: 0 -14px 40px -24px color-mix(in srgb, var(--rd-ink) 45%, transparent); padding-bottom: env(safe-area-inset-bottom); transform: translateY(110%); transition: transform 0.4s var(--ease); }
   .shop-sticky.on { transform: translateY(0); }
   .shop-sticky::after { content: ''; position: absolute; left: 0; right: 0; top: 100%; height: 160px; background: var(--rd-paper); pointer-events: none; }
   body:has(.shop-sticky.on) .rd-suggest { bottom: calc(env(safe-area-inset-bottom) + 92px); transition: bottom 0.4s var(--ease); }
