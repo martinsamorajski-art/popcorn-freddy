@@ -143,20 +143,20 @@ function RdHero({ t, lang, direction = 'a', intensity = 5, onAdd }) {
                 </span>
                 {t.hero.title_a4}
               </h1>
+              <div className="rh-m-feats">
+                {(h.heroFeatures || []).map((f, i) => (
+                  <div key={i} className="rh-m-feat">
+                    <span className="rh-m-feat-ico"><RdIcon name={f.icon} size={26} /></span>
+                    <span className="rh-m-feat-t">{f.t}</span>
+                  </div>
+                ))}
+              </div>
             </div>
             <div className="rh-m-tear" aria-hidden="true">
               <svg viewBox="0 0 1440 100" preserveAspectRatio="none"><path d="M0 42 C120 12 220 72 360 46 C500 20 620 76 760 48 C900 22 1020 72 1160 46 C1290 26 1360 60 1440 44 L1440 100 L0 100 Z" fill="var(--rd-paper)" /></svg>
             </div>
           </div>
           <div className="rh-m-desc">
-            <div className="rh-m-feats">
-              {(h.heroFeatures || []).map((f, i) => (
-                <div key={i} className="rh-m-feat">
-                  <span className="rh-m-feat-ico"><RdIcon name={f.icon} size={26} /></span>
-                  <span className="rh-m-feat-t">{f.t}</span>
-                </div>
-              ))}
-            </div>
             <div className="rh-m-paw" aria-hidden="true">
               <span className="rh-m-paw-line"></span>
               <svg width="22" height="19" viewBox="0 0 22 19" fill="var(--rd-gold)"><ellipse cx="4.5" cy="8" rx="1.8" ry="2.4" /><ellipse cx="8.5" cy="4.5" rx="1.8" ry="2.4" /><ellipse cx="13.5" cy="4.5" rx="1.8" ry="2.4" /><ellipse cx="17.5" cy="8" rx="1.8" ry="2.4" /><path d="M11 9C6.6 9 5 12.2 5.6 14.8 6.2 17.4 15.8 17.4 16.4 14.8 17 12.2 15.4 9 11 9Z" /></svg>
