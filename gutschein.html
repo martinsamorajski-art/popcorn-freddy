@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Geschenkkarte gestalten — Popcorn &amp; Freddy</title>
+<style>
+  :root{--green:#1c3d2e;--cream:#faf6eb;--paper:#f1ead7;--gold:#c9a24b;--terra:#b0623c;--ink:#2b2620;--muted:#9b8f6f;--sans:Arial,Helvetica,sans-serif;--serif:Georgia,'Times New Roman',serif}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:var(--sans);background:#efe7d4;color:var(--ink);line-height:1.5;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .wrap{max-width:1180px;margin:0 auto;padding:34px 22px 60px}
+  .top{text-align:center;margin-bottom:30px}
+  .top .mark{font-family:var(--serif);font-size:22px;font-weight:bold;color:var(--green)}
+  .top .mark em{color:var(--terra);font-style:italic}
+  .top .ey{font-size:11px;letter-spacing:0.28em;text-transform:uppercase;color:var(--muted);margin-top:7px}
+  .grid{display:grid;grid-template-columns:340px 1fr;gap:34px;align-items:start}
+  @media(max-width:820px){.grid{grid-template-columns:1fr}}
+  /* editor */
+  .panel{background:#fff;border:1px solid rgba(28,61,46,0.14);border-radius:14px;padding:24px 22px}
+  .panel h2{font-family:var(--serif);font-size:19px;color:var(--green);margin-bottom:4px}
+  .panel .hint{font-size:13px;color:#6a6250;margin-bottom:18px}
+  .field{margin-bottom:16px}
+  .field label{display:block;font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+  .field input,.field textarea{width:100%;font-family:var(--sans);font-size:15px;color:var(--ink);background:var(--cream);border:1px solid rgba(28,61,46,0.2);border-radius:8px;padding:11px 13px;resize:none}
+  .field textarea{min-height:96px;line-height:1.5}
+  .field input:focus,.field textarea:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,162,75,0.18)}
+  .count{font-size:11px;color:var(--muted);text-align:right;margin-top:4px}
+  .locked{font-size:12px;color:#6a6250;background:var(--paper);border-radius:8px;padding:11px 13px;margin-bottom:16px}
+  .locked b{color:var(--green);font-family:'Courier New',monospace;letter-spacing:0.08em}
+  .btn{display:block;width:100%;text-align:center;background:var(--terra);color:var(--cream);border:none;font-family:var(--sans);font-weight:bold;font-size:16px;padding:15px;border-radius:10px;cursor:pointer;margin-top:6px}
+  .btn:hover{background:#9c552f}
+  .btn-note{font-size:12px;color:var(--muted);text-align:center;margin-top:10px;line-height:1.5}
+  /* preview stage */
+  .stage{display:flex;flex-direction:column;align-items:center;gap:14px;min-width:0;overflow:hidden}
+  .stage .lbl{font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted)}
+  /* the card — mirrors the print sheet, scaled for screen */
+  .sheet{width:210mm;height:148mm;background:var(--green);padding:9mm;font-family:var(--serif);box-shadow:0 22px 60px rgba(28,61,46,0.28);transform-origin:top center}
+  .card{position:relative;width:100%;height:100%;background:var(--cream);border-radius:7mm;overflow:hidden}
+  .frame{position:absolute;inset:4mm;border:0.5mm solid rgba(201,162,75,0.55);border-radius:5mm;pointer-events:none}
+  .inner{position:relative;height:100%;padding:10mm 12mm;display:flex;flex-direction:column}
+  .brand{font-size:15pt;font-weight:bold;color:var(--green);text-align:center}
+  .brand em{color:var(--terra);font-style:italic}
+  .card .eyebrow{text-align:center;font-family:var(--sans);font-size:7.5pt;letter-spacing:0.32em;text-transform:uppercase;color:var(--muted);margin-top:2.5mm}
+  .rule{width:34mm;height:0.4mm;background:var(--gold);margin:4mm auto 0}
+  .cbody{flex:1;display:flex;gap:10mm;margin-top:6mm}
+  .left{flex:1.15;display:flex;flex-direction:column;min-width:0}
+  .dedic-label{font-family:var(--sans);font-size:7pt;letter-spacing:0.28em;text-transform:uppercase;color:var(--muted)}
+  .dedic{margin-top:3mm;font-size:12pt;line-height:1.55;color:#4a3f30;white-space:pre-wrap;flex:1;overflow-wrap:break-word}
+  .signoff{font-size:10.5pt;color:#6a6250;margin-top:auto}
+  .signoff b{color:var(--green);font-weight:normal}
+  .right{flex:0.85;border-left:0.4mm dashed rgba(28,61,46,0.28);padding-left:9mm;display:flex;flex-direction:column;align-items:center;text-align:center;justify-content:center}
+  .worth-l{font-family:var(--sans);font-size:7pt;letter-spacing:0.3em;text-transform:uppercase;color:var(--muted)}
+  .chapters{font-size:17pt;color:var(--green);margin-top:1.5mm;line-height:1.15}
+  .amount{font-family:var(--sans);font-size:9.5pt;font-weight:bold;letter-spacing:0.04em;color:var(--terra);margin-top:1mm}
+  .code-l{font-family:var(--sans);font-size:7pt;letter-spacing:0.3em;text-transform:uppercase;color:var(--muted);margin-top:6mm}
+  .code{font-family:'Courier New',monospace;font-size:14pt;font-weight:bold;letter-spacing:0.12em;color:var(--ink);background:var(--paper);border:0.4mm dashed rgba(28,61,46,0.4);border-radius:2mm;padding:3mm 5mm;margin-top:2mm}
+  .foot{position:absolute;left:12mm;right:12mm;bottom:6mm;text-align:center;font-family:var(--sans);font-size:7pt;color:#a89f88;line-height:1.5}
+  /* print: only the card, at A5 landscape */
+  @page{size:A5 landscape;margin:0}
+  @media print{
+    html,body{background:#fff;width:210mm;height:148mm}
+    .wrap,.top,.grid{display:block;margin:0;padding:0;max-width:none}
+    .panel,.stage .lbl,.top{display:none!important}
+    .stage{display:block;overflow:visible}
+    .sheet{transform:none!important;margin:0!important;box-shadow:none;width:210mm;height:148mm}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="mark">Popcorn <em>&amp;</em> Freddy</div>
+    <div class="ey" id="tEy">Deine Geschenkkarte gestalten</div>
+  </div>
+  <div class="grid">
+    <div class="panel">
+      <h2 id="tPanelH">Persönliche Widmung</h2>
+      <p class="hint" id="tPanelHint">Fülle die Karte aus — die Vorschau aktualisiert sich sofort. Dann als PDF speichern oder direkt ausdrucken.</p>
+      <div class="locked" id="lockedBox"><span id="tLocked">Guthaben &amp; Code kommen automatisch aus deiner Bestellung.</span><br /><span id="tCodeWord">Code</span>: <b id="lockedCode">—</b></div>
+      <div class="field">
+        <label for="fTo" id="tLTo">Für</label>
+        <input id="fTo" type="text" maxlength="40" placeholder="z. B. Max" />
+      </div>
+      <div class="field">
+        <label for="fFrom" id="tLFrom">Von</label>
+        <input id="fFrom" type="text" maxlength="40" placeholder="z. B. Oma Hilde" />
+      </div>
+      <div class="field">
+        <label for="fDed" id="tLDed">Widmung</label>
+        <textarea id="fDed" maxlength="300"></textarea>
+        <div class="count"><span id="dedCount">0</span>/300</div>
+      </div>
+      <button class="btn" id="printBtn">Als PDF speichern &amp; drucken</button>
+      <p class="btn-note" id="tBtnNote">Im Druckdialog „Als PDF speichern" wählen. Format A5, Querformat, Ränder „Keine", Hintergrundgrafiken aktiviert.</p>
+    </div>
+
+    <div class="stage">
+      <div class="lbl" id="tStageLbl">Vorschau — A5 Querformat</div>
+      <div class="sheet" id="sheet">
+        <div class="card">
+          <div class="frame"></div>
+          <div class="inner">
+            <div class="brand">Popcorn <em>&amp;</em> Freddy</div>
+            <div class="eyebrow" id="tCardEy">Eine Geschenkkarte</div>
+            <div class="rule"></div>
+            <div class="cbody">
+              <div class="left">
+                <div class="dedic-label"><span id="tForWord">Für</span> <span id="oTo">…</span></div>
+                <div class="dedic" id="oDed">Ein Abenteuer wartet auf dich.</div>
+                <div class="signoff"><span id="tFromWord">Von</span> <b id="oFrom">…</b></div>
+              </div>
+              <div class="right">
+                <div class="worth-l" id="tValidFor">Gültig für</div>
+                <div class="chapters" id="oChapters">Kapitel 1–8</div>
+                <div class="amount" id="oAmount"></div>
+                <div class="code-l" id="tYourCode">Dein Code</div>
+                <div class="code" id="oCode">————-————</div>
+              </div>
+            </div>
+          </div>
+          <div class="foot"><span id="tFootText">Einzulösen auf popcornfreddy.com · Restguthaben bleibt erhalten · Der Versand der Kapitel wird beim Einlösen berechnet</span><span id="oOrder"></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var qs=new URLSearchParams(location.search);
+  function g(k){return (qs.get(k)||'').trim();}
+  var code=g('code'), amount=g('amount'), chapters=g('chapters'), order=g('order');
+  var lang=(g('lang')||document.documentElement.lang||'de').slice(0,2).toLowerCase();
+  if(lang!=='en')lang='de';
+
+  var T={
+    de:{title:'Geschenkkarte gestalten — Popcorn & Freddy',ey:'Deine Geschenkkarte gestalten',panelH:'Persönliche Widmung',
+      panelHint:'Fülle die Karte aus — die Vorschau aktualisiert sich sofort. Dann als PDF speichern oder direkt ausdrucken.',
+      locked:'Guthaben & Code kommen automatisch aus deiner Bestellung.',codeWord:'Code',
+      lTo:'Für',lFrom:'Von',lDed:'Widmung',phTo:'z. B. Max',phFrom:'z. B. Oma Hilde',phDed:'z. B. Lieber Max, wir wünschen dir viele spannende Abenteuer mit Popcorn & Freddy. Hab ganz viel Freude beim Lesen, Bauen und Entdecken! In Liebe, Oma & Opa.',
+      btn:'Als PDF speichern & drucken',btnNote:'Im Druckdialog „Als PDF speichern“ wählen. Format A5, Querformat, Ränder „Keine“, Hintergrundgrafiken aktiviert.',
+      stageLbl:'Vorschau — A5 Querformat',cardEy:'Eine Geschenkkarte',forWord:'Für',fromWord:'Von',validFor:'Gültig für',yourCode:'Dein Code',
+      defChapters:'Kapitel 1–8',defDed:'Ein Abenteuer wartet auf dich.',
+      foot:'Einzulösen auf popcornfreddy.com · Restguthaben bleibt erhalten · Der Versand der Kapitel wird beim Einlösen berechnet',orderWord:'Bestellung'},
+    en:{title:'Design your gift card — Popcorn & Freddy',ey:'Design your gift card',panelH:'Personal dedication',
+      panelHint:'Fill in the card — the preview updates instantly. Then save as a PDF or print it directly.',
+      locked:'Balance & code are filled in automatically from your order.',codeWord:'Code',
+      lTo:'To',lFrom:'From',lDed:'Dedication',phTo:'e.g. Max',phFrom:'e.g. Grandma Hilde',phDed:'e.g. Dear Max, we wish you lots of exciting adventures with Popcorn & Freddy. Have so much fun reading, building and discovering! With love, Grandma & Grandpa.',
+      btn:'Save as PDF & print',btnNote:'In the print dialog choose “Save as PDF”. Format A5, landscape, margins “None”, background graphics enabled.',
+      stageLbl:'Preview — A5 landscape',cardEy:'A gift card',forWord:'For',fromWord:'From',validFor:'Valid for',yourCode:'Your code',
+      defChapters:'Chapters 1–8',defDed:'An adventure awaits you.',
+      foot:'Redeem at popcornfreddy.com · Any remaining balance is kept · Shipping for the chapters is charged on redemption',orderWord:'Order'}
+  };
+  var t=T[lang];
+  document.documentElement.lang=lang;
+  document.title=t.title;
+  function set(id,v){var el=document.getElementById(id);if(el)el.textContent=v;}
+  set('tEy',t.ey);set('tPanelH',t.panelH);set('tPanelHint',t.panelHint);set('tLocked',t.locked);set('tCodeWord',t.codeWord);
+  set('tLTo',t.lTo);set('tLFrom',t.lFrom);set('tLDed',t.lDed);set('tBtnNote',t.btnNote);set('tStageLbl',t.stageLbl);
+  set('tCardEy',t.cardEy);set('tForWord',t.forWord);set('tFromWord',t.fromWord);set('tValidFor',t.validFor);set('tYourCode',t.yourCode);
+  document.getElementById('printBtn').textContent=t.btn;
+  document.getElementById('fTo').placeholder=t.phTo;
+  document.getElementById('fFrom').placeholder=t.phFrom;
+  document.getElementById('fDed').placeholder=t.phDed;
+  document.getElementById('oChapters').textContent=t.defChapters;
+
+  // locked-from-URL fields
+  if(code){document.getElementById('oCode').textContent=code;document.getElementById('lockedCode').textContent=code;}
+  else{document.getElementById('lockedBox').style.display='none';}
+  if(chapters)document.getElementById('oChapters').textContent=chapters;
+  if(amount)document.getElementById('oAmount').textContent=amount;
+  document.getElementById('tFootText').textContent=t.foot;
+  if(order)document.getElementById('oOrder').textContent=' · '+t.orderWord+' '+order;
+
+  // live editable fields
+  var fTo=document.getElementById('fTo'),fFrom=document.getElementById('fFrom'),fDed=document.getElementById('fDed');
+  var oTo=document.getElementById('oTo'),oFrom=document.getElementById('oFrom'),oDed=document.getElementById('oDed'),dedCount=document.getElementById('dedCount');
+  var defDed=t.defDed;
+  function sync(){
+    oTo.textContent=fTo.value.trim()||'…';
+    oFrom.textContent=fFrom.value.trim()||'…';
+    oDed.textContent=fDed.value.trim()||defDed;
+    dedCount.textContent=fDed.value.length;
+  }
+  [fTo,fFrom,fDed].forEach(function(el){el.addEventListener('input',sync);});
+  sync();
+
+  // scale the mm-sized sheet to fit the screen column
+  var sheet=document.getElementById('sheet');
+  function fit(){
+    if(matchMedia('print').matches){sheet.style.transform='';sheet.style.marginBottom='';return;}
+    sheet.style.transform='';
+    var natural=sheet.getBoundingClientRect().width; // px equivalent of 210mm
+    var avail=sheet.parentElement.clientWidth; // stage track width (min-width:0 lets it shrink)
+    var scale=Math.min(1,avail/natural);
+    sheet.style.transform='scale('+scale+')';
+    sheet.style.marginBottom=(scale<1?-(sheet.getBoundingClientRect().height*(1-scale)):0)+'px';
+  }
+  window.addEventListener('resize',fit);setTimeout(fit,60);
+
+  document.getElementById('printBtn').addEventListener('click',function(){
+    // drop the screen-fit scale/margin so print uses the true A5 sheet
+    sheet.style.transform='';sheet.style.marginBottom='';
+    window.print();
+    setTimeout(fit,300); // restore the screen preview afterwards
+  });
+})();
+</script>
+</body>
+</html>
