@@ -26,8 +26,8 @@ const GPSR = {
     title: 'Alles, was ihr vor dem Kauf wissen müsst.',
     intro: 'Diese Angaben erfüllen die EU-Produktsicherheitsverordnung (GPSR) und die Spielzeugrichtlinie. Sie stehen bewusst vor dem Kauf hier auf der Produktseite.',
     age_k: 'Altersempfehlung',
-    age_v: '4+',
-    age_note: 'Geeignet ab 4 Jahren. Bauen & Bemalen unter Aufsicht Erwachsener.',
+    age_v: '8+',
+    age_note: 'Geeignet ab 8 Jahren – ab 6 Jahren gemeinsam mit euch. Bauen & Bemalen unter Aufsicht Erwachsener.',
     ce_note: 'CE-konform für die enthaltenen Spielzeugbestandteile nach EN 71.',
     warn_title: 'Sicherheits- & Warnhinweise',
     warn_lead: 'ACHTUNG. Bitte vor dem Spielen lesen und aufbewahren:',
@@ -70,8 +70,8 @@ const GPSR = {
     title: 'Everything to know before you buy.',
     intro: 'This information fulfils the EU General Product Safety Regulation (GPSR) and the Toy Safety Directive. It deliberately appears here on the product page, before purchase.',
     age_k: 'Age recommendation',
-    age_v: '4+',
-    age_note: 'Suitable from age 4. Building & painting under adult supervision.',
+    age_v: '8+',
+    age_note: 'Suitable from age 8 — from age 6 when built with a parent. Building & painting under adult supervision.',
     ce_note: 'CE-compliant for the toy components included, per EN 71.',
     warn_title: 'Safety & warning notices',
     warn_lead: 'WARNING. Please read before play and keep for reference:',
@@ -140,7 +140,7 @@ function GpsrCompliance({ lang }) {
         <h2 id="gpsr-title" className="r-display" style={{ fontSize: 'clamp(30px, 3.6vw, 48px)', marginTop: 20, color: 'var(--rd-ink)', textWrap: 'balance' }}>{g.title}</h2>
         <p className="r-serif" style={{ fontSize: 17.5, color: 'var(--rd-ink-soft)', marginTop: 18, lineHeight: 1.6, maxWidth: 640, textWrap: 'pretty' }}>{g.intro}</p>
 
-        {/* Age 4+ & CE — prominent */}
+        {/* Age 8+ & CE — prominent */}
         <div className="gpsr-badges">
           <div className="gpsr-age">
             <span className="gpsr-age-num">{g.age_v}</span>

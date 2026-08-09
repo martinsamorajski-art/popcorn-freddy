@@ -30,7 +30,7 @@ const COPY = {
     hero: {
       eyebrow: "Die große Schatzsuche mit Popcorn & Freddy",
       title_a1: "",
-      title_a2: "Ein Abenteuer zum Vorlesen, Bauen und ",
+      title_a2: "Eine Schatzsuche zum Lesen, Bauen und ",
       title_a3: "Entdecken",
       title_a4: ".",
       sub_a: "Eine personalisierte Abenteuerreihe in 8 aufeinander aufbauenden Kapiteln. Gemeinsam baut ihr neue Erfindungen, löst Rätsel und begleitet Popcorn & Freddy Schritt für Schritt bis zum verborgenen Schatz.",
@@ -40,7 +40,7 @@ const COPY = {
         { icon: "⭐", label: "Name deines Kindes im Buch" },
         { icon: "🧩", label: "Echte Holzspielzeuge zum Bauen" },
         { icon: "❤️", label: "Gemeinsame Familienzeit statt Bildschirmzeit" },
-        { icon: "🎈", label: "Ab 4 Jahren" },
+        { icon: "🎈", label: "Ab 8 Jahren (mit Eltern ab 6)" },
       ],
 
       title_b1: "Bau dir",
@@ -55,7 +55,7 @@ const COPY = {
 
     heroImg: {
       badge: "Personalisiert mit dem Namen deines Kindes",
-      sub: "Ein personalisiertes Abenteuer-Vorlesebuch mit dem Namen deines Kindes in allen 8 Kapiteln. Baut ein neues Holzspielzeug, löst Rätsel und findet mit Popcorn & Freddy den verborgenen Schatz.",
+      sub: "Ein personalisiertes Abenteuer-Buch mit dem Namen deines Kindes in allen 8 Kapiteln. Baut in jedem Kapitel ein neues Spielzeug aus Holz, löst Rätsel und findet mit Popcorn & Freddy den verborgenen Schatz.",
       cards: [
         { icon: "user", t: "Der Name deines Kindes im Buch", d: "Personalisiert in jedem Kapitel." },
         { icon: "build", t: "Neue Erfindung in jedem Kapitel", d: "Gemeinsam bauen. Rätseln. Entdecken." },
@@ -63,7 +63,7 @@ const COPY = {
       ],
       cta_primary: "Abenteuer starten",
       cta_secondary: "Alle Kapitel",
-      facts: "39,90 € · Kein Abo · Ab 4 Jahren",
+      facts: "39,90 € · Kein Abo · Ab 8 Jahren",
       mini: [
         { icon: "screen", t: "Bildschirmfreie gemeinsame Zeit" },
         { icon: "build", t: "Lernen beim Spielen" },
@@ -71,8 +71,8 @@ const COPY = {
         { icon: "archive", t: "8 Kapitel. Ein Schatz." },
       ],
       heroFeatures: [
-        { icon: "book", t: "Personalisiertes Vorlesebuch" },
-        { icon: "build", t: "Neues Holzspielzeug bauen" },
+        { icon: "book", t: "Personalisiertes Abenteuer-Buch" },
+        { icon: "build", t: "Spielzeug aus Holz bauen" },
         { icon: "puzzle", t: "Spannende Rätsel lösen" },
         { icon: "map", t: "8 Kapitel. Eine Reise." },
         { icon: "chest", t: "Den Schatz finden" },
@@ -85,7 +85,7 @@ const COPY = {
     },
 
     badge: {
-      ages: "Ab 4 Jahren",
+      ages: "Ab 8 Jahren",
       eu: "Hergestellt in der EU",
       wood: "FSC-Holz",
       magic: "Mit Magie verpackt",
@@ -211,7 +211,7 @@ const COPY = {
       eyebrow: "Hinter der Marke",
       title: "Hallo, wir sind Martin und Jess.",
       p1: "Martin fliegt als Pilot um die Welt, Jess steht als Lehrerin jeden Tag vor Kindern. Dabei haben wir beide dasselbe gesehen: Gemeinsame Zeit ist das Kostbarste, was Familien haben.",
-      p2: "Deshalb gibt es Popcorn & Freddy — kein weiteres Spielzeug zum Alleinspielen, sondern ein Abenteuer zum Vorlesen, Bauen, Bemalen und Erinnern.",
+      p2: "Deshalb gibt es Popcorn & Freddy — kein weiteres Spielzeug zum Alleinspielen, sondern ein Abenteuer zum Lesen, Bauen, Bemalen und Erinnern.",
       p3: "",
       thanks: "Danke, dass ihr Teil unserer Geschichte seid.",
       sig: "Martin & Jess",
@@ -315,7 +315,7 @@ const COPY = {
     hero: {
       eyebrow: "The great treasure hunt with Popcorn & Freddy",
       title_a1: "",
-      title_a2: "An adventure to read, build and ",
+      title_a2: "A treasure hunt to read, build and ",
       title_a3: "discover",
       title_a4: "",
       sub_a: "A personalised treasure hunt with real wooden toys to build, paint and discover. Together you join Popcorn & Freddy on their way to the treasure of friendship.",
@@ -325,7 +325,7 @@ const COPY = {
         { icon: "⭐", label: "Your child's name in the book" },
         { icon: "🧩", label: "Real wooden toys to build" },
         { icon: "❤️", label: "Family time instead of screen time" },
-        { icon: "🎈", label: "Ages 4 and up" },
+        { icon: "🎈", label: "Ages 8+ (6+ with a parent)" },
       ],
 
       title_b1: "Build your",
@@ -340,7 +340,7 @@ const COPY = {
 
     heroImg: {
       badge: "Personalised with your child's name",
-      sub: "A personalised adventure storybook featuring your child’s name throughout all 8 chapters. Build a new wooden toy, solve puzzles, and uncover the hidden treasure with Popcorn & Freddy.",
+      sub: "A personalised adventure book featuring your child’s name throughout all 8 chapters. In every chapter, build a new wooden toy, solve puzzles, and uncover the hidden treasure with Popcorn & Freddy.",
       cards: [
         { icon: "user", t: "Your child's name in the book", d: "Personalised in every chapter." },
         { icon: "build", t: "A new invention in every chapter", d: "Build. Puzzle. Discover — together." },
@@ -348,9 +348,9 @@ const COPY = {
       ],
       cta_primary: "Start the adventure",
       cta_secondary: "All Chapters",
-      facts: "€39.90 · No subscription · Ages 4 and up",
+      facts: "€39.90 · No subscription · Ages 8 and up",
       heroFeatures: [
-        { icon: "book", t: "Personalised storybook" },
+        { icon: "book", t: "Personalised adventure book" },
         { icon: "build", t: "Build a new wooden toy" },
         { icon: "puzzle", t: "Solve exciting puzzles" },
         { icon: "map", t: "8 chapters. One journey." },
@@ -370,7 +370,7 @@ const COPY = {
     },
 
     badge: {
-      ages: "Ages 4 and up",
+      ages: "Ages 8 and up",
       eu: "Made in the EU",
       wood: "FSC wood",
       magic: "Packed with magic",
