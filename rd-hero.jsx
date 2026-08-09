@@ -132,27 +132,42 @@ function RdHero({ t, lang, direction = 'a', intensity = 5, onAdd }) {
       {direction === 'a' ? (
         <React.Fragment>
         <div className="rh-m">
-          <div className="rh-m-media r-rev r-rev-1">
-            <img src="assets/hero-family-crop.webp" alt="Familie liest gemeinsam am Tisch — mit Kapitel-1-Box, Schatzmappe und Holzauto-Bausatz" fetchpriority="high" decoding="async" />
-            <div className="rh-m-overlay">
-              {title(true)}
+          <div className="rh-m-stage r-rev r-rev-1">
+            <img className="rh-m-img" src="assets/hero-mobile-scene.webp" alt="Familie liest gemeinsam am Tisch — mit Kapitel-1-Box, Schatzmappe und Holzauto-Bausatz" fetchpriority="high" decoding="async" />
+            <div className="rh-m-head">
+              <h1 className="rh-m-title r-display">
+                {t.hero.title_a2}
+                <span className="rh-m-accent">
+                  {t.hero.title_a3}
+                  <span className="rh-m-squig" aria-hidden="true"><RdSquiggle width={150} /></span>
+                </span>
+                {t.hero.title_a4}
+              </h1>
             </div>
-            <div className="rh-m-overlay-b">
-              <p className="r-serif rh-m-sub">{h.sub}</p>
+            <div className="rh-m-tear" aria-hidden="true">
+              <svg viewBox="0 0 1440 100" preserveAspectRatio="none"><path d="M0 42 C120 12 220 72 360 46 C500 20 620 76 760 48 C900 22 1020 72 1160 46 C1290 26 1360 60 1440 44 L1440 100 L0 100 Z" fill="var(--rd-paper)" /></svg>
             </div>
           </div>
-          <div className="rwrap">
-            <div className="rh-m-mini r-rev r-rev-3">
-              {(h.mini || []).map((m, i) => (
-                <div key={i} className="rh-m-mini-item">
-                  <RdIcon name={m.icon} size={20} />
-                  <span>{m.t}</span>
+          <div className="rh-m-desc">
+            <div className="rh-m-feats">
+              {(h.heroFeatures || []).map((f, i) => (
+                <div key={i} className="rh-m-feat">
+                  <span className="rh-m-feat-ico"><RdIcon name={f.icon} size={26} /></span>
+                  <span className="rh-m-feat-t">{f.t}</span>
                 </div>
               ))}
             </div>
-            {ctas(true)}
-            {facts(true)}
-            {trust(true)}
+            <div className="rh-m-paw" aria-hidden="true">
+              <span className="rh-m-paw-line"></span>
+              <svg width="22" height="19" viewBox="0 0 22 19" fill="var(--rd-gold)"><ellipse cx="4.5" cy="8" rx="1.8" ry="2.4" /><ellipse cx="8.5" cy="4.5" rx="1.8" ry="2.4" /><ellipse cx="13.5" cy="4.5" rx="1.8" ry="2.4" /><ellipse cx="17.5" cy="8" rx="1.8" ry="2.4" /><path d="M11 9C6.6 9 5 12.2 5.6 14.8 6.2 17.4 15.8 17.4 16.4 14.8 17 12.2 15.4 9 11 9Z" /></svg>
+              <span className="rh-m-paw-line"></span>
+            </div>
+            <p className="rh-m-desc-t r-serif">{h.sub}</p>
+            <div className="rwrap">
+              {ctas(true)}
+              {facts(true)}
+              {trust(true)}
+            </div>
           </div>
         </div>
         <div className="rwrap rh-split">

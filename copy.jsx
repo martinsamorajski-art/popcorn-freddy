@@ -70,6 +70,13 @@ const COPY = {
         { icon: "book", t: "Dein Kind ist der Held" },
         { icon: "archive", t: "8 Kapitel. Ein Schatz." },
       ],
+      heroFeatures: [
+        { icon: "book", t: "Personalisiertes Vorlesebuch" },
+        { icon: "build", t: "Neues Holzspielzeug bauen" },
+        { icon: "puzzle", t: "Spannende Rätsel lösen" },
+        { icon: "map", t: "8 Kapitel. Eine Reise." },
+        { icon: "chest", t: "Den Schatz finden" },
+      ],
       below: [
         { icon: "truck", t: "Rund 100 im Monat", d: "Jede von Hand gefertigt" },
         { icon: "shield", t: "Sicher & schadstofffrei", d: "Für Kinder entwickelt" },
@@ -342,6 +349,13 @@ const COPY = {
       cta_primary: "Start the adventure",
       cta_secondary: "All Chapters",
       facts: "€39.90 · No subscription · Ages 4 and up",
+      heroFeatures: [
+        { icon: "book", t: "Personalised storybook" },
+        { icon: "build", t: "Build a new wooden toy" },
+        { icon: "puzzle", t: "Solve exciting puzzles" },
+        { icon: "map", t: "8 chapters. One journey." },
+        { icon: "chest", t: "Find the hidden treasure" },
+      ],
       mini: [
         { icon: "screen", t: "Screen-free quality time" },
         { icon: "build", t: "Builds skills while having fun" },
