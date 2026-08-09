@@ -146,7 +146,7 @@ function RdHero({ t, lang, direction = 'a', intensity = 5, onAdd }) {
               <div className="rh-m-feats">
                 {(h.heroFeatures || []).map((f, i) => (
                   <div key={i} className="rh-m-feat">
-                    <span className="rh-m-feat-ico"><RdIcon name={f.icon} size={26} /></span>
+                    <span className="rh-m-feat-ico"><RdFeatIcon name={f.icon} /></span>
                     <span className="rh-m-feat-t">{f.t}</span>
                   </div>
                 ))}

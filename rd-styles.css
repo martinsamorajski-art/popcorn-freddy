@@ -302,15 +302,16 @@
 
       /* Feature row — five items under the headline, thin bookish icons, subtle separators */
       .rh-m-feats { display: flex; align-items: flex-start; justify-content: center;
-        margin: clamp(18px, 5.2vw, 30px) auto 0; width: 100%; max-width: 480px; }
+        margin: clamp(14px, 4vw, 24px) auto 0; width: 84%; max-width: 340px; }
       .rh-m-feat { position: relative; flex: 1 1 0; min-width: 0;
-        display: flex; flex-direction: column; align-items: center; gap: clamp(5px, 1.6vw, 8px); padding: 0 clamp(4px, 1.4vw, 9px); }
-      .rh-m-feat + .rh-m-feat::before { content: ''; position: absolute; left: 0; top: 6%; bottom: 22%;
-        width: 1px; background: color-mix(in srgb, var(--rd-ink) 24%, transparent); }
-      .rh-m-feat-ico { color: var(--rd-walnut); filter: drop-shadow(0 1px 1.5px color-mix(in srgb, var(--rd-paper) 60%, transparent)); }
-      .rh-m-feat-ico svg { width: clamp(24px, 7.2vw, 32px); height: auto; }
+        display: flex; flex-direction: column; align-items: center; gap: clamp(4px, 1.2vw, 6px); padding: 0 clamp(2px, 0.9vw, 6px); }
+      .rh-m-feat + .rh-m-feat::before { content: ''; position: absolute; left: 0; top: 4%; bottom: 34%;
+        width: 1px; background: color-mix(in srgb, var(--rd-ink) 20%, transparent); }
+      .rh-m-feat-ico { display: block; color: var(--rd-walnut); width: clamp(17px, 5vw, 23px); height: clamp(17px, 5vw, 23px);
+        filter: drop-shadow(0 1px 1.5px color-mix(in srgb, var(--rd-paper) 60%, transparent)); }
+      .rh-m-feat-ico svg { display: block; }
       .rh-m-feat-t { font-family: var(--f-serif); font-weight: 600; color: var(--rd-ink);
-        font-size: clamp(10px, 2.9vw, 13px); line-height: 1.2; text-wrap: balance;
+        font-size: clamp(7.5px, 2.15vw, 10px); line-height: 1.18; text-wrap: balance; letter-spacing: 0.005em;
         text-shadow: 0 1px 2px color-mix(in srgb, var(--rd-paper) 62%, transparent); }
 
       /* Parchment description — paw ornament, sub, commerce row */
