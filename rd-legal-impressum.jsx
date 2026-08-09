@@ -22,7 +22,7 @@ const IMP_COPY = {
         'Zuständige Gewerbebehörde: [Bezirkshauptmannschaft / Magistrat]. Mitglied der Wirtschaftskammer: [WKO-Fachgruppe / Sparte]. Anwendbare gewerberechtliche Vorschriften: [Gewerbeordnung 1994 (GewO)], abrufbar unter www.ris.bka.gv.at.',
       ]},
       { h: 'Online-Streitbeilegung & Verbraucherschlichtung', body: [
-        'Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit: https://ec.europa.eu/consumers/odr. Verbraucher:innen können sich außerdem an die Schlichtung für Verbrauchergeschäfte (www.verbraucherschlichtung.at) wenden. Wir sind bemüht, Meinungsverschiedenheiten zuvor direkt zu klären — schreib uns einfach.',
+        'Hinweis: Die EU-Plattform zur Online-Streitbeilegung (OS) wurde zum 20.07.2025 eingestellt und steht nicht mehr zur Verfügung; ein Link darauf ist nicht mehr erforderlich. Verbraucher:innen in Österreich können sich an die Schlichtung für Verbrauchergeschäfte (www.verbraucherschlichtung.at) wenden. [Angeben, ob wir zur Teilnahme an einem Schlichtungsverfahren verpflichtet bzw. bereit sind.] Wir sind stets bemüht, Meinungsverschiedenheiten zuvor direkt zu klären — schreib uns einfach.',
       ]},
       { h: 'Urheberrecht & Haftung für Links', body: [
         'Alle Inhalte dieser Website — Texte, Illustrationen von Popcorn & Freddy, Fotografien und Gestaltung — sind urheberrechtlich geschützt. Jede Verwertung außerhalb der Grenzen des Urheberrechts bedarf unserer schriftlichen Zustimmung.',
@@ -50,7 +50,7 @@ const IMP_COPY = {
         'Competent trade authority: [district authority / municipal office]. Chamber of commerce membership: [WKO trade group / division]. Applicable trade regulations: [Austrian Trade Act 1994 (GewO)], available at www.ris.bka.gv.at.',
       ]},
       { h: 'Online dispute resolution & consumer arbitration', body: [
-        'The European Commission provides a platform for online dispute resolution (ODR): https://ec.europa.eu/consumers/odr. Consumers may also contact the Austrian consumer arbitration board (www.verbraucherschlichtung.at). We always try to resolve any disagreement directly first — just write to us.',
+        'Note: the EU Online Dispute Resolution (ODR) platform was discontinued on 20 July 2025 and is no longer available; a link to it is no longer required. Consumers in Austria may contact the consumer arbitration board (www.verbraucherschlichtung.at). [State whether we are obliged or willing to participate in an arbitration procedure.] We always try to resolve any disagreement directly first — just write to us.',
       ]},
       { h: 'Copyright & liability for links', body: [
         'All content on this website — texts, the Popcorn & Freddy illustrations, photographs and design — is protected by copyright. Any use beyond the limits of copyright law requires our written consent.',

@@ -3,6 +3,34 @@
 // ────────────────────────────────────────────────────────────────
 const { useEffect, useRef, useState } = React;
 
+// Accessible modal focus management (WCAG 2.4.3): move focus into the dialog on
+// open, trap Tab within it, close on Escape, and restore focus to the trigger
+// on close. Attach the returned ref to the dialog container element.
+function useModalFocus(open, onClose) {
+  const ref = useRef(null);
+  useEffect(() => {
+    if (!open) return;
+    const node = ref.current;
+    const prev = document.activeElement;
+    const sel = 'a[href],button:not([disabled]),select:not([disabled]),input:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
+    const focusables = () => Array.prototype.slice.call(node ? node.querySelectorAll(sel) : []).filter((el) => el.offsetParent !== null);
+    const items = focusables();
+    if (items[0]) items[0].focus(); else if (node) node.focus();
+    const onKey = (e) => {
+      if (e.key === 'Escape') { e.preventDefault(); if (onClose) onClose(); return; }
+      if (e.key !== 'Tab') return;
+      const f = focusables();
+      if (!f.length) return;
+      const first = f[0], last = f[f.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    };
+    document.addEventListener('keydown', onKey, true);
+    return () => { document.removeEventListener('keydown', onKey, true); if (prev && prev.focus) prev.focus(); };
+  }, [open]);
+  return ref;
+}
+
 // Shared cart store (localStorage) — used by Redesign.html and Checkout.html
 const RD_CART_KEY = 'pf-cart-v1';
 // A cart line is a REFERENCE to a Shopify product: { n: handle, handle, qty,
@@ -259,6 +287,7 @@ function RdLocaleControl({ lang, dark, onNavigate }) {
   };
   const cur = labelFor(current);
   const pickCc = rdPrefixMeta(pick).country;
+  const localeRef = useModalFocus(open, () => setOpen(false));
   return (
     <React.Fragment>
       <button type="button" className={'rd-locale-btn' + (dark ? ' rd-locale-btn--dark' : '')} onClick={show} aria-haspopup="dialog" aria-label={T.aria}>
@@ -267,7 +296,7 @@ function RdLocaleControl({ lang, dark, onNavigate }) {
       </button>
       {open && (
         <div className="rd-locale-overlay" onClick={(e) => { if (e.target === e.currentTarget) setOpen(false); }}>
-          <div className="rd-locale-modal" role="dialog" aria-modal="true" aria-label={T.aria}>
+          <div className="rd-locale-modal" role="dialog" aria-modal="true" aria-label={T.aria} ref={localeRef} tabIndex={-1}>
             <button type="button" className="rd-locale-x" aria-label="Schließen" onClick={() => setOpen(false)}><RdIcon name="close" size={18} /></button>
             <div style={{ display: 'flex', justifyContent: 'center' }}><RdFlag c={pickCc} size={40} /></div>
             <h3 className="r-display" style={{ fontSize: 23, color: 'var(--rd-ink)', textAlign: 'center', marginTop: 16, textWrap: 'balance' }}>{T.shop[pickCc]}</h3>
@@ -775,12 +804,7 @@ function RdCartSuggest({ lang }) {
 
 function RdCart({ open, cart, onClose, lang, onQty, onRemove, justAdded }) {
   const lines = usePFCartLines(cart, lang);
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [open, onClose]);
+  const cartRef = useModalFocus(open, onClose);
   if (!open) return null;
   const count = cart.reduce((s, c) => s + (c.qty || 1), 0);
   const cur = (lines.find((c) => c.currency) || {}).currency;
@@ -789,7 +813,7 @@ function RdCart({ open, cart, onClose, lang, onQty, onRemove, justAdded }) {
   return (
     <React.Fragment>
       <div className="rd-cart-scrim" onClick={onClose} />
-      <div className="rd-cart-panel" role="dialog" aria-modal="true" aria-label={lang === 'de' ? 'Warenkorb' : 'Cart'}>
+      <div className="rd-cart-panel" role="dialog" aria-modal="true" aria-label={lang === 'de' ? 'Warenkorb' : 'Cart'} ref={cartRef} tabIndex={-1}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
           <div className="r-it" style={{ fontSize: 24, fontWeight: 600, color: 'var(--rd-ink)' }}>{lang === 'de' ? 'Dein Korb' : 'Your basket'}{count > 0 ? ` · ${count}` : ''}</div>
           <button onClick={onClose} aria-label="close" style={{ fontSize: 24, lineHeight: 1, color: 'var(--rd-ink-mute)', padding: 4 }}>×</button>

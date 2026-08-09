@@ -60,6 +60,7 @@ const RC_COPY = {
       countries: ['Deutschland', 'Österreich', 'Schweiz'],
       locked: 'Anderes Land? Shop hier wechseln:',
       note: 'In 3–5 Werktagen bei dir. Die Versandkosten werden nach Eingabe deiner Lieferadresse berechnet.',
+      consent: 'Ich verlange ausdrücklich, dass mit der Herstellung meiner personalisierten Box vor Ablauf der Widerrufsfrist begonnen wird. Mir ist bekannt, dass ich mein Widerrufsrecht mit Beginn der Herstellung verliere.',
       back: 'Zurück',
       next: 'Weiter zur Zahlung',
     },
@@ -189,6 +190,7 @@ const RC_COPY = {
       countries: ['Germany', 'Austria', 'Switzerland'],
       locked: 'Different country? Switch shop here:',
       note: 'With you in 3–5 business days. Shipping is calculated once you enter your delivery address.',
+      consent: 'I expressly request that production of my personalised box begins before the withdrawal period ends. I understand that I lose my right of withdrawal once production has started.',
       back: 'Back',
       next: 'Continue to payment',
     },
@@ -420,7 +422,7 @@ function RcGift({ rc, lang, cur, code, setCode, onApply, onRemove, status, error
         </div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginTop: 8 }}>
           <span style={{ fontFamily: 'var(--f-sans)', fontWeight: 800, fontSize: 13.5, letterSpacing: '0.12em', color: 'var(--rd-ink-soft)' }}>{info.code}</span>
-          <span style={{ fontFamily: 'var(--f-sans)', fontWeight: 800, color: 'var(--rd-moss)' }}>−{rcFmt(applied, lang, cur)}</span>
+          <span style={{ fontFamily: 'var(--f-sans)', fontWeight: 800, color: 'var(--rd-moss-text)' }}>−{rcFmt(applied, lang, cur)}</span>
         </div>
         {remaining > 0 && (
           <div className="r-it" style={{ fontSize: 13.5, color: 'var(--rd-ink-mute)', marginTop: 6 }}>{g.remaining(rcFmt(remaining, lang, cur))}</div>
@@ -440,7 +442,7 @@ function RcGift({ rc, lang, cur, code, setCode, onApply, onRemove, status, error
         </button>
       </div>
       {error ? (
-        <div className="r-it" style={{ fontSize: 13.5, color: 'var(--rd-terra)', marginTop: 7 }}>{error}</div>
+        <div className="r-it" style={{ fontSize: 13.5, color: 'var(--rd-terra-text)', marginTop: 7 }}>{error}</div>
       ) : (
         <div className="r-it" style={{ fontSize: 13.5, color: 'var(--rd-ink-mute)', marginTop: 7 }}>{g.hint}</div>
       )}
@@ -479,7 +481,7 @@ function RcDiscount({ rc, lang, cur, code, setCode, onApply, onRemove, status, e
         </button>
       </div>
       {error ? (
-        <div className="r-it" style={{ fontSize: 13.5, color: 'var(--rd-terra)', marginTop: 7 }}>{error}</div>
+        <div className="r-it" style={{ fontSize: 13.5, color: 'var(--rd-terra-text)', marginTop: 7 }}>{error}</div>
       ) : (
         <div className="r-it" style={{ fontSize: 13.5, color: 'var(--rd-ink-mute)', marginTop: 7 }}>{g.hint}</div>
       )}
@@ -525,7 +527,7 @@ function RcSummary({ rc, t, lang, cur, cart, addons, totals, gift, disc, step })
             <div className="rc-sum-row"><span>{rc.disc.line}</span><span style={{ color: 'var(--rd-gold)', fontFamily: 'var(--f-sans)', fontWeight: 700 }}>−{rcFmt(totals.disc, lang, cur)}</span></div>
           )}
           {totals.gift > 0 && (
-            <div className="rc-sum-row"><span>{rc.gift.line}</span><span style={{ color: 'var(--rd-moss)', fontFamily: 'var(--f-sans)', fontWeight: 700 }}>−{rcFmt(totals.gift, lang, cur)}</span></div>
+            <div className="rc-sum-row"><span>{rc.gift.line}</span><span style={{ color: 'var(--rd-moss-text)', fontFamily: 'var(--f-sans)', fontWeight: 700 }}>−{rcFmt(totals.gift, lang, cur)}</span></div>
           )}
           <div className="rc-sum-row total">
             <span style={{ fontFamily: 'var(--f-sans)', fontWeight: 800, letterSpacing: '0.06em' }}>{rc.sum.total}</span>

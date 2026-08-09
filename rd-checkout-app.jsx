@@ -64,7 +64,7 @@ function RcDedication({ rc, name, value, want, setField }) {
         <div className="rc-field" style={{ margin: 0 }}>
           <textarea className="rc-input rc-ded-ta" value={value || ''} onChange={onChange} rows={10} placeholder={d.ph}
             style={{ minHeight: 230, resize: 'vertical', lineHeight: 1.6 }} />
-          <div className="r-it" style={{ textAlign: 'right', fontSize: 13, color: remaining <= 20 ? 'var(--rd-terra)' : 'var(--rd-ink-mute)', marginTop: 6 }}>{d.remaining(remaining)}</div>
+          <div className="r-it" style={{ textAlign: 'right', fontSize: 13, color: remaining <= 20 ? 'var(--rd-terra-text)' : 'var(--rd-ink-mute)', marginTop: 6 }}>{d.remaining(remaining)}</div>
         </div>
         <div className="rc-ded-preview">
           <div className="r-caps" style={{ color: 'var(--rd-gold)', letterSpacing: '0.2em', fontSize: 11 }}>{d.preview_caps}</div>
@@ -272,10 +272,14 @@ function RcStepShip({ rc, lang, form, setForm, onBack, onNext }) {
           <span className="r-it">{rc.ship.locked}</span>
           {typeof RdLocaleControl === 'function' && <RdLocaleControl lang={lang} />}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 12, color: 'var(--rd-moss)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 12, color: 'var(--rd-moss-text)' }}>
           <RdIcon name="truck" size={18} />
           <span className="r-it" style={{ fontSize: 15.5 }}>{rc.ship.note}</span>
         </div>
+        <label className="rc-consent">
+          <input type="checkbox" required checked={!!form.wConsent} onChange={(e) => setForm({ ...form, wConsent: e.target.checked })} />
+          <span className="r-it">{rc.ship.consent}</span>
+        </label>
       </div>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, marginTop: 26, flexWrap: 'wrap' }}>
         <button type="button" className="rbtn rbtn-ghost" onClick={onBack}>← {rc.ship.back}</button>
@@ -329,11 +333,11 @@ function RcStepPay({ rc, lang, cur, pay, setPay, sealing, onBack, onOrder, total
       </div>
       <p style={{ marginTop: 16, textAlign: 'right', fontSize: 13.5, fontFamily: 'var(--f-sans)', color: 'var(--rd-ink-mute)', lineHeight: 1.6 }}>
         {rc.pay.legal}{' '}
-        <a href={cP('AGB.html')} style={{ color: 'var(--rd-terra)', fontWeight: 600 }}>{lang === 'de' ? 'AGB' : 'Terms'}</a>
+        <a href={cP('AGB.html')} style={{ color: 'var(--rd-terra-text)', fontWeight: 600 }}>{lang === 'de' ? 'AGB' : 'Terms'}</a>
         {' · '}
-        <a href={cP('Widerruf.html')} style={{ color: 'var(--rd-terra)', fontWeight: 600 }}>{lang === 'de' ? 'Widerrufsrecht' : 'Right of withdrawal'}</a>
+        <a href={cP('Widerruf.html')} style={{ color: 'var(--rd-terra-text)', fontWeight: 600 }}>{lang === 'de' ? 'Widerrufsrecht' : 'Right of withdrawal'}</a>
         {' · '}
-        <a href={cP('Datenschutz.html')} style={{ color: 'var(--rd-terra)', fontWeight: 600 }}>{lang === 'de' ? 'Datenschutz' : 'Privacy'}</a>
+        <a href={cP('Datenschutz.html')} style={{ color: 'var(--rd-terra-text)', fontWeight: 600 }}>{lang === 'de' ? 'Datenschutz' : 'Privacy'}</a>
       </p>
     </form>
   );
@@ -632,6 +636,7 @@ function RcApp() {
         const childName = (p.name || '').trim();
         if (childName) attrs['Name des Kindes'] = childName;
         attrs['Sprache'] = String(p.lang || 'de').toUpperCase();
+        if (form.wConsent) attrs['Widerrufsverzicht'] = 'Verzicht bestätigt · ' + new Date().toISOString();
         const ded = (p.dedication || '').trim();
         if (ded && c.chapterNo === 1) attrs['Widmung'] = ded;
         out.push({ n: c.n, handle: c.handle || c.n, variantId: c.variantId, qty: 1, attrs: attrs });

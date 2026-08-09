@@ -29,26 +29,26 @@
 /* ────── PALETTES ────────────────────────────────────────── */
     :root, html[data-palette="wald"] {
       --rd-paper: #F7F0DF; --rd-paper-soft: #F1E8D1; --rd-paper-deep: #E8DCBE; --rd-cream: #FBF6E9;
-      --rd-ink: #2C2519; --rd-ink-soft: #5A5140; --rd-ink-mute: #8B8069;
+      --rd-ink: #2C2519; --rd-ink-soft: #5A5140; --rd-ink-mute: #675F4C;
       --rd-forest: #3F4E36; --rd-forest-deep: #2B3626; --rd-night: #1C231A;
       --rd-moss: #7A8A5F; --rd-sage: #B9C2A6;
-      --rd-walnut: #5F4A32; --rd-terra: #B0623C; --rd-gold: #A8823F; --rd-gold-soft: #C9A96C;
+      --rd-walnut: #5F4A32; --rd-terra: #B0623C; --rd-terra-text: #A05937; --rd-moss-text: #64714E; --rd-gold: #785B22; --rd-gold-soft: #C9A96C;
       --rd-primary: var(--rd-forest); --rd-primary-deep: var(--rd-forest-deep); --rd-on-primary: #F6F1E0;
     }
     html[data-palette="birke"] {
       --rd-paper: #FAF5EA; --rd-paper-soft: #F4EDDC; --rd-paper-deep: #EAE0C8; --rd-cream: #FDFAF1;
-      --rd-ink: #352B1F; --rd-ink-soft: #625647; --rd-ink-mute: #948872;
+      --rd-ink: #352B1F; --rd-ink-soft: #625647; --rd-ink-mute: #6A614C;
       --rd-forest: #57644B; --rd-forest-deep: #3B4633; --rd-night: #262E22;
       --rd-moss: #8A9770; --rd-sage: #C4CBB2;
-      --rd-walnut: #6B5138; --rd-terra: #B4744F; --rd-gold: #B08A45; --rd-gold-soft: #D2B47C;
+      --rd-walnut: #6B5138; --rd-terra: #B4744F; --rd-terra-text: #976142; --rd-moss-text: #697355; --rd-gold: #7B5D20; --rd-gold-soft: #D2B47C;
       --rd-primary: var(--rd-walnut); --rd-primary-deep: #523E2A; --rd-on-primary: #FAF5E8;
     }
     html[data-palette="abend"] {
       --rd-paper: #F1EAD5; --rd-paper-soft: #EAE0C6; --rd-paper-deep: #DDD0AE; --rd-cream: #F7F1DF;
-      --rd-ink: #262014; --rd-ink-soft: #52493A; --rd-ink-mute: #837860;
+      --rd-ink: #262014; --rd-ink-soft: #52493A; --rd-ink-mute: #5F5845;
       --rd-forest: #35422E; --rd-forest-deep: #243020; --rd-night: #151B12;
       --rd-moss: #6F7F55; --rd-sage: #ADB897;
-      --rd-walnut: #55422C; --rd-terra: #A65B38; --rd-gold: #9C7C3C; --rd-gold-soft: #BE9E62;
+      --rd-walnut: #55422C; --rd-terra: #A65B38; --rd-terra-text: #9C5635; --rd-moss-text: #5F6D49; --rd-gold: #6E5421; --rd-gold-soft: #BE9E62;
       --rd-primary: var(--rd-forest); --rd-primary-deep: var(--rd-night); --rd-on-primary: #F2ECD9;
     }
     :root {
@@ -114,6 +114,10 @@
     button { font-family: inherit; cursor: pointer; border: none; background: none; padding: 0; color: inherit; }
     img { display: block; max-width: 100%; }
     ::selection { background: var(--rd-gold-soft); color: var(--rd-ink); }
+    /* skip-to-content link (WCAG 2.4.1) — hidden until focused */
+    .rd-skip { position: fixed; top: -64px; left: 12px; z-index: 100001; background: var(--rd-primary); color: var(--rd-on-primary); padding: 12px 20px; border-radius: 0 0 12px 12px; font-family: var(--f-sans); font-weight: 700; font-size: 14px; letter-spacing: 0.02em; text-decoration: none; transition: top 0.18s ease; }
+    .rd-skip:focus { top: 0; outline: 3px solid var(--rd-gold-soft); outline-offset: 2px; }
+    #root:focus { outline: none; }
 
     .r-display { font-family: var(--f-display); font-weight: 400; letter-spacing: -0.005em; line-height: 1.06; overflow-wrap: break-word; hyphens: manual; }
     .r-price, .rd-price { font-variant-numeric: lining-nums tabular-nums; font-feature-settings: "lnum" 1, "tnum" 1; }

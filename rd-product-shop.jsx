@@ -724,7 +724,7 @@ const PS_SHOP_CSS = `
   .shop-stepper > button:hover { background: color-mix(in srgb, var(--rd-terra) 14%, var(--rd-cream)); }
   .shop-stepper > button:disabled { opacity: .35; cursor: not-allowed; background: none; }
   .shop-stepper > span { min-width: 30px; text-align: center; font-family: var(--f-sans); font-weight: 700; font-size: 16px; color: var(--rd-ink); }
-  .shop-incart-note { flex: 1 1 100%; display: flex; align-items: center; justify-content: center; gap: 7px; font-family: var(--f-sans); font-size: 13.5px; color: var(--rd-moss); }
+  .shop-incart-note { flex: 1 1 100%; display: flex; align-items: center; justify-content: center; gap: 7px; font-family: var(--f-sans); font-size: 13.5px; color: var(--rd-forest); }
   .shop-scarcity { display: flex; align-items: center; gap: 9px; font-family: var(--f-sans); font-weight: 600; font-size: 13.5px; color: var(--rd-terra); }
   .shop-dot { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--rd-terra); box-shadow: 0 0 0 0 color-mix(in srgb, var(--rd-terra) 60%, transparent); animation: shop-pulse 2s infinite; }
   @keyframes shop-pulse { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--rd-terra) 55%, transparent); } 70% { box-shadow: 0 0 0 7px transparent; } 100% { box-shadow: 0 0 0 0 transparent; } }
@@ -743,7 +743,7 @@ const PS_SHOP_CSS = `
     #inside .rd-peek-item, #ch1-ben .rd-peek-item, #pages .rd-peek-item { flex: 0 0 calc((100% - 56px) / 3); }
   }
   .shop-review { height: 100%; display: flex; flex-direction: column; background: var(--rd-paper); border: 1px solid color-mix(in srgb, var(--rd-ink) 11%, transparent); border-radius: 14px; padding: 26px 26px 24px; box-shadow: 0 1px 3px color-mix(in srgb, var(--rd-ink) 6%, transparent), 0 22px 44px -34px color-mix(in srgb, var(--rd-ink) 30%, transparent); }
-  .shop-verified { display: inline-flex; align-items: center; gap: 6px; margin-top: 12px; font-family: var(--f-sans); font-weight: 700; font-size: 11.5px; letter-spacing: 0.04em; color: var(--rd-moss); }
+  .shop-verified { display: inline-flex; align-items: center; gap: 6px; margin-top: 12px; font-family: var(--f-sans); font-weight: 700; font-size: 11.5px; letter-spacing: 0.04em; color: var(--rd-forest); }
   .shop-sticky { position: fixed; left: 0; right: 0; bottom: var(--vv, 0px); z-index: 45; background: var(--rd-paper); border-top: 1px solid color-mix(in srgb, var(--rd-ink) 14%, transparent); box-shadow: 0 -14px 40px -24px color-mix(in srgb, var(--rd-ink) 45%, transparent); padding-bottom: env(safe-area-inset-bottom); transform: translateY(110%); transition: transform 0.4s var(--ease); }
   .shop-sticky.on { transform: translateY(0); }
   .shop-sticky::after { content: ''; position: absolute; left: 0; right: 0; top: 100%; height: 160px; background: var(--rd-paper); pointer-events: none; }

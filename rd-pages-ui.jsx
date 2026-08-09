@@ -189,7 +189,7 @@ const RD_PAGE_CSS = `
   .rd-page-label { display: block; font-family: var(--f-sans); font-weight: 700; font-size: 12.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--rd-ink-soft); margin-bottom: 8px; }
   .rd-check-row { display: grid; grid-template-columns: 26px 1fr; gap: 14px; align-items: start; padding: 13px 0; border-top: 1px solid color-mix(in srgb, var(--rd-ink) 12%, transparent); }
   .rd-check-row:last-child { border-bottom: 1px solid color-mix(in srgb, var(--rd-ink) 12%, transparent); }
-  .rd-check-row .ok { color: var(--rd-moss); margin-top: 3px; }
+  .rd-check-row .ok { color: var(--rd-forest); margin-top: 3px; }
   .rd-check-row .no { color: var(--rd-terra); margin-top: 3px; }
   @media (max-width: 900px) { .rd-info-grid, .rd-info-grid-3 { grid-template-columns: minmax(0, 1fr); } }
 `;

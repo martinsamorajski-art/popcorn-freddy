@@ -10,7 +10,7 @@ const SHIP_COPY = {
     ship_t: 'So reist deine Schatzkiste',
     ship_cards: [
       { icon: 'truck', t: 'Versandkosten', d: 'Die Versandkosten richten sich nach dem Lieferland und werden dir an der Kasse angezeigt, sobald du deine Adresse eingibst. Aktuell liefern wir nach Österreich, Deutschland und in die Schweiz.' },
-      { icon: 'archive', t: 'In 2–3 Werktagen bei euch', d: 'Bestellungen bis 14 Uhr packen wir noch am selben Tag. Da jede Box personalisiert wird, kann es in seltenen Fällen einen Werktag länger dauern — wir sagen dir dann Bescheid.' },
+      { icon: 'archive', t: 'In 3–5 Werktagen bei euch', d: 'Bestellungen bis 14 Uhr packen wir noch am selben Tag. Da jede Box personalisiert wird, kann es in seltenen Fällen einen Werktag länger dauern — wir sagen dir dann Bescheid.' },
       { icon: 'compass', t: 'Sendungsverfolgung inklusive', d: 'Sobald deine Box unterwegs ist, bekommst du eine E-Mail mit Tracking-Link. So wisst ihr genau, wann das Abenteuer klingelt.' },
       { icon: 'shield', t: 'Plastikfrei verpackt', d: 'Wir verpacken in Karton, Holzwolle und Papier — versiegelt mit Wachs. Alles darf ins Altpapier oder auf den Kompost.' },
     ],
@@ -39,7 +39,7 @@ const SHIP_COPY = {
     ship_t: 'How your treasure chest travels',
     ship_cards: [
       { icon: 'truck', t: 'Shipping costs', d: 'Shipping costs depend on the delivery country and are shown at checkout as soon as you enter your address. We currently deliver to Austria, Germany and Switzerland.' },
-      { icon: 'archive', t: 'With you in 2–3 business days', d: 'Orders placed before 2 pm are packed the same day. Because every box is personalised, it may occasionally take one business day longer — we will let you know if so.' },
+      { icon: 'archive', t: 'With you in 3–5 business days', d: 'Orders placed before 2 pm are packed the same day. Because every box is personalised, it may occasionally take one business day longer — we will let you know if so.' },
       { icon: 'compass', t: 'Tracking included', d: 'As soon as your box is on its way, you receive an email with a tracking link. So you know exactly when the adventure will ring the doorbell.' },
       { icon: 'shield', t: 'Packed plastic-free', d: 'We pack in cardboard, wood wool and paper — sealed with wax. Everything can go into the paper recycling or onto the compost.' },
     ],
