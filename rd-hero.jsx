@@ -143,14 +143,14 @@ function RdHero({ t, lang, direction = 'a', intensity = 5, onAdd }) {
                 </span>
                 {t.hero.title_a4}
               </h1>
-              <div className="rh-m-feats">
-                {(h.heroFeatures || []).map((f, i) => (
-                  <div key={i} className="rh-m-feat">
-                    <span className="rh-m-feat-ico"><RdFeatIcon name={f.icon} /></span>
-                    <span className="rh-m-feat-t">{f.t}</span>
-                  </div>
-                ))}
-              </div>
+            </div>
+            <div className="rh-m-feats" aria-label="Das steckt drin">
+              {(h.heroFeatures || []).map((f, i) => (
+                <div key={i} className="rh-m-feat">
+                  <span className="rh-m-feat-ico"><RdFeatIcon name={f.icon} /></span>
+                  <span className="rh-m-feat-t">{f.t}</span>
+                </div>
+              ))}
             </div>
             <div className="rh-m-tear" aria-hidden="true">
               <svg viewBox="0 0 1440 100" preserveAspectRatio="none"><path d="M0 42 C120 12 220 72 360 46 C500 20 620 76 760 48 C900 22 1020 72 1160 46 C1290 26 1360 60 1440 44 L1440 100 L0 100 Z" fill="var(--rd-paper)" /></svg>

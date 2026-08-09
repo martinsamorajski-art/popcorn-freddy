@@ -300,19 +300,20 @@
       .rh-m-tear { position: absolute; left: 0; right: 0; bottom: -1px; z-index: 3; height: clamp(26px, 7vw, 48px); pointer-events: none; }
       .rh-m-tear svg { width: 100%; height: 100%; display: block; }
 
-      /* Feature row — five items under the headline, thin bookish icons, subtle separators */
-      .rh-m-feats { display: flex; align-items: flex-start; justify-content: center;
-        margin: clamp(14px, 4vw, 24px) auto 0; width: 84%; max-width: 340px; }
+      /* Feature row — pinned over the dark wood, just below the paint cups. Cream ink for contrast. */
+      .rh-m-feats { position: absolute; z-index: 3; left: 50%; transform: translateX(-50%);
+        top: 87.5%; display: flex; align-items: flex-start; justify-content: center;
+        width: 92%; max-width: 430px; }
       .rh-m-feat { position: relative; flex: 1 1 0; min-width: 0;
-        display: flex; flex-direction: column; align-items: center; gap: clamp(4px, 1.2vw, 6px); padding: 0 clamp(2px, 0.9vw, 6px); }
-      .rh-m-feat + .rh-m-feat::before { content: ''; position: absolute; left: 0; top: 4%; bottom: 34%;
-        width: 1px; background: color-mix(in srgb, var(--rd-ink) 20%, transparent); }
-      .rh-m-feat-ico { display: block; color: var(--rd-walnut); width: clamp(17px, 5vw, 23px); height: clamp(17px, 5vw, 23px);
-        filter: drop-shadow(0 1px 1.5px color-mix(in srgb, var(--rd-paper) 60%, transparent)); }
+        display: flex; flex-direction: column; align-items: center; gap: clamp(4px, 1.4vw, 7px); padding: 0 clamp(3px, 1.1vw, 7px); }
+      .rh-m-feat + .rh-m-feat::before { content: ''; position: absolute; left: 0; top: 6%; bottom: 30%;
+        width: 1px; background: color-mix(in srgb, var(--rd-cream) 34%, transparent); }
+      .rh-m-feat-ico { display: block; color: var(--rd-cream); width: clamp(20px, 6vw, 28px); height: clamp(20px, 6vw, 28px);
+        filter: drop-shadow(0 1px 3px rgba(0,0,0,0.55)); }
       .rh-m-feat-ico svg { display: block; }
-      .rh-m-feat-t { font-family: var(--f-serif); font-weight: 600; color: var(--rd-ink);
-        font-size: clamp(7.5px, 2.15vw, 10px); line-height: 1.18; text-wrap: balance; letter-spacing: 0.005em;
-        text-shadow: 0 1px 2px color-mix(in srgb, var(--rd-paper) 62%, transparent); }
+      .rh-m-feat-t { font-family: var(--f-serif); font-weight: 600; color: var(--rd-cream);
+        font-size: clamp(8.5px, 2.5vw, 12px); line-height: 1.18; text-wrap: balance; letter-spacing: 0.005em;
+        text-shadow: 0 1px 3px rgba(0,0,0,0.6); }
 
       /* Parchment description — paw ornament, sub, commerce row */
       .rh-m-desc { background: var(--rd-paper); margin-top: -1px; padding: clamp(22px, 6.5vw, 36px) 20px clamp(30px, 8vw, 46px); }
@@ -334,7 +335,7 @@
       .rh-m-head { padding-top: calc(env(safe-area-inset-top, 0px) + 90px); }
       .rh-m-title { font-size: clamp(24px, 3.6vw, 34px); }
       .rh-m-squig { width: clamp(96px, 13vw, 130px); }
-      .rh-m-feats { max-width: 560px; }
+      .rh-m-feats { max-width: 560px; top: 88%; }
     }
 
     @media (max-width: 900px) {
