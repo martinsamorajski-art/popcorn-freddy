@@ -336,7 +336,7 @@ function RdStickyBar({ t, onAdd, product }) {
         </div>
         <div className="rd-sticky-actions">
           <button className="rbtn rbtn-primary rd-sticky-btn" disabled={!product} onClick={onAdd}>{t.stickyCta} <RdIcon name="arrow" size={16} /></button>
-          <a className="rbtn rd-sticky-all" href="Alle Kapitel.html">{t.stickyAll}</a>
+          <a className="rbtn rd-sticky-all" href="Alle Kapitel.html" aria-label={t.stickyAll} title={t.stickyAll}><RdIcon name="menu" size={17} /><span className="rd-sticky-all-txt">{t.stickyAll}</span></a>
         </div>
       </div>
     </div>

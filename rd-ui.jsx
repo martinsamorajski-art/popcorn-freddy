@@ -351,7 +351,7 @@ function RdIcon({ name, size = 20 }) {
   const common = { width: size, height: size, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.6, strokeLinecap: 'round', strokeLinejoin: 'round' };
   const paths = {
     user: <React.Fragment><circle cx="12" cy="8" r="3.6" /><path d="M5.5 20.5a6.5 6.5 0 0 1 13 0" /></React.Fragment>,
-    build: <React.Fragment><path d="M13.5 4.5 19.5 10.5 17 13l-6-6 2.5-2.5Z" /><path d="m11 7-7.5 7.5L6 17l7.5-7.5" /></React.Fragment>,
+    build: <React.Fragment><rect x="5.4" y="4.2" width="13.2" height="5.6" rx="1.5" /><path d="M9.6 9.8v8.9a1.3 1.3 0 0 0 1.3 1.3h2.2a1.3 1.3 0 0 0 1.3-1.3V9.8" /></React.Fragment>,
     blocks: <React.Fragment><rect x="3.5" y="12.5" width="7" height="7" rx="1" /><rect x="13.5" y="12.5" width="7" height="7" rx="1" /><path d="M12 4.2 15.5 10.5h-7L12 4.2Z" /></React.Fragment>,
     car: <React.Fragment><path d="M3 14.5h18v3a.5.5 0 0 1-.5.5h-1.5v-.5a1.5 1.5 0 0 0-3 0v.5H8.5v-.5a1.5 1.5 0 0 0-3 0v.5H3.5a.5.5 0 0 1-.5-.5v-3Z" /><path d="M4.5 14.5 6.2 9.6A2 2 0 0 1 8.1 8.3h7.8a2 2 0 0 1 1.9 1.3l1.7 4.9" /></React.Fragment>,
     heart: <path d="M12 20.5S4 16 4 9.8A4.3 4.3 0 0 1 12 7a4.3 4.3 0 0 1 8 2.8c0 6.2-8 10.7-8 10.7Z" />,
@@ -366,10 +366,10 @@ function RdIcon({ name, size = 20 }) {
     check: <path d="m5 12.5 4.5 4.5L19 7.5" />,
     pen: <React.Fragment><path d="M4.5 19.5 5.6 15.6 16.8 4.4a2 2 0 0 1 2.8 2.8L8.4 18.4l-3.9 1.1Z" /><path d="m14.5 6.7 2.8 2.8" /></React.Fragment>,
     compass: <React.Fragment><circle cx="12" cy="12" r="9" /><path d="M15.5 8.5 13.5 13.5 8.5 15.5 10.5 10.5Z" /></React.Fragment>,
-    book: <React.Fragment><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15.5H6.5A2.5 2.5 0 0 0 4 21V5.5Z" /><path d="M4 18.5A2.5 2.5 0 0 1 6.5 16H20" /></React.Fragment>,
-    puzzle: <path d="M9 4.5h1.6a1.2 1.2 0 0 1 1.16 1.5 1 1 0 0 0 1 1.25 1.1 1.1 0 0 0 .78-.32 1.15 1.15 0 0 1 1.96.82v1.6a1 1 0 0 0 1.25 1 1.2 1.2 0 0 1 1.5 1.16V15h-1.6a1.2 1.2 0 0 0-1.16 1.5 1 1 0 0 1-1 1.25 1.1 1.1 0 0 1-.78-.32 1.15 1.15 0 0 0-1.96.82v1.75H9.5a1.2 1.2 0 0 1-1.16-1.5 1 1 0 0 0-1-1.25 1.1 1.1 0 0 0-.78.32 1.15 1.15 0 0 1-1.96-.82V15a1.2 1.2 0 0 0 1.5-1.16 1 1 0 0 0-1.25-1A1.15 1.15 0 0 1 4.03 10.9 1.1 1.1 0 0 1 5 11.7a1 1 0 0 0 1.25-1A1.2 1.2 0 0 0 4.75 9.5V7.7A1.2 1.2 0 0 1 6 6.5h1.75a1 1 0 0 0 1-1.25A1.2 1.2 0 0 1 9 4.5Z" />,
-    map: <React.Fragment><path d="M9 4.5 4 6.6v13l5-2.1 6 2.5 5-2.1v-13l-5 2.1-6-2.5Z" /><path d="M9 4.5v12.4M15 7v12.5" /></React.Fragment>,
-    chest: <React.Fragment><path d="M4 11.4Q4 5.6 12 5.6 20 5.6 20 11.4v6.6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1Z" /><path d="M3.4 11.4h17.2" /><path d="M10.8 10.4h2.4v3.2h-2.4Z" /><circle cx="12" cy="11.9" r="0.55" fill="currentColor" /></React.Fragment>,
+    book: <React.Fragment><path d="M12 6.9C10.2 5.5 7.8 4.8 4.6 5v12.8c3.2-.2 5.6.5 7.4 1.9 1.8-1.4 4.2-2.1 7.4-1.9V5c-3.2-.2-5.6.5-7.4 1.9Z" /><path d="M12 6.9v12.8" /></React.Fragment>,
+    puzzle: <path d="M4.9 19.1V5.4h4.2a1.05 1.05 0 0 0 .95-1.5 2.05 2.05 0 1 1 3.9 0 1.05 1.05 0 0 0 .95 1.5h4.2v4.2a1.05 1.05 0 0 1-1.5.95 2.05 2.05 0 1 0 0 3.9 1.05 1.05 0 0 1 1.5.95v4.2Z" />,
+    map: <React.Fragment><path d="M9 4.6 3.9 6.7v12.7L9 17.3l6 2.4 5.1-2.1V5L15 7.1 9 4.6Z" /><path d="M9 4.6v12.7M15 7.1v12.6" /></React.Fragment>,
+    chest: <React.Fragment><path d="M4.3 10.9c0-3.5 3.5-5.2 7.7-5.2s7.7 1.7 7.7 5.2v7a1.2 1.2 0 0 1-1.2 1.2H5.5a1.2 1.2 0 0 1-1.2-1.2Z" /><path d="M4.3 12.5h15.4" /><path d="M10.9 11.1h2.2v2.9h-2.2Z" /></React.Fragment>,
     cart: <React.Fragment><path d="M2.5 3.5h2.1l1.8 10.2a1.5 1.5 0 0 0 1.5 1.25h8.3a1.5 1.5 0 0 0 1.47-1.18L19.4 6.5H5.6" /><circle cx="9" cy="19.5" r="1.4" /><circle cx="17" cy="19.5" r="1.4" /></React.Fragment>,
     menu: <React.Fragment><path d="M4 7h16" /><path d="M4 12h16" /><path d="M4 17h16" /></React.Fragment>,
     close: <React.Fragment><path d="M6 6l12 12" /><path d="M18 6 6 18" /></React.Fragment>,
@@ -780,27 +780,44 @@ function RdLangSuggest() {
 // the child's name are handled. Shopify is the ONLY source: with no live
 // product there is no card, just the empty note.
 function RdCartSuggest({ lang }) {
-  const handle = 'kapitel-1-fluesterwald';
-  const p = usePFProduct(handle, lang);
-  const img = p && p.images && p.images[0] && (p.images[0].src || p.images[0]);
+  const { list } = usePFChapters(lang);
+  const de = lang === 'de';
+  const chapters = (list || []).slice(0, 3);
+  const chLabel = (p) => (p.chapterNo != null ? (de ? 'Kap. ' + p.chapterNo : 'Ch. ' + p.chapterNo) : p.title);
+  // Placeholders while the catalog loads, so the row never collapses to just
+  // the "all chapters" tile and then jumps.
+  const slots = chapters.length ? chapters : [null, null, null];
   return (
     <div className="rd-cart-empty">
-      <div className="r-it" style={{ fontSize: 17, color: 'var(--rd-ink-soft)' }}>{lang === 'de' ? 'Noch leer — Zeit für ein Abenteuer ✦' : 'Empty — time for an adventure ✦'}</div>
-      {p && p.title && (
-        <React.Fragment>
-          <div className="r-caps" style={{ marginTop: 18, color: 'var(--rd-ink-mute)' }}>{lang === 'de' ? 'Hier fängt alles an' : 'Where it all begins'}</div>
-          <a className="rd-bsug" href={'/produkt/' + handle}>
-            {img && <img src={img} alt="" />}
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div className="rd-bsug-title">{p.title}</div>
-              {p.priceFormatted && <div className="r-it" style={{ fontSize: 14, color: 'var(--rd-ink-soft)', marginTop: 2 }}>{p.priceFormatted}</div>}
-              <span className="rd-bsug-cta">{lang === 'de' ? 'Kapitel ansehen' : 'View chapter'} <RdIcon name="arrow" size={15} /></span>
-            </div>
-          </a>
-        </React.Fragment>
-      )}
-      <a className="rd-cart-continue" style={{ display: 'block', textAlign: 'center' }} href="/Alle Kapitel.html">{lang === 'de' ? 'Alle Kapitel ansehen' : 'See all chapters'}</a>
-      <a className="rd-cart-continue" style={{ display: 'block', textAlign: 'center', marginTop: 8 }} href="/Geschenkkarten.html">{lang === 'de' ? 'Abenteuer verschenken' : 'Give an adventure'}</a>
+      <div className="rd-empty-head">
+        <div className="rd-empty-title">{de ? 'Dein Korb ist noch leer' : 'Your basket is empty'}</div>
+        <div className="rd-empty-sub">{de ? 'Jedes Kapitel ist ein eigenes kleines Abenteuer — hier fängt es an.' : 'Every chapter is its own little adventure — start here.'}</div>
+      </div>
+      <div className="rd-empty-grid">
+        {slots.map((p, i) => {
+          if (!p) return <span key={i} className="rd-echap rd-echap-skel" aria-hidden="true"><span className="rd-echap-thumb rd-skel" /></span>;
+          const img = p.images && p.images[0] && (p.images[0].src || p.images[0]);
+          return (
+            <a key={p.handle} className="rd-echap" href={'/produkt/' + p.handle}>
+              <span className="rd-echap-thumb">{img ? <img src={img} alt="" /> : null}</span>
+              <span className="rd-echap-no">{chLabel(p)}</span>
+              {p.priceFormatted && <span className="rd-echap-price">{p.priceFormatted}</span>}
+            </a>
+          );
+        })}
+        <a className="rd-echap rd-echap-all" href="/Alle Kapitel.html">
+          <span className="rd-echap-all-ic"><RdIcon name="menu" size={20} /></span>
+          <span className="rd-echap-no">{de ? 'Alle Kapitel' : 'All chapters'}</span>
+        </a>
+      </div>
+      <a className="rd-egift" href="/Geschenkkarten.html">
+        <span className="rd-egift-ic"><RdIcon name="gift" size={22} /></span>
+        <span className="rd-egift-txt">
+          <span className="rd-egift-title">{de ? 'Ein Abenteuer verschenken' : 'Gift an adventure'}</span>
+          <span className="rd-egift-sub">{de ? 'Geschenkkarte in jeder Höhe — sofort per E-Mail' : 'Gift card in any amount — instant by email'}</span>
+        </span>
+        <RdIcon name="arrow" size={16} />
+      </a>
     </div>
   );
 }
@@ -881,6 +898,28 @@ function RdCart({ open, cart, onClose, lang, onQty, onRemove, justAdded }) {
         .rd-ship-track { margin-top: 9px; height: 6px; border-radius: 4px; background: color-mix(in srgb, var(--rd-ink) 12%, transparent); overflow: hidden; }
         .rd-ship-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--rd-terra), var(--rd-gold)); transition: width .5s cubic-bezier(.22,.61,.36,1); }
         .rd-cart-empty { padding: 8px 2px; }
+        .rd-empty-head { margin-bottom: 14px; }
+        .rd-empty-title { font-family: var(--f-serif); font-weight: 600; font-size: 20px; color: var(--rd-ink); line-height: 1.15; }
+        .rd-empty-sub { margin-top: 5px; font-family: var(--f-sans); font-size: 13.5px; line-height: 1.42; color: var(--rd-ink-soft); }
+        .rd-empty-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+        .rd-echap { display: flex; flex-direction: column; align-items: stretch; text-decoration: none; background: var(--rd-paper-soft); border: 1px solid color-mix(in srgb, var(--rd-ink) 12%, transparent); border-radius: 10px; padding: 6px 6px 8px; transition: border-color .15s, transform .15s, box-shadow .15s; }
+        .rd-echap:hover { border-color: var(--rd-gold); transform: translateY(-2px); box-shadow: 0 10px 20px -14px color-mix(in srgb, var(--rd-ink) 55%, transparent); }
+        .rd-echap-thumb { aspect-ratio: 1; border-radius: 6px; overflow: hidden; background: color-mix(in srgb, var(--rd-ink) 8%, transparent); }
+        .rd-echap-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .rd-echap-no { margin-top: 6px; font-family: var(--f-sans); font-weight: 700; font-size: 11.5px; color: var(--rd-ink); line-height: 1.2; text-align: center; }
+        .rd-echap-price { margin-top: 2px; font-family: var(--f-sans); font-size: 11px; color: var(--rd-ink-soft); text-align: center; }
+        .rd-echap-skel { pointer-events: none; }
+        .rd-echap-all { justify-content: center; text-align: center; background: color-mix(in srgb, var(--rd-gold) 12%, var(--rd-paper-soft)); border-color: color-mix(in srgb, var(--rd-gold) 45%, transparent); }
+        .rd-echap-all:hover { border-color: var(--rd-gold); }
+        .rd-echap-all-ic { aspect-ratio: 1; display: grid; place-items: center; color: var(--rd-terra); }
+        .rd-egift { margin-top: 15px; display: flex; align-items: center; gap: 13px; padding: 14px; border-radius: 13px; text-decoration: none; background: linear-gradient(120deg, var(--rd-terra), var(--rd-gold)); box-shadow: 0 14px 28px -18px color-mix(in srgb, var(--rd-terra) 85%, transparent); transition: transform .15s, box-shadow .15s; }
+        .rd-egift:hover { transform: translateY(-2px); box-shadow: 0 18px 34px -18px color-mix(in srgb, var(--rd-terra) 85%, transparent); }
+        .rd-egift-ic { width: 42px; height: 42px; border-radius: 11px; flex: none; display: grid; place-items: center; background: color-mix(in srgb, #fff 26%, transparent); color: #fff; }
+        .rd-egift-txt { flex: 1; min-width: 0; display: block; }
+        .rd-egift-title { display: block; font-family: var(--f-serif); font-weight: 600; font-size: 16px; color: #fff; line-height: 1.2; }
+        .rd-egift-sub { display: block; margin-top: 2px; font-family: var(--f-sans); font-size: 12.5px; color: color-mix(in srgb, #fff 88%, transparent); line-height: 1.3; }
+        .rd-egift > svg { flex: none; color: #fff; }
+        /* legacy single-suggestion card (kept for other callers) */
         .rd-bsug { margin-top: 10px; display: flex; align-items: center; gap: 13px; padding: 12px; background: var(--rd-paper-soft); border-radius: 11px; border: 1px solid color-mix(in srgb, var(--rd-gold) 32%, transparent); text-decoration: none; transition: border-color .2s, background .2s; }
         .rd-bsug:hover { border-color: var(--rd-gold); background: color-mix(in srgb, var(--rd-gold) 8%, var(--rd-paper-soft)); }
         .rd-bsug-cta { display: inline-flex; align-items: center; gap: 6px; margin-top: 9px; font-family: var(--f-sans); font-weight: 700; font-size: 13px; color: var(--rd-terra); }
